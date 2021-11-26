@@ -36,3 +36,20 @@ func Transfer(s *Scope) protocol.Scope {
 	}
 	return ps
 }
+
+func UnTransfer(s *Scope, ps protocol.Scope) {
+	s.Instructions = ps.Ins
+	s.Magic = ps.Magic
+	if s.DataSource != nil {
+		s.DataSource.IsMerge = ps.DataSource.IsMerge
+		s.DataSource.SchemaName = ps.DataSource.SchemaName
+		s.DataSource.RelationName = ps.DataSource.RelationName
+		s.DataSource.RefCounts = ps.DataSource.RefCounts
+		s.DataSource.Attributes = ps.DataSource.Attributes
+	}
+	s.NodeInfo.Id = ps.NodeInfo.Id
+	s.NodeInfo.Addr = ps.NodeInfo.Addr
+	for i := range ps.PreScopes {
+		 UnTransfer(s.PreScopes[i], ps.PreScopes[i])
+	}
+}

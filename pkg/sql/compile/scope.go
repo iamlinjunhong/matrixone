@@ -15,6 +15,7 @@
 package compile
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"matrixone/pkg/container/batch"
@@ -25,6 +26,7 @@ import (
 	"matrixone/pkg/sql/colexec/merge"
 	"matrixone/pkg/sql/errors"
 	"matrixone/pkg/sql/plan"
+	"matrixone/pkg/sql/protocol"
 	"matrixone/pkg/sql/viewexec/plus"
 	"matrixone/pkg/sql/viewexec/times"
 	"matrixone/pkg/sql/viewexec/transform"
@@ -337,6 +339,15 @@ func (s *Scope) MergeRun(e engine.Engine) error {
 }
 
 func (s *Scope) RemoteRun(e engine.Engine) error {
+	var buf bytes.Buffer
+	if err := protocol.EncodeScope(Transfer(s), &buf); err != nil {
+		return err
+	}
+	ps, _, err := protocol.DecodeScope(buf.Bytes())
+	if err != nil {
+		return err
+	}
+	UnTransfer(s, ps)
 	return s.ParallelRun(e)
 }
 
