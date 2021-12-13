@@ -59,7 +59,6 @@ func init() {
 	gob.Register(UntransformArgument{})
 
 	gob.Register(Source{})
-	gob.Register(Node{})
 	gob.Register(Scope{})
 
 	gob.Register(types.Date(0))
@@ -83,13 +82,6 @@ func EncodeScope(s Scope, buf *bytes.Buffer) error {
 			return err
 		}
 	}
-	// Node
-	data, err = encoding.Encode(s.NodeInfo)
-	if err != nil {
-		return err
-	}
-	buf.Write(encoding.EncodeUint32(uint32(len(data))))
-	buf.Write(data)
 	// Ins
 	if err := EncodeInstructions(s.Ins, buf); err != nil {
 		return err
@@ -119,13 +111,6 @@ func DecodeScope(data []byte) (Scope, []byte, error) {
 			return s, nil, err
 		}
 	}
-	// Node
-	n = encoding.DecodeUint32(data[:4])
-	data = data[4:]
-	if err = encoding.Decode(data[:n], &s.NodeInfo); err != nil {
-		return s, nil, err
-	}
-	data = data[n:]
 	// Ins
 	if s.Ins, data, err = DecodeInstructions(data); err != nil {
 		return s, nil, err

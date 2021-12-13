@@ -111,8 +111,6 @@ type UntransformArgument struct {
 	FreeVars []string
 }
 
-// scope
-
 type Source struct {
 	IsMerge      bool
 	SchemaName   string
@@ -121,15 +119,9 @@ type Source struct {
 	Attributes   []string
 }
 
-type Node struct {
-	Id	  string
-	Addr  string
-}
-
 type Scope struct {
 	Magic 	  		int
 	DataSource      Source
 	PreScopes 		[]Scope
-	NodeInfo 		Node
 	Ins		  		vm.Instructions
 }

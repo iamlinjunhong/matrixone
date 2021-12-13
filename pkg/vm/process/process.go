@@ -75,3 +75,12 @@ func FreeRegisters(proc *Process) {
 	}
 	proc.Reg.Vecs = proc.Reg.Vecs[:0]
 }
+
+func (p *Process) Alloc(size int64) ([]byte, error) {
+	data, err := mheap.Alloc(p.Mp, size)
+	if err != nil {
+		return nil, err
+	}
+	return data[:size], nil
+}
+
