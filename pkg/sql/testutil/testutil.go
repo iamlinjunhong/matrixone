@@ -8,6 +8,8 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/matrixorigin/matrixone/pkg/logutil"
 	"github.com/matrixorigin/matrixone/pkg/rpcserver"
+	"github.com/matrixorigin/matrixone/pkg/sql/handler"
+
 	//"github.com/matrixorigin/matrixone/pkg/sql/handler"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/memEngine"
@@ -20,8 +22,8 @@ func NewTestServer(e engine.Engine, proc *process.Process) (rpcserver.Server, er
 	if err != nil {
 		return nil, err
 	}
-	//hp := handler.New(e, proc)
-	//srv.Register(hp.Process)
+	hp := handler.New(e, proc)
+	srv.Register(hp.Process)
 	return srv, nil
 }
 

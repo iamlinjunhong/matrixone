@@ -18,7 +18,13 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/matrixorigin/matrixone/pkg/rpcserver"
+	"github.com/matrixorigin/matrixone/pkg/sql/handler"
+	"github.com/matrixorigin/matrixone/pkg/vm/mheap"
+	"github.com/matrixorigin/matrixone/pkg/vm/mmu/guest"
+	"github.com/matrixorigin/matrixone/pkg/vm/process"
 	"math"
+	"strings"
 
 	"github.com/matrixorigin/matrixcube/storage/kv"
 	"github.com/matrixorigin/matrixone/pkg/catalog"
@@ -187,7 +193,7 @@ func main() {
 
 	log.SetLevelByString(config.GlobalSystemVariables.GetCubeLogLevel())
 
-	//Host := config.GlobalSystemVariables.GetHost()
+	Host := config.GlobalSystemVariables.GetHost()
 	NodeId := config.GlobalSystemVariables.GetNodeID()
 	strNodeId := strconv.FormatInt(NodeId, 10)
 
@@ -260,26 +266,39 @@ func main() {
 	eng := aoeEngine.New(c)
 	pci.SetRemoveEpoch(removeEpoch)
 
-	//hm := config.HostMmu
-	//gm := guest.New(1<<40, hm)
-	//proc := process.New(gm)
-	//{
-	//	proc.Id = "0"
-	//	proc.Lim.Size = config.GlobalSystemVariables.GetProcessLimitationSize()
-	//	proc.Lim.BatchRows = config.GlobalSystemVariables.GetProcessLimitationBatchRows()
-	//	proc.Lim.PartitionRows = config.GlobalSystemVariables.GetProcessLimitationPartitionRows()
-	//	proc.Lim.BatchSize = config.GlobalSystemVariables.GetProcessLimitationBatchSize()
-	//	proc.Refer = make(map[string]uint64)
-	//}
-	///*	log := logger.New(os.Stderr, "rpc"+strNodeId+": ")
-	//	log.SetLevel(logger.WARN)*/
-	//srv, err := rpcserver.New(fmt.Sprintf("%s:%d", Host, 20100+NodeId), 1<<30, logutil.GetGlobalLogger())
-	//if err != nil {
-	//	logutil.Infof("Create rpcserver failed, %v", err)
-	//	os.Exit(CreateRPCExit)
-	//}
-	//hp := handler.New(eng, proc)
-	//srv.Register(hp.Process)
+	hm := config.HostMmu
+	gm := guest.New(1<<40, hm)
+	proc := process.New(mheap.New(gm))
+	{
+		proc.Id = "0"
+		proc.Lim.Size = config.GlobalSystemVariables.GetProcessLimitationSize()
+		proc.Lim.BatchRows = config.GlobalSystemVariables.GetProcessLimitationBatchRows()
+		proc.Lim.PartitionRows = config.GlobalSystemVariables.GetProcessLimitationPartitionRows()
+		proc.Lim.BatchSize = config.GlobalSystemVariables.GetProcessLimitationBatchSize()
+		// proc.Refer = make(map[string]uint64)
+	}
+	/*	log := logger.New(os.Stderr, "rpc"+strNodeId+": ")
+		log.SetLevel(logger.WARN)*/
+
+	li := strings.LastIndex(cfg.CubeConfig.ClientAddr, ":")
+	if li == -1 {
+		logutil.Infof("There is no port in client addr")
+		os.Exit(LoadConfigExit)
+	}
+
+	cubePort, err := strconv.ParseInt(string(cfg.CubeConfig.ClientAddr[li+1:]), 10, 32)
+	if err != nil {
+		logutil.Infof("Invalid port")
+		os.Exit(LoadConfigExit)
+	}
+
+	srv, err := rpcserver.New(fmt.Sprintf("%s:%d", Host, cubePort + 100), 1<<30, logutil.GetGlobalLogger())
+	if err != nil {
+		logutil.Infof("Create rpcserver failed, %v", err)
+		os.Exit(CreateRPCExit)
+	}
+	hp := handler.New(eng, proc)
+	srv.Register(hp.Process)
 
 	err = waitClusterStartup(a, 300*time.Second, int(cfg.CubeConfig.Prophet.Replication.MaxReplicas), int(cfg.ClusterConfig.PreAllocatedGroupNum))
 

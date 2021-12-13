@@ -28,8 +28,6 @@ func Transfer(s *Scope) protocol.Scope {
 		ps.DataSource.RefCounts = s.DataSource.RefCounts
 		ps.DataSource.Attributes = s.DataSource.Attributes
 	}
-	ps.NodeInfo.Id = s.NodeInfo.Id
-	ps.NodeInfo.Addr = s.NodeInfo.Addr
 	ps.PreScopes = make([]protocol.Scope, len(s.PreScopes))
 	for i := range s.PreScopes {
 		ps.PreScopes[i] = Transfer(s.PreScopes[i])

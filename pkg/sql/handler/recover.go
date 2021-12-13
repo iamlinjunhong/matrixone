@@ -15,11 +15,12 @@
 package handler
 
 import (
+	"github.com/matrixorigin/matrixone/pkg/container/batch"
 	"github.com/matrixorigin/matrixone/pkg/sql/compile"
 	"github.com/matrixorigin/matrixone/pkg/sql/protocol"
+	"github.com/matrixorigin/matrixone/pkg/vm/mheap"
 	"github.com/matrixorigin/matrixone/pkg/vm/mmu/guest"
 	"github.com/matrixorigin/matrixone/pkg/vm/process"
-	"github.com/matrixorigin/matrixone/pkg/container/batch"
 )
 
 func recoverScope(ps protocol.Scope, proc *process.Process) *compile.Scope {
@@ -29,8 +30,8 @@ func recoverScope(ps protocol.Scope, proc *process.Process) *compile.Scope {
 	if s.Magic == compile.Remote {
 		s.Magic = compile.Merge
 	}
-	guest.New(proc.Mp.Gm.Limit, proc.Mp.Gm.Mmu)
-	s.Proc = process.New(proc.Mp)
+	gm := guest.New(proc.Mp.Gm.Limit, proc.Mp.Gm.Mmu)
+	s.Proc = process.New(mheap.New(gm))
 	s.Proc.Lim = proc.Lim
 	s.Proc.Reg.MergeReceivers = make([]*process.WaitRegister, len(ps.PreScopes))
 	{
