@@ -16,8 +16,10 @@ package vm
 
 import (
 	"bytes"
+
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec/connector"
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec/dedup"
+	"github.com/matrixorigin/matrixone/pkg/sql/colexec/deleteTag"
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec/limit"
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec/merge"
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec/mergededup"
@@ -61,6 +63,8 @@ var stringFunc = [...]func(interface{}, *bytes.Buffer){
 	MergeOffset: mergeoffset.String,
 	MergeOrder: mergeorder.String,
 	MergeTop: mergetop.String,
+
+	DeleteTag: deleteTag.String,
 }
 
 var prepareFunc = [...]func(*process.Process, interface{}) error{
@@ -85,6 +89,8 @@ var prepareFunc = [...]func(*process.Process, interface{}) error{
 	MergeOffset: mergeoffset.Prepare,
 	MergeOrder: mergeorder.Prepare,
 	MergeTop: mergetop.Prepare,
+
+	DeleteTag: deleteTag.Prepare,
 }
 
 var execFunc = [...]func(*process.Process, interface{}) (bool, error){
@@ -109,4 +115,6 @@ var execFunc = [...]func(*process.Process, interface{}) (bool, error){
 	MergeOffset: mergeoffset.Call,
 	MergeOrder: mergeorder.Call,
 	MergeTop: mergetop.Call,
+
+	DeleteTag: deleteTag.Call,
 }

@@ -17,6 +17,11 @@ package tuplecodec
 import (
 	"bytes"
 	"errors"
+	"math"
+	"sync"
+	"sync/atomic"
+	"time"
+
 	"github.com/matrixorigin/matrixcube/pb/meta"
 	"github.com/matrixorigin/matrixcube/server"
 	"github.com/matrixorigin/matrixone/pkg/catalog"
@@ -24,10 +29,6 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/vm/driver"
 	"github.com/matrixorigin/matrixone/pkg/vm/driver/pb"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/aoe/common/codec"
-	"math"
-	"sync"
-	"sync/atomic"
-	"time"
 )
 
 const (

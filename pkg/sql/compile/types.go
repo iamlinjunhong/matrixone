@@ -41,6 +41,7 @@ const (
 	ShowColumns
 	ShowCreateTable
 	ShowCreateDatabase
+	Delete
 )
 
 var Address string

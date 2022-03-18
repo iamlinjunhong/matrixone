@@ -29,5 +29,6 @@ type IndexHandler interface {
 
 	DeleteFromTable(table *descriptor.RelationDesc,bat *batch.Batch) error
 
-	DeleteFromIndex(index *descriptor.IndexDesc,attrs []descriptor.AttributeDesc,bat *batch.Batch) error
+	DeleteFromIndex(writeCtx interface{}, bat *batch.Batch) error
+
 }

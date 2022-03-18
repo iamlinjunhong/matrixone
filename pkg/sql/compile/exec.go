@@ -108,6 +108,13 @@ func (e *Exec) Run(ts uint64) error {
 		return e.scope.ShowCreateTable(e.u, e.fill)
 	case ShowCreateDatabase:
 		return e.scope.ShowCreateDatabase(e.u, e.fill)
+	case Delete:
+		affectedRows, err := e.scope.Delete(ts, e.c.e)
+		if err != nil {
+			return err
+		}
+		e.setAffectedRows(affectedRows)
+		return nil
 	}
 	return nil
 }
@@ -196,6 +203,13 @@ func (e *Exec) compileScope(pn plan.Plan) (*Scope, error) {
 			Plan:  pn,
 			Proc:  e.c.proc,
 		}, nil
+	case *plan.Delete:
+		ft, err := ftree.New().Build(qry.Qry)
+		if err != nil {
+			return nil, err
+		}
+		vt := vtree.New().Build(ft)
+		return e.compileDelete(vt, vt.Views[len(vt.Views)-1])
 	}
 	return nil, errors.New(errno.SyntaxErrororAccessRuleViolation, fmt.Sprintf("query '%s' not support now", pn))
 }

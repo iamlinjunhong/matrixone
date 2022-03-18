@@ -17,6 +17,7 @@ package plan
 import (
 	"bytes"
 	"fmt"
+
 	"github.com/matrixorigin/matrixone/pkg/container/batch"
 	"github.com/matrixorigin/matrixone/pkg/container/types"
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec/extend"
@@ -173,6 +174,10 @@ type Insert struct {
 	Db       string
 	Bat      *batch.Batch
 	Relation engine.Relation
+}
+
+type Delete struct {
+	Qry *Query
 }
 
 type build struct {
@@ -589,5 +594,16 @@ func (i Insert) String() string {
 }
 
 func (i Insert) ResultColumns() []*Attribute {
+	return nil
+}
+
+func (d Delete) String() string {
+	var buf bytes.Buffer
+	buf.WriteString("insert into")
+	// TODO: RestrictConditions, Order, Limit
+	return buf.String()
+}
+
+func (d Delete) ResultColumns() []*Attribute {
 	return nil
 }

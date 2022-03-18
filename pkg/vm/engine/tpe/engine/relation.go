@@ -16,6 +16,7 @@ package engine
 
 import (
 	"errors"
+
 	"github.com/matrixorigin/matrixone/pkg/container/batch"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/tpe/descriptor"
@@ -60,6 +61,20 @@ func (trel * TpeRelation) CreateIndex(epoch uint64, defs []engine.TableDef) erro
 
 func (trel * TpeRelation) DropIndex(epoch uint64, name string) error {
 	panic("implement me")
+}
+
+func (trel * TpeRelation) GetHideColDef() *engine.Attribute {
+	for _, attr := range trel.desc.Attributes {
+		if attr.Is_hidden {
+			return &engine.Attribute{
+				Name:    attr.Name,
+				Alg:     0,
+				Type:    attr.TypesType,
+				Default: attr.Default,
+			}
+		}
+	}
+	return nil
 }
 
 func (trel * TpeRelation) TableDefs() []engine.TableDef {

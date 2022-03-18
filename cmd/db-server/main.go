@@ -18,10 +18,11 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/matrixorigin/matrixone/pkg/vm/engine/tpe/tuplecodec"
 	"math"
 	"strconv"
 	"strings"
+
+	"github.com/matrixorigin/matrixone/pkg/vm/engine/tpe/tuplecodec"
 
 	"github.com/matrixorigin/matrixone/pkg/sql/compile"
 	"github.com/matrixorigin/matrixone/pkg/sql/handler"
@@ -140,7 +141,7 @@ func removeEpoch(epoch uint64) {
 	if tpe,ok := config.StorageEngine.(*tpeEngine.TpeEngine) ; ok {
 		err = tpe.RemoveDeletedTable(epoch)
 		if err != nil {
-			fmt.Printf("tpeEngine remove ddl failed. error :%v \n", err)
+			// fmt.Printf("tpeEngine remove ddl failed. error :%v \n", err)
 		}
 	}
 

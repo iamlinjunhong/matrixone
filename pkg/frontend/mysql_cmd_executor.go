@@ -1073,7 +1073,6 @@ func (mce *MysqlCmdExecutor) doComQuery(sql string) error {
 			}
 
 		}
-
 		if selfHandle {
 			continue
 		}
