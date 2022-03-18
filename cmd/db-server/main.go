@@ -18,11 +18,10 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/matrixorigin/matrixone/pkg/vm/engine/tpe/tuplecodec"
 	"math"
 	"strconv"
 	"strings"
-
-	"github.com/matrixorigin/matrixone/pkg/vm/engine/tpe/tuplecodec"
 
 	"github.com/matrixorigin/matrixone/pkg/sql/compile"
 	"github.com/matrixorigin/matrixone/pkg/sql/handler"
@@ -134,6 +133,7 @@ func recreateDir(dir string) (err error) {
 call the catalog service to remove the epoch
 */
 func removeEpoch(epoch uint64) {
+	//logutil.Infof("removeEpoch %d",epoch)
 	_, err := c.RemoveDeletedTable(epoch)
 	if err != nil {
 		fmt.Printf("catalog remove ddl failed. error :%v \n", err)
@@ -141,7 +141,7 @@ func removeEpoch(epoch uint64) {
 	if tpe,ok := config.StorageEngine.(*tpeEngine.TpeEngine) ; ok {
 		err = tpe.RemoveDeletedTable(epoch)
 		if err != nil {
-			// fmt.Printf("tpeEngine remove ddl failed. error :%v \n", err)
+			fmt.Printf("tpeEngine remove ddl failed. error :%v \n", err)
 		}
 	}
 
@@ -302,11 +302,17 @@ func main() {
 			logutil.Infof("there is no such kvType %s \n", configKvTyp)
 			os.Exit(CreateTpeExit)
 		}
-		eng, err = tpeEngine.NewTpeEngine(tpeConf)
+		te, err := tpeEngine.NewTpeEngine(tpeConf)
 		if err != nil {
 			logutil.Infof("create tpe error:%v\n", err)
 			os.Exit(CreateTpeExit)
 		}
+		err = te.Open()
+		if err != nil {
+			logutil.Infof("open tpe error:%v\n", err)
+			os.Exit(CreateTpeExit)
+		}
+		eng = te
 	} else {
 		eng = aoeEngine.New(c, &cngineConfig)
 	}

@@ -18,12 +18,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"math"
-	"net"
-	"runtime"
-	"strings"
-	"time"
-
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec/dedup"
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec/deleteTag"
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec/limit"
@@ -33,6 +27,11 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec/mergetop"
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec/order"
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec/top"
+	"math"
+	"net"
+	"runtime"
+	"strings"
+	"time"
 
 	"github.com/fagongzi/goetty"
 	"github.com/matrixorigin/matrixone/pkg/container/batch"
@@ -434,6 +433,18 @@ func (s *Scope) Insert(ts uint64) (uint64, error) {
 
 // Delete will delete rows from a single of table
 func (s *Scope) Delete(ts uint64, e engine.Engine) (uint64, error) {
+	s.Magic = Merge
+	arg := s.Instructions[len(s.Instructions)-1].Arg.(*deleteTag.Argument)
+	arg.Ts = ts
+	defer arg.Relation.Close()
+	if err := s.MergeRun(e); err != nil {
+		return 0, err
+	}
+	return arg.AffectedRows, nil
+}
+
+// Update will update rows from a single of table
+func (s *Scope) Update(ts uint64, e engine.Engine) (uint64, error) {
 	s.Magic = Merge
 	arg := s.Instructions[len(s.Instructions)-1].Arg.(*deleteTag.Argument)
 	arg.Ts = ts

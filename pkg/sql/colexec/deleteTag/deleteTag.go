@@ -16,7 +16,6 @@ package deleteTag
 
 import (
 	"bytes"
-
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/matrixorigin/matrixone/pkg/vm/process"
 )
@@ -45,4 +44,4 @@ func Call(proc *process.Process, arg interface{}) (bool, error) {
 	p.AffectedRows += affectedRows
 	p.M.Unlock()
 	return false, nil
-} 
+}

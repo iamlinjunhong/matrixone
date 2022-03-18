@@ -53,4 +53,4 @@ func buildSelectStmtFromDelete(d *tree.Delete) tree.Statement {
 		OrderBy: d.OrderBy,
 		Limit:	d.Limit,
 	}
-} 
+}

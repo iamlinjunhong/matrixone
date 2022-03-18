@@ -36,6 +36,7 @@ type TpeConfig struct {
 
 type TpeEngine struct {
 	tpeConfig *TpeConfig
+	dh descriptor.DescriptorHandler
 	computeHandler computation.ComputationHandler
 }
 
@@ -50,6 +51,7 @@ type TpeRelation struct {
 	dbDesc *descriptor.DatabaseDesc
 	desc *descriptor.RelationDesc
 	computeHandler computation.ComputationHandler
+	nodes engine.Nodes
 }
 
 type TpeReader struct {

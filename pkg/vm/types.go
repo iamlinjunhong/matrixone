@@ -38,6 +38,7 @@ const (
 	MergeTop
 
 	DeleteTag
+	UpdateTag
 )
 
 // Instruction contains relational algebra

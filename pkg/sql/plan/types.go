@@ -17,7 +17,6 @@ package plan
 import (
 	"bytes"
 	"fmt"
-
 	"github.com/matrixorigin/matrixone/pkg/container/batch"
 	"github.com/matrixorigin/matrixone/pkg/container/types"
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec/extend"
@@ -177,6 +176,10 @@ type Insert struct {
 }
 
 type Delete struct {
+	Qry *Query
+}
+
+type Update struct {
 	Qry *Query
 }
 
@@ -599,11 +602,22 @@ func (i Insert) ResultColumns() []*Attribute {
 
 func (d Delete) String() string {
 	var buf bytes.Buffer
-	buf.WriteString("insert into")
-	// TODO: RestrictConditions, Order, Limit
+	buf.WriteString("delete from")
+	// TODO: where, Order, Limit
 	return buf.String()
 }
 
 func (d Delete) ResultColumns() []*Attribute {
+	return nil
+}
+
+func (p Update) String() string {
+	var buf bytes.Buffer
+	buf.WriteString("update table")
+	// TODO: where, Order, Limit
+	return buf.String()
+}
+
+func (p Update) ResultColumns() []*Attribute {
 	return nil
 }

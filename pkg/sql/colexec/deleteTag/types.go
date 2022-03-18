@@ -15,9 +15,8 @@
 package deleteTag
 
 import (
-	"sync"
-
 	"github.com/matrixorigin/matrixone/pkg/vm/engine"
+	"sync"
 )
 
 type Argument struct {
@@ -25,4 +24,4 @@ type Argument struct {
 	Relation     engine.Relation
 	M	  	 	 sync.Mutex
 	AffectedRows uint64
-} 
+}
