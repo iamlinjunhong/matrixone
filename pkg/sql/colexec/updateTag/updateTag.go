@@ -16,12 +16,13 @@ package updateTag
 
 import (
 	"bytes"
+	"github.com/matrixorigin/matrixone/pkg/container/batch"
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/matrixorigin/matrixone/pkg/vm/process"
 )
 
 func String(arg interface{}, buf *bytes.Buffer) {
-	buf.WriteString("update table")
+	buf.WriteString("update table rows")
 }
 
 func Prepare(_ *process.Process, _ interface{}) error {
@@ -34,7 +35,25 @@ func Call(proc *process.Process, arg interface{}) (bool, error) {
 	if bat == nil || len(bat.Zs) == 0 {
 		return false, nil
 	}
-	// TODO: update logic
+
+	if p.HasModifyPriKey {
+		bat.Zs = []int64{-1, -1}
+		if err := p.Relation.Write(p.Ts, bat); err != nil {
+			return false, err
+		}
+	}
+	updateBatch := &batch.Batch{Attrs: p.UpdateAttrs, Zs: []int64{-1, 1}}
+	for _, etd := range p.UpdateList {
+		vec, _, err := etd.Eval(bat, proc)
+		if err != nil {
+			return false, err
+		}
+		updateBatch.Vecs = append(updateBatch.Vecs, vec)
+	}
+	if err := p.Relation.Write(p.Ts, updateBatch); err != nil {
+		return false, err
+	}
+
 	affectedRows := uint64(vector.Length(bat.Vecs[0]))
 	p.M.Lock()
 	p.AffectedRows += affectedRows

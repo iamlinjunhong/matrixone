@@ -2191,7 +2191,7 @@ force_quote_list:
 
 select_stmt:
     select_no_parens
-|   select_with_parens export_data_param_opt
+|   select_with_parens
     {
         $$ = &tree.Select{Select: $1, Ep: $2}
     }

@@ -222,7 +222,7 @@ func (e *Exec) compileScope(pn plan.Plan) (*Scope, error) {
 			return nil, err
 		}
 		vt := vtree.New().Build(ft)
-		return e.compileUpdate(vt, vt.Views[len(vt.Views)-1])
+		return e.compileUpdate(vt, vt.Views[len(vt.Views)-1], *qry)
 	}
 	return nil, errors.New(errno.SyntaxErrororAccessRuleViolation, fmt.Sprintf("query '%s' not support now", pn))
 }

@@ -28,6 +28,7 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec/output"
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec/updateTag"
 	"github.com/matrixorigin/matrixone/pkg/sql/errors"
+	"github.com/matrixorigin/matrixone/pkg/sql/plan"
 	"github.com/matrixorigin/matrixone/pkg/sql/viewexec/oplus"
 	"github.com/matrixorigin/matrixone/pkg/sql/viewexec/times"
 	"github.com/matrixorigin/matrixone/pkg/sql/viewexec/transform"
@@ -794,8 +795,9 @@ func (e *Exec) compileDelete(vt *vtree.ViewTree, v *vtree.View) (*Scope, error )
 	return rs, nil
 }
 
-func (e *Exec) compileUpdate(vt *vtree.ViewTree, v *vtree.View) (*Scope, error ) {
+func (e *Exec) compileUpdate(vt *vtree.ViewTree, v *vtree.View, updatePlan plan.Update) (*Scope, error ) {
 	var ins vm.Instructions
+	hasModifyPriKey := false
 
 	db, err := e.c.e.Database(v.Rel.Schema)
 	if err != nil {
@@ -804,6 +806,39 @@ func (e *Exec) compileUpdate(vt *vtree.ViewTree, v *vtree.View) (*Scope, error )
 	rel, err := db.Relation(v.Rel.Name)
 	if err != nil {
 		return nil, err
+	}
+	// if it is tpe engine, it will check primary key and get the definition of hide column and if modify primary key.
+	if tpeRelation, ok := rel.(*engine.TpeRelation); ok {
+		tableDefs := tpeRelation.TableDefs()
+		hasPriKey := false
+		var primaryDef *cc.PrimaryIndexDef
+
+		for _, def := range tableDefs {
+			if primaryDef, hasPriKey = def.(*cc.PrimaryIndexDef); hasPriKey {
+				break
+			}
+		}
+		if hasPriKey {
+			for _, name := range primaryDef.Names {
+				for _, updateName := range updatePlan.UpdateAttrs {
+					if name == updateName {
+						hasModifyPriKey = true
+						break
+					}
+				}
+				if hasModifyPriKey {
+					break
+				}
+			}
+		} else {
+			colDef := tpeRelation.GetHideColDef()
+			if colDef == nil {
+				return nil, errors.New(errno.DataException, "Get the definition of hide column failed")
+			}
+			v.Rel.Vars = append(v.Rel.Vars, &vtree.Variable{Name: colDef.Name, Type: colDef.Type.Oid})
+		}
+	} else {
+		return nil, errors.New(errno.CaseNotFound, "Do not support update for other engine except Tpe")
 	}
 	// init date source
 	src := &Source{
@@ -820,7 +855,7 @@ func (e *Exec) compileUpdate(vt *vtree.ViewTree, v *vtree.View) (*Scope, error )
 
 	v.Arg.Typ = transform.Bare
 
-	rs := &Scope{Magic: Delete}
+	rs := &Scope{Magic: Update}
 	// push down operators
 	ins = append(ins, vm.Instruction{Arg: v.Arg, Op: vm.Transform})
 	switch {
@@ -977,6 +1012,9 @@ func (e *Exec) compileUpdate(vt *vtree.ViewTree, v *vtree.View) (*Scope, error )
 		Arg: &updateTag.Argument{
 			Relation: rel,
 			AffectedRows: 0,
+			UpdateList: updatePlan.UpdateList,
+			UpdateAttrs: updatePlan.UpdateAttrs,
+			HasModifyPriKey: hasModifyPriKey,
 		},
 	})
 	return rs, nil

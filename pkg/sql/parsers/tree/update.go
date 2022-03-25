@@ -20,7 +20,7 @@ import (
 	"strconv"
 )
 
-//update statement
+// Update statement
 type Update struct {
 	statementImpl
 	Table   TableExpr
