@@ -16,19 +16,20 @@ package engine
 
 import (
 	"errors"
+
 	"github.com/matrixorigin/matrixone/pkg/container/batch"
-	"github.com/matrixorigin/matrixone/pkg/vm/engine"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/tpe/descriptor"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/tpe/tuplecodec"
 )
 
 var (
-	errorMismatchRefcntWithAttributeCnt = errors.New("mismatch refcnts and attribute cnt")
+	errorMismatchRefcntWithAttributeCnt          = errors.New("mismatch refcnts and attribute cnt")
 	errorSomeAttributeNamesAreNotInAttributeDesc = errors.New("some attriute names are not in attribute desc")
-	errorInvalidParameters = errors.New("invalid parameters")
-	errorDifferentReadAttributesInSameReader = errors.New("different attributes in same reader")
+	errorInvalidParameters                       = errors.New("invalid parameters")
+	errorDifferentReadAttributesInSameReader     = errors.New("different attributes in same reader")
 )
 
+/*
 func (tr *  TpeReader) NewFilter() engine.Filter {
 	return nil
 }
@@ -40,17 +41,18 @@ func (tr *  TpeReader) NewSummarizer() engine.Summarizer {
 func (tr *  TpeReader) NewSparseFilter() engine.SparseFilter {
 	return nil
 }
+*/
 
-func (tr *  TpeReader) Read(refCnts []uint64, attrs []string) (*batch.Batch, error) {
+func (tr *TpeReader) Read(refCnts []uint64, attrs []string) (*batch.Batch, error) {
 	if tr.isDumpReader {
 		//read nothing
 		return nil, nil
 	}
-	if len(refCnts) == 0 || len(attrs) == 0{
-		return nil,errorInvalidParameters
+	if len(refCnts) == 0 || len(attrs) == 0 {
+		return nil, errorInvalidParameters
 	}
 	if len(refCnts) != len(attrs) {
-		return nil,errorMismatchRefcntWithAttributeCnt
+		return nil, errorMismatchRefcntWithAttributeCnt
 	}
 
 	attrSet := make(map[string]uint32)
@@ -61,9 +63,9 @@ func (tr *  TpeReader) Read(refCnts []uint64, attrs []string) (*batch.Batch, err
 	//check if the attribute is in the relation
 	var readAttrs []*descriptor.AttributeDesc
 	for _, attr := range attrs {
-		if attrID,exist := attrSet[attr]; exist {
-			readAttrs = append(readAttrs,&tr.tableDesc.Attributes[attrID])
-		}else{
+		if attrID, exist := attrSet[attr]; exist {
+			readAttrs = append(readAttrs, &tr.tableDesc.Attributes[attrID])
+		} else {
 			return nil, errorSomeAttributeNamesAreNotInAttributeDesc
 		}
 	}
@@ -73,34 +75,34 @@ func (tr *  TpeReader) Read(refCnts []uint64, attrs []string) (*batch.Batch, err
 
 	if tr.readCtx == nil {
 		tr.readCtx = &tuplecodec.ReadContext{
-			DbDesc:                   tr.dbDesc,
-			TableDesc:                tr.tableDesc,
-			IndexDesc:                &tr.tableDesc.Primary_index,
-			ReadAttributesNames:      attrs,
-			ReadAttributeDescs:       readAttrs,
-			ParallelReader: tr.parallelReader,
-			ReadCount: 0,
+			DbDesc:              tr.dbDesc,
+			TableDesc:           tr.tableDesc,
+			IndexDesc:           &tr.tableDesc.Primary_index,
+			ReadAttributesNames: attrs,
+			ReadAttributeDescs:  readAttrs,
+			ParallelReader:      tr.parallelReader,
+			ReadCount:           0,
 		}
 
 		if tr.readCtx.ParallelReader {
 			tr.readCtx.ParallelReaderContext = tuplecodec.ParallelReaderContext{
-				ShardIndex: 0,
-				ShardStartKey: tr.shardInfos[0].startKey,
-				ShardEndKey: tr.shardInfos[0].endKey,
+				ShardIndex:       0,
+				ShardStartKey:    tr.shardInfos[0].startKey,
+				ShardEndKey:      tr.shardInfos[0].endKey,
 				ShardNextScanKey: tr.shardInfos[0].startKey,
-				CompleteInShard: tr.shardInfos[0].completeInShard,
+				CompleteInShard:  tr.shardInfos[0].completeInShard,
 			}
-		}else{
+		} else {
 			tr.readCtx.SingleReaderContext = tuplecodec.SingleReaderContext{
-				CompleteInAllShards: false,
+				CompleteInAllShards:      false,
 				PrefixForScanKey:         nil,
 				LengthOfPrefixForScanKey: 0,
 			}
 		}
-	}else{
+	} else {
 		//check if these attrs are same as last attrs
 		if len(tr.readCtx.ReadAttributesNames) != len(attrs) {
-			return nil,errorDifferentReadAttributesInSameReader
+			return nil, errorDifferentReadAttributesInSameReader
 		}
 
 		for i := 0; i < len(attrs); i++ {
@@ -119,8 +121,8 @@ func (tr *  TpeReader) Read(refCnts []uint64, attrs []string) (*batch.Batch, err
 					tr.readCtx.ShardEndKey = tr.shardInfos[tr.readCtx.ShardIndex].endKey
 					tr.readCtx.ShardNextScanKey = tr.shardInfos[tr.readCtx.ShardIndex].nextScanKey
 					tr.readCtx.CompleteInShard = false
-				}else{
-					return nil,nil
+				} else {
+					return nil, nil
 				}
 			}
 		}
@@ -132,15 +134,15 @@ func (tr *  TpeReader) Read(refCnts []uint64, attrs []string) (*batch.Batch, err
 	}
 
 	/*
-	//for test
-	if tr.readCtx.ParallelReader {
-		cnt := 0
-		if bat != nil {
-			cnt = vector.Length(bat.Vecs[0])
-		}
+		//for test
+		if tr.readCtx.ParallelReader {
+			cnt := 0
+			if bat != nil {
+				cnt = vector.Length(bat.Vecs[0])
+			}
 
-		logutil.Infof("reader %d readCount %d parallelContext %v ", tr.id, cnt, tr.readCtx.ParallelReaderContext)
-	}
+			logutil.Infof("reader %d readCount %d parallelContext %v ", tr.id, cnt, tr.readCtx.ParallelReaderContext)
+		}
 	*/
 
 	//when bat is null,it means no data anymore.
@@ -150,5 +152,5 @@ func (tr *  TpeReader) Read(refCnts []uint64, attrs []string) (*batch.Batch, err
 			bat.Vecs[i].Ref = ref
 		}
 	}
-	return bat,err
+	return bat, err
 }
