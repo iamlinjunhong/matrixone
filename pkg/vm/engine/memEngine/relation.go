@@ -2,9 +2,11 @@ package memEngine
 
 import (
 	"fmt"
+
 	"github.com/matrixorigin/matrixone/pkg/compress"
 	"github.com/matrixorigin/matrixone/pkg/container/batch"
 	"github.com/matrixorigin/matrixone/pkg/encoding"
+	"github.com/matrixorigin/matrixone/pkg/sql/colexec/extend"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine"
 
 	"github.com/pierrec/lz4"
@@ -24,7 +26,7 @@ func (_ *relation) Size(_ string) int64 {
 	return 0
 }
 
-func (_ *relation) CardinalNumber(_ string) int64 {
+func (_ *relation) Cardinality(_ string) int64 {
 	return 0
 }
 
@@ -37,7 +39,7 @@ func (r *relation) GetPriKeyOrHideKey() ([]engine.Attribute, bool) {
 }
 
 func (r *relation) TableDefs() []engine.TableDef {
-	defs := make([]engine.TableDef, len(r.md.Attrs) + len(r.md.Index))
+	defs := make([]engine.TableDef, len(r.md.Attrs)+len(r.md.Index))
 	for i, attr := range r.md.Attrs {
 		defs[i] = &engine.AttributeDef{Attr: attr}
 	}
@@ -49,7 +51,7 @@ func (r *relation) TableDefs() []engine.TableDef {
 	return defs
 }
 
-func (r *relation) NewReader(n int) []engine.Reader {
+func (r *relation) NewReader(n int, _ extend.Extend) []engine.Reader {
 	segs := make([]string, r.md.Segs)
 	for i := range segs {
 		segs[i] = sKey(i, r.id)
@@ -122,14 +124,6 @@ func (r *relation) Write(_ uint64, bat *batch.Batch) error {
 			return err
 		}
 	}
-	return nil
-}
-
-func (r *relation) CreateIndex(_ uint64, _ []engine.TableDef) error{
-	return nil
-}
-
-func (r *relation) DropIndex(epoch uint64, name string) error{
 	return nil
 }
 

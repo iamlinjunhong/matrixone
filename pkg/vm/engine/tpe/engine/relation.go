@@ -16,8 +16,10 @@ package engine
 
 import (
 	"errors"
+
 	"github.com/matrixorigin/matrixone/pkg/container/batch"
 	"github.com/matrixorigin/matrixone/pkg/logutil"
+	"github.com/matrixorigin/matrixone/pkg/sql/colexec/extend"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/tpe/descriptor"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/tpe/tuplecodec"
@@ -31,6 +33,7 @@ var (
 )
 
 func (trel *TpeRelation) Rows() int64 {
+<<<<<<< HEAD
 	rows := int64(0)
 	//read global shards
 	for _, info := range trel.shards.GetShardInfos() {
@@ -50,6 +53,21 @@ func (trel *TpeRelation) Size(s string) int64 {
 	return size
 }
 
+=======
+	// panic("implement me")
+	return 1
+}
+
+func (trel *TpeRelation) Size(s string) int64 {
+	// panic("implement me")
+	return 1
+}
+
+func (trel *TpeRelation) Cardinality(_ string) int64 {
+	return 1
+}
+
+>>>>>>> 985fad5f (refactoring update/delete plan)
 func (trel *TpeRelation) Close() {
 }
 
@@ -58,12 +76,19 @@ func (trel *TpeRelation) ID() string {
 }
 
 func (trel *TpeRelation) Nodes() engine.Nodes {
+<<<<<<< HEAD
 	for i, node := range trel.nodes {
 		logutil.Infof("index %d storeID %v all_nodes %v", i, trel.storeID, node)
 	}
 	return trel.nodes
 }
 
+=======
+	return trel.nodes
+}
+
+/*
+>>>>>>> 985fad5f (refactoring update/delete plan)
 func (trel *TpeRelation) CreateIndex(epoch uint64, defs []engine.TableDef) error {
 	panic("implement me")
 }
@@ -71,8 +96,9 @@ func (trel *TpeRelation) CreateIndex(epoch uint64, defs []engine.TableDef) error
 func (trel *TpeRelation) DropIndex(epoch uint64, name string) error {
 	panic("implement me")
 }
+*/
 
-func (trel * TpeRelation) GetPriKeyOrHideKey() ([]engine.Attribute, bool) {
+func (trel *TpeRelation) GetPriKeyOrHideKey() ([]engine.Attribute, bool) {
 	var attrs []engine.Attribute
 	hasPriKey := false
 	for _, attr := range trel.desc.Attributes {
@@ -195,7 +221,11 @@ func (trel *TpeRelation) Write(_ uint64, batch *batch.Batch) error {
 		IndexDesc:       &trel.desc.Primary_index,
 		BatchAttrs:      attrDescs,
 		AttributeStates: writeStates,
+<<<<<<< HEAD
 		NodeID:          trel.storeID,
+=======
+		NodeID:          0, //now for test
+>>>>>>> 985fad5f (refactoring update/delete plan)
 	}
 
 	err := trel.computeHandler.Write(writeCtx, batch)
@@ -245,12 +275,19 @@ func (trel *TpeRelation) parallelReader(cnt int) []engine.Reader {
 				endKey:          info.GetEndKey(),
 				nextScanKey:     nil,
 				completeInShard: false,
+<<<<<<< HEAD
 				shardID:         info.GetShardID(),
 				node: ShardNode{
 					Addr:         info.GetShardNode().Addr,
 					StoreID:      info.GetShardNode().StoreID,
 					StoreIDbytes: info.GetShardNode().StoreIDbytes,
 					Statistics:   info.GetStatistics(),
+=======
+				node: ShardNode{
+					Addr:    info.GetShardNode().Addr,
+					ID:      info.GetShardNode().ID,
+					IDbytes: info.GetShardNode().IDbytes,
+>>>>>>> 985fad5f (refactoring update/delete plan)
 				},
 			}
 			infos = append(infos, newInfo)
@@ -265,14 +302,22 @@ func (trel *TpeRelation) parallelReader(cnt int) []engine.Reader {
 				parallelReader: true,
 				isDumpReader:   false,
 				id:             i,
+<<<<<<< HEAD
 				storeID:        trel.storeID,
+=======
+>>>>>>> 985fad5f (refactoring update/delete plan)
 			}
 		} else {
 			tpeReaders[i] = &TpeReader{isDumpReader: true, id: i}
 		}
 
+<<<<<<< HEAD
 		logutil.Infof("store id %d reader %d shard startIndex %d shardCountPerReader %d shardCount %d endIndex %d isDumpReader %v",
 			trel.storeID, i, startIndex, shardCountPerReader, shardInfosCount, endIndex, tpeReaders[i].isDumpReader)
+=======
+		logutil.Infof("reader %d shard startIndex %d shardCountPerReader %d shardCount %d endIndex %d isDumpReader %v",
+			i, startIndex, shardCountPerReader, shardInfosCount, endIndex, tpeReaders[i].isDumpReader)
+>>>>>>> 985fad5f (refactoring update/delete plan)
 
 		startIndex += shardCountPerReader
 	}
@@ -288,9 +333,15 @@ func (trel *TpeRelation) parallelReader(cnt int) []engine.Reader {
 	return retReaders
 }
 
+<<<<<<< HEAD
 func (trel *TpeRelation) NewReader(cnt int) []engine.Reader {
 	logutil.Infof("newreader cnt %d", cnt)
 	if trel.computeHandler.ParallelReader() || trel.computeHandler.MultiNode() {
+=======
+func (trel *TpeRelation) NewReader(cnt int, _ extend.Extend) []engine.Reader {
+	logutil.Infof("newreader cnt %d", cnt)
+	if trel.computeHandler.ParallelReader() {
+>>>>>>> 985fad5f (refactoring update/delete plan)
 		return trel.parallelReader(cnt)
 	}
 	var readers []engine.Reader = make([]engine.Reader, cnt)
@@ -300,8 +351,11 @@ func (trel *TpeRelation) NewReader(cnt int) []engine.Reader {
 		computeHandler: trel.computeHandler,
 		parallelReader: false,
 		isDumpReader:   false,
+<<<<<<< HEAD
 		multiNode:      trel.computeHandler.MultiNode(),
 		storeID:        trel.storeID,
+=======
+>>>>>>> 985fad5f (refactoring update/delete plan)
 	}
 	shardInfos := trel.shardsInThisNode.GetShardInfos()
 	for _, info := range shardInfos {
@@ -311,6 +365,7 @@ func (trel *TpeRelation) NewReader(cnt int) []engine.Reader {
 			nextScanKey:     nil,
 			completeInShard: false,
 			node: ShardNode{
+<<<<<<< HEAD
 				Addr:         info.GetShardNode().Addr,
 				StoreID:      info.GetShardNode().StoreID,
 				StoreIDbytes: info.GetShardNode().StoreIDbytes,
@@ -318,6 +373,14 @@ func (trel *TpeRelation) NewReader(cnt int) []engine.Reader {
 		}
 		tr.shardInfos = append(tr.shardInfos, newInfo)
 		logutil.Infof("single reader %v", newInfo)
+=======
+				Addr:    info.GetShardNode().Addr,
+				ID:      info.GetShardNode().ID,
+				IDbytes: info.GetShardNode().IDbytes,
+			},
+		}
+		tr.shardInfos = append(tr.shardInfos, newInfo)
+>>>>>>> 985fad5f (refactoring update/delete plan)
 	}
 	readers[0] = tr
 	for i := 1; i < cnt; i++ {
