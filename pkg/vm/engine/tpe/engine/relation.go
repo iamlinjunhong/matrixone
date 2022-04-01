@@ -31,11 +31,13 @@ var (
 )
 
 func (trel * TpeRelation) Rows() int64 {
-	panic("implement me")
+	// panic("implement me")
+	return 1
 }
 
 func (trel * TpeRelation) Size(s string) int64 {
-	panic("implement me")
+	// panic("implement me")
+	return 1
 }
 
 func (trel * TpeRelation) Close() {
@@ -57,18 +59,35 @@ func (trel * TpeRelation) DropIndex(epoch uint64, name string) error {
 	panic("implement me")
 }
 
-func (trel * TpeRelation) GetHideColDef() *engine.Attribute {
+func (trel * TpeRelation) GetPriKeyOrHideKey() ([]engine.Attribute, bool) {
+	var attrs []engine.Attribute
+	hasPriKey := false
 	for _, attr := range trel.desc.Attributes {
 		if attr.Is_hidden {
-			return &engine.Attribute{
+			attrs = append(attrs, engine.Attribute{
 				Name:    attr.Name,
 				Alg:     0,
 				Type:    attr.TypesType,
 				Default: attr.Default,
-			}
+				Primary: attr.Is_primarykey,
+			})
+			return attrs, false
+		}
+		if attr.Is_primarykey {
+			attrs = append(attrs, engine.Attribute{
+				Name:    attr.Name,
+				Alg:     0,
+				Type:    attr.TypesType,
+				Default: attr.Default,
+				Primary: attr.Is_primarykey,
+			})
+			hasPriKey = true
 		}
 	}
-	return nil
+	if hasPriKey {
+		return attrs, hasPriKey
+	}
+	return nil, false
 }
 
 func (trel * TpeRelation) TableDefs() []engine.TableDef {
