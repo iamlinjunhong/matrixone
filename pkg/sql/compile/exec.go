@@ -278,26 +278,12 @@ func (e *Exec) compileDelete(qry *plan.Query) (*Scope, error) {
 	if rel == nil {
 		return nil, errors.New(errno.SyntaxErrororAccessRuleViolation, fmt.Sprintf("cannot find table for delete"))
 	}
-	/*
-		//  It will get the definition of primary key if exists or get the definition of hide column
-		colKeys, isPrimaryKey := rel.GetPriKeyOrHideKey()
-		if colKeys == nil {
-			return nil, errors.New(errno.CaseNotFound, fmt.Sprintf("cannot find primary key or hide key"))
-		}
-		if !isPrimaryKey {
-			colName := colKeys[0].Name
-			qry.Result = append(qry.Result, colName)
-			qry.Scope.Result.Attrs = append(qry.Scope.Result.Attrs, colName)
-			qry.Scope.Result.AttrsMap[colName] = &plan.Attribute{Name: colName, Type: colKeys[0].Type}
-		}
-		// TODO: projection can be prune
-		//attrsMap := make(map[string]uint64)
-		//for _, key := range colKeys {
-		//	attrsMap[key] = 1
-		//}
-		//qry.Scope.Prune(attrsMap, nil)
-	*/
-
+	// TODO: projection can be prune
+	//attrsMap := make(map[string]uint64)
+	//for _, key := range colKeys {
+	//	attrsMap[key] = 1
+	//}
+	//qry.Scope.Prune(attrsMap, nil)
 	s, err := e.compilePlanScope(qry.Scope)
 	if err != nil {
 		return nil, err
@@ -325,30 +311,6 @@ func (e *Exec) compileUpdate(qry *plan.Update) (*Scope, error) {
 	if rel == nil {
 		return nil, errors.New(errno.SyntaxErrororAccessRuleViolation, fmt.Sprintf("cannot find table for update"))
 	}
-	//  It will get the definition of primary key if exists or get the definition of hide column
-	//colKeys, isPrimaryKey := rel.GetPriKeyOrHideKey()
-	//hasModifyPriKey := false
-	//if colKeys == nil {
-	//	return nil, errors.New(errno.CaseNotFound, fmt.Sprintf("cannot find primary key or hide key"))
-	//}
-	//if !isPrimaryKey {
-	//	// add hide column to result
-	//	qry.Qry.Result = append(qry.Qry.Result, colKeys[0])
-	//	qry.OtherAttrs = append(qry.OtherAttrs, colKeys[0])
-	//} else {
-	//	// has primary key, check if it was modified
-	//	for _, attr := range qry.UpdateAttrs {
-	//		for _, key := range colKeys {
-	//			if attr == key {
-	//				hasModifyPriKey = true
-	//				break
-	//			}
-	//		}
-	//		if hasModifyPriKey {
-	//			break
-	//		}
-	//	}
-	//}
 	s, err := e.compilePlanScope(qry.Qry.Scope)
 	if err != nil {
 		return nil, err
@@ -369,7 +331,6 @@ func (e *Exec) compileUpdate(qry *plan.Update) (*Scope, error) {
 			UpdateList:      qry.UpdateList,
 			UpdateAttrs:     qry.UpdateAttrs,
 			OtherAttrs:      qry.OtherAttrs,
-			HasModifyPriKey: true,
 		},
 	})
 	e.scope = s
