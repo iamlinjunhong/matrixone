@@ -35,31 +35,54 @@ func Call(proc *process.Process, arg interface{}) (bool, error) {
 	if bat == nil || len(bat.Zs) == 0 {
 		return false, nil
 	}
-	// write delete tag
-	if p.HasModifyPriKey {
-		bat.Zs = []int64{-1, -1}
-		if err := p.Relation.Write(p.Ts, bat); err != nil {
-			return false, err
-		}
-	}
-	// write update tag
-	updateBatch := &batch.Batch{Attrs: p.UpdateAttrs, Zs: []int64{-1, 1}}
+	affectedRows := uint64(vector.Length(bat.Vecs[0]))
+
+	// update calculate
+	updateBatch := &batch.Batch{Attrs: p.UpdateAttrs}
 	for _, etd := range p.UpdateList {
 		vec, _, err := etd.Eval(bat, proc)
 		if err != nil {
+			batch.Clean(updateBatch, proc.Mp)
+			proc.Reg.InputBatch = &batch.Batch{}
 			return false, err
 		}
 		updateBatch.Vecs = append(updateBatch.Vecs, vec)
 	}
 	for _, attr := range p.OtherAttrs {
 		vec := batch.GetVector(bat, attr)
+		vec.Ref++
 		updateBatch.Vecs = append(updateBatch.Vecs, vec)
 	}
-	if err := p.Relation.Write(p.Ts, updateBatch); err != nil {
-		return false, err
+
+	// delete tag
+	for i, _ := range bat.Zs {
+		bat.Zs[i] = -1
 	}
 
-	affectedRows := uint64(vector.Length(bat.Vecs[0]))
+	// update tag
+	updateBatch.Zs = make([]int64, affectedRows)
+	for i, _ := range updateBatch.Zs {
+		updateBatch.Zs[i] = 1
+	}
+
+	unionBat, err := bat.Append(proc.Mp, updateBatch)
+	if err != nil {
+		batch.Clean(unionBat, proc.Mp)
+		batch.Clean(updateBatch, proc.Mp)
+		proc.Reg.InputBatch = &batch.Batch{}
+		return false, err
+	}
+	// write batch to the storage
+	if err := p.Relation.Write(p.Ts, unionBat); err != nil {
+		batch.Clean(unionBat, proc.Mp)
+		batch.Clean(updateBatch, proc.Mp)
+		proc.Reg.InputBatch = &batch.Batch{}
+		return false, err
+	}
+	batch.Clean(unionBat, proc.Mp)
+	batch.Clean(updateBatch, proc.Mp)
+	proc.Reg.InputBatch = &batch.Batch{}
+
 	p.M.Lock()
 	p.AffectedRows += affectedRows
 	p.M.Unlock()
