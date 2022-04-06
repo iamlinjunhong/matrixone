@@ -147,7 +147,7 @@ type Relation interface {
 	AddTableDef(uint64, TableDef) error
 	DelTableDef(uint64, TableDef) error
 
-	NewReader(int, extend.Extend) []Reader // first argument is the number of reader
+	NewReader(int) []Reader // first argument is the number of reader
 }
 
 type Reader interface {

@@ -282,36 +282,18 @@ func (e *Exec) compileQuery(qry *plan.Query) (*Scope, error) {
 
 func (e *Exec) compileDelete(qry *plan.Query) (*Scope, error) {
 	if e.checkPlanScope(qry.Scope) != BQ {
-<<<<<<< HEAD
 		return nil, errors.New(errno.FeatureNotSupported, "Only single table delete is supported")
-=======
-		return nil, errors.New(errno.FeatureNotSupported, fmt.Sprintf("Only single table delete is supported"))
->>>>>>> 985fad5f (refactoring update/delete plan)
 	}
 	rel := e.getRelationFromPlanScope(qry.Scope)
 	if rel == nil {
 		return nil, errors.New(errno.SyntaxErrororAccessRuleViolation, "cannot find table for delete")
 	}
-	/*
-		//  It will get the definition of primary key if exists or get the definition of hide column
-		colKeys, isPrimaryKey := rel.GetPriKeyOrHideKey()
-		if colKeys == nil {
-			return nil, errors.New(errno.CaseNotFound, fmt.Sprintf("cannot find primary key or hide key"))
-		}
-		if !isPrimaryKey {
-			colName := colKeys[0].Name
-			qry.Result = append(qry.Result, colName)
-			qry.Scope.Result.Attrs = append(qry.Scope.Result.Attrs, colName)
-			qry.Scope.Result.AttrsMap[colName] = &plan.Attribute{Name: colName, Type: colKeys[0].Type}
-		}
-		// TODO: projection can be prune
-		//attrsMap := make(map[string]uint64)
-		//for _, key := range colKeys {
-		//	attrsMap[key] = 1
-		//}
-		//qry.Scope.Prune(attrsMap, nil)
-	*/
-
+	// TODO: projection can be prune
+	//attrsMap := make(map[string]uint64)
+	//for _, key := range colKeys {
+	//	attrsMap[key] = 1
+	//}
+	//qry.Scope.Prune(attrsMap, nil)
 	s, err := e.compilePlanScope(qry.Scope)
 	if err != nil {
 		return nil, err
@@ -359,7 +341,6 @@ func (e *Exec) compileUpdate(qry *plan.Update) (*Scope, error) {
 			UpdateList:      qry.UpdateList,
 			UpdateAttrs:     qry.UpdateAttrs,
 			OtherAttrs:      qry.OtherAttrs,
-			HasModifyPriKey: true,
 		},
 	})
 	e.scope = s

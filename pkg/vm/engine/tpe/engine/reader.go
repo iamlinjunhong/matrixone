@@ -17,18 +17,12 @@ package engine
 import (
 	"bytes"
 	"errors"
-<<<<<<< HEAD
 	"fmt"
 	"github.com/matrixorigin/matrixone/pkg/container/batch"
 	"github.com/matrixorigin/matrixone/pkg/container/nulls"
 	"github.com/matrixorigin/matrixone/pkg/container/types"
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/matrixorigin/matrixone/pkg/logutil"
-	"github.com/matrixorigin/matrixone/pkg/vm/engine"
-=======
-
-	"github.com/matrixorigin/matrixone/pkg/container/batch"
->>>>>>> 985fad5f (refactoring update/delete plan)
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/tpe/descriptor"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/tpe/tuplecodec"
 	"sort"
@@ -40,17 +34,11 @@ var (
 	errorSomeAttributeNamesAreNotInAttributeDesc = errors.New("some attriute names are not in attribute desc")
 	errorInvalidParameters                       = errors.New("invalid parameters")
 	errorDifferentReadAttributesInSameReader     = errors.New("different attributes in same reader")
-<<<<<<< HEAD
 	errorVectorIsInvalid                         = errors.New("vector is invalid")
-)
-
-func (tr *TpeReader) NewFilter() engine.Filter {
-=======
 )
 
 /*
 func (tr *  TpeReader) NewFilter() engine.Filter {
->>>>>>> 985fad5f (refactoring update/delete plan)
 	return nil
 }
 
@@ -101,16 +89,12 @@ func (tr *TpeReader) Read(refCnts []uint64, attrs []string) (*batch.Batch, error
 			ReadAttributesNames: attrs,
 			ReadAttributeDescs:  readAttrs,
 			ParallelReader:      tr.parallelReader,
-<<<<<<< HEAD
 			MultiNode:           tr.multiNode,
-=======
->>>>>>> 985fad5f (refactoring update/delete plan)
 			ReadCount:           0,
 		}
 
 		if tr.readCtx.ParallelReader || tr.readCtx.MultiNode {
 			tr.readCtx.ParallelReaderContext = tuplecodec.ParallelReaderContext{
-<<<<<<< HEAD
 				ID:                   tr.id,
 				ShardIndex:           0,
 				ShardStartKey:        tr.shardInfos[0].startKey,
@@ -127,14 +111,6 @@ func (tr *TpeReader) Read(refCnts []uint64, attrs []string) (*batch.Batch, error
 				tr.shardInfos,
 				tr.readCtx.ParallelReaderContext,
 			)
-=======
-				ShardIndex:       0,
-				ShardStartKey:    tr.shardInfos[0].startKey,
-				ShardEndKey:      tr.shardInfos[0].endKey,
-				ShardNextScanKey: tr.shardInfos[0].startKey,
-				CompleteInShard:  tr.shardInfos[0].completeInShard,
-			}
->>>>>>> 985fad5f (refactoring update/delete plan)
 		} else {
 			tr.readCtx.SingleReaderContext = tuplecodec.SingleReaderContext{
 				CompleteInAllShards:      false,
@@ -162,7 +138,6 @@ func (tr *TpeReader) Read(refCnts []uint64, attrs []string) (*batch.Batch, error
 			//update new shard if needed
 			if tr.readCtx.CompleteInShard {
 				tr.shardInfos[tr.readCtx.ShardIndex].completeInShard = true
-<<<<<<< HEAD
 				shardIdx := tr.readCtx.ShardIndex
 				shardIdx++
 				id := tr.readCtx.ID
@@ -179,14 +154,7 @@ func (tr *TpeReader) Read(refCnts []uint64, attrs []string) (*batch.Batch, error
 						tr.shardInfos[tr.readCtx.ShardIndex],
 						tr.readCtx.ParallelReaderContext,
 					)
-=======
 				tr.readCtx.ShardIndex++
-				if tr.readCtx.ShardIndex < len(tr.shardInfos) {
-					tr.readCtx.ShardStartKey = tr.shardInfos[tr.readCtx.ShardIndex].startKey
-					tr.readCtx.ShardEndKey = tr.shardInfos[tr.readCtx.ShardIndex].endKey
-					tr.readCtx.ShardNextScanKey = tr.shardInfos[tr.readCtx.ShardIndex].nextScanKey
-					tr.readCtx.CompleteInShard = false
->>>>>>> 985fad5f (refactoring update/delete plan)
 				} else {
 					return nil, nil
 				}
@@ -199,7 +167,6 @@ func (tr *TpeReader) Read(refCnts []uint64, attrs []string) (*batch.Batch, error
 		return nil, err
 	}
 
-<<<<<<< HEAD
 	//for test
 	if tr.readCtx.ParallelReader && tr.multiNode {
 		cnt := 0
@@ -413,7 +380,6 @@ func (tr *TpeReader) Read(refCnts []uint64, attrs []string) (*batch.Batch, error
 			}
 		}
 	}
-=======
 	/*
 		//for test
 		if tr.readCtx.ParallelReader {
@@ -425,7 +391,6 @@ func (tr *TpeReader) Read(refCnts []uint64, attrs []string) (*batch.Batch, error
 			logutil.Infof("reader %d readCount %d parallelContext %v ", tr.id, cnt, tr.readCtx.ParallelReaderContext)
 		}
 	*/
->>>>>>> 985fad5f (refactoring update/delete plan)
 
 	//when bat is null,it means no data anymore.
 	if bat != nil {
