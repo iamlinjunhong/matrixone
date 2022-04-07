@@ -17,13 +17,14 @@ package tuplecodec
 import (
 	"bytes"
 	"errors"
+	"sync"
+
 	"github.com/matrixorigin/matrixcube/storage/kv/pebble"
 	"github.com/matrixorigin/matrixone/pkg/container/batch"
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/tpe/descriptor"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/tpe/index"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/tpe/orderedcodec"
-	"sync"
 )
 
 var (
@@ -455,6 +456,9 @@ func (ihi *IndexHandlerImpl) callbackForEncodeTupleInBatch(callbackCtx interface
 }
 
 func (ihi *IndexHandlerImpl) WriteIntoIndex(writeCtx interface{}, bat *batch.Batch) error {
+	if bat.Zs != nil {
+		return nil
+	}
 	indexWriteCtx, ok := writeCtx.(*WriteContext)
 	if !ok {
 		return errorWriteContextIsInvalid

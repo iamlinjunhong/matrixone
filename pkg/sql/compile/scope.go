@@ -33,6 +33,7 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec/mergetop"
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec/order"
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec/top"
+	"github.com/matrixorigin/matrixone/pkg/sql/colexec/updateTag"
 
 	"github.com/fagongzi/goetty"
 	"github.com/matrixorigin/matrixone/pkg/container/batch"
@@ -454,7 +455,7 @@ func (s *Scope) Delete(ts uint64, e engine.Engine) (uint64, error) {
 // Update will update rows from a single of table
 func (s *Scope) Update(ts uint64, e engine.Engine) (uint64, error) {
 	s.Magic = Merge
-	arg := s.Instructions[len(s.Instructions)-1].Arg.(*deleteTag.Argument)
+	arg := s.Instructions[len(s.Instructions)-1].Arg.(*updateTag.Argument)
 	arg.Ts = ts
 	defer arg.Relation.Close()
 	if err := s.MergeRun(e); err != nil {

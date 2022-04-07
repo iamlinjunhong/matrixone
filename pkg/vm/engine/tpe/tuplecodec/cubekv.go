@@ -18,13 +18,14 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"github.com/matrixorigin/matrixcube/pb/rpcpb"
-	"github.com/matrixorigin/matrixcube/raftstore"
 	"math"
 	"sort"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/matrixorigin/matrixcube/pb/rpcpb"
+	"github.com/matrixorigin/matrixcube/raftstore"
 
 	"github.com/fagongzi/util/protoc"
 	"github.com/matrixorigin/matrixcube/pb/metapb"

@@ -409,7 +409,7 @@ func (ba *BatchAdapter) ForEachTuple(callbackCtx interface{},
 }
 
 func GetRow(writeCtx interface{}, bat *batch.Batch, row []interface{}, j int) error {
-	indexWriteCtx,ok := writeCtx.(*WriteContext)
+	_, ok := writeCtx.(*WriteContext)
     if !ok {
         return errorWriteContextIsInvalid
 	}
@@ -418,20 +418,8 @@ func GetRow(writeCtx interface{}, bat *batch.Batch, row []interface{}, j int) er
 			rowIndex = bat.Sels[j]
 		}
 
-		offset := 0
-		if len(bat.Zs) == 2 && bat.Zs[0] == -1 && bat.Zs[1] == 1 {
-			offset = 0
-		} else if len(indexWriteCtx.TableDesc.Attributes) > 0 && indexWriteCtx.TableDesc.Attributes[0].Is_hidden {
-			offset = 1
-		}
 		//get the row
 		for i, vec := range bat.Vecs { //col index
-			if vec.Typ.Oid != indexWriteCtx.TableDesc.Attributes[i + offset].TypesType.Oid {
-				logutil.Errorf("the input dataType is not consistent, the defined datatype is %d, the actual input dataType is %d\n", 
-								indexWriteCtx.TableDesc.Attributes[i + offset].TypesType.Oid, vec.Typ.Oid)
-				return fmt.Errorf("the input dataType is not consistent, the defined datatype is %d, the actual input dataType is %d\n", 
-								indexWriteCtx.TableDesc.Attributes[i + offset].TypesType.Oid, vec.Typ.Oid)
-			}
 			switch vec.Typ.Oid { //get col
 			case types.T_int8:
 				if !nulls.Any(vec.Nsp) { //all data in this column are not null
