@@ -19,6 +19,7 @@ import (
 	"fmt"
 
 	"github.com/matrixorigin/matrixone/pkg/container/batch"
+	"github.com/matrixorigin/matrixone/pkg/container/types"
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/matrixorigin/matrixone/pkg/vm/process"
 )
@@ -37,11 +38,11 @@ func Call(proc *process.Process, arg interface{}) (bool, error) {
 	if bat == nil || len(bat.Zs) == 0 {
 		return false, nil
 	}
+
 	affectedRows := uint64(vector.Length(bat.Vecs[0]))
-	fmt.Println("wangjian sql-1 is", affectedRows)
 
 	// update calculate
-	updateBatch := &batch.Batch{Attrs: p.UpdateAttrs}
+	updateBatch := &batch.Batch{Attrs: append(p.UpdateAttrs, p.OtherAttrs...)}
 	for _, etd := range p.UpdateList {
 		fmt.Println("wangjian sql-1a is", etd)
 		vec, _, err := etd.Eval(bat, proc)
@@ -50,8 +51,15 @@ func Call(proc *process.Process, arg interface{}) (bool, error) {
 			proc.Reg.InputBatch = &batch.Batch{}
 			return false, err
 		}
-		updateBatch.Vecs = append(updateBatch.Vecs, vec)
-		fmt.Println("wangjian sql-1b is", updateBatch.Vecs, updateBatch.Zs, updateBatch.Attrs)
+		newVec := &vector.Vector{Data: vec.Data, Typ: vec.Typ, Col: vec.Col, Nsp: vec.Nsp}
+		// TODO: nsp
+		err = constantPadding(newVec, affectedRows)
+		if err != nil {
+			batch.Clean(updateBatch, proc.Mp)
+			proc.Reg.InputBatch = &batch.Batch{}
+			return false, err
+		}
+		updateBatch.Vecs = append(updateBatch.Vecs, newVec)
 	}
 	for _, attr := range p.OtherAttrs {
 		vec := batch.GetVector(bat, attr)
@@ -79,7 +87,6 @@ func Call(proc *process.Process, arg interface{}) (bool, error) {
 		return false, err
 	}
 	fmt.Println("wangjian sql2 is", unionBat.Zs, unionBat.Vecs, unionBat.Attrs)
-
 	// write batch to the storage
 	if err := p.Relation.Write(p.Ts, unionBat); err != nil {
 		batch.Clean(unionBat, proc.Mp)
@@ -95,6 +102,131 @@ func Call(proc *process.Process, arg interface{}) (bool, error) {
 	p.AffectedRows += affectedRows
 	p.M.Unlock()
 	return false, nil
+}
+
+func constantPadding(vec *vector.Vector, count uint64) error {
+	length := uint64(vector.Length(vec))
+	if length == count {
+		return nil
+	}
+	if length != 1{
+		panic("constant result rows are not one")
+	}
+	switch vec.Typ.Oid {
+	case types.T_int8:
+		value := vec.Col.([]int8)[0]
+		values := vec.Col.([]int8)
+		for i := uint64(0); i < count - 1; i++ {
+			values = append(values, value)
+		}
+		vector.SetCol(vec, values)
+	case types.T_int16:
+		value := vec.Col.([]int16)[0]
+		values := vec.Col.([]int16)
+		for i := uint64(0); i < count - 1; i++ {
+			values = append(values, value)
+		}
+		vector.SetCol(vec, values)
+	case types.T_int32:
+		value := vec.Col.([]int32)[0]
+		values := vec.Col.([]int32)
+		for i := uint64(0); i < count - 1; i++ {
+			values = append(values, value)
+		}
+		vector.SetCol(vec, values)
+	case types.T_int64:
+		value := vec.Col.([]int64)[0]
+		values := vec.Col.([]int64)
+		for i := uint64(0); i < count - 1; i++ {
+			values = append(values, value)
+		}
+		vector.SetCol(vec, values)
+	case types.T_uint8:
+		value := vec.Col.([]uint8)[0]
+		values := vec.Col.([]uint8)
+		for i := uint64(0); i < count - 1; i++ {
+			values = append(values, value)
+		}
+		vector.SetCol(vec, values)
+	case types.T_uint16:
+		value := vec.Col.([]uint16)[0]
+		values := vec.Col.([]uint16)
+		for i := uint64(0); i < count - 1; i++ {
+			values = append(values, value)
+		}
+		vector.SetCol(vec, values)
+	case types.T_uint32:
+		value := vec.Col.([]uint32)[0]
+		values := vec.Col.([]uint32)
+		for i := uint64(0); i < count - 1; i++ {
+			values = append(values, value)
+		}
+		vector.SetCol(vec, values)
+	case types.T_uint64:
+		value := vec.Col.([]uint64)[0]
+		values := vec.Col.([]uint64)
+		for i := uint64(0); i < count - 1; i++ {
+			values = append(values, value)
+		}
+		vector.SetCol(vec, values)
+	case types.T_float32:
+		value := vec.Col.([]float32)[0]
+		values := vec.Col.([]float32)
+		for i := uint64(0); i < count - 1; i++ {
+			values = append(values, value)
+		}
+		vector.SetCol(vec, values)
+	case types.T_float64:
+		value := vec.Col.([]float64)[0]
+		values := vec.Col.([]float64)
+		for i := uint64(0); i < count - 1; i++ {
+			values = append(values, value)
+		}
+		vector.SetCol(vec, values)
+	case types.T_sel:
+		value := vec.Col.([]int64)[0]
+		values := vec.Col.([]int64)
+		for i := uint64(0); i < count - 1; i++ {
+			values = append(values, value)
+		}
+		vector.SetCol(vec, values)
+	case types.T_tuple:
+		value := vec.Col.([][]interface{})[0]
+		values := vec.Col.([][]interface{})
+		for i := uint64(0); i < count - 1; i++ {
+			values = append(values, value)
+		}
+		vector.SetCol(vec, values)
+	case types.T_char, types.T_varchar, types.T_json:
+		value := vec.Col.(*types.Bytes).Data
+		offset := vec.Col.(*types.Bytes).Offsets[0]
+		cnt := vec.Col.(*types.Bytes).Lengths[0]
+		values := vec.Col.(*types.Bytes)
+		for i := uint64(0); i < count - 1; i++ {
+			values.Data = append(values.Data, value...)
+			values.Lengths = append(values.Lengths, cnt)
+			offset += cnt
+			values.Offsets = append(values.Offsets, offset)
+		}
+		vector.SetCol(vec, values)
+	case types.T_date:
+		value := vec.Col.([]types.Date)[0]
+		values := vec.Col.([]types.Date)
+		for i := uint64(0); i < count - 1; i++ {
+			values = append(values, value)
+		}
+		vector.SetCol(vec, values)
+	case types.T_datetime:
+		value := vec.Col.([]types.Datetime)[0]
+		values := vec.Col.([]types.Datetime)
+		for i := uint64(0); i < count - 1; i++ {
+			values = append(values, value)
+		}
+		vector.SetCol(vec, values)
+	default:
+		panic(fmt.Sprintf("unexpect type %s for function constantPadding", vec.Typ))
+	}
+	return nil
 }
 
 
