@@ -17,10 +17,11 @@ package updateTag
 import (
 	"bytes"
 	"fmt"
-
 	"github.com/matrixorigin/matrixone/pkg/container/batch"
 	"github.com/matrixorigin/matrixone/pkg/container/types"
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
+	"github.com/matrixorigin/matrixone/pkg/errno"
+	"github.com/matrixorigin/matrixone/pkg/sql/errors"
 	"github.com/matrixorigin/matrixone/pkg/vm/process"
 )
 
@@ -44,14 +45,13 @@ func Call(proc *process.Process, arg interface{}) (bool, error) {
 	// update calculate
 	updateBatch := &batch.Batch{Attrs: append(p.UpdateAttrs, p.OtherAttrs...)}
 	for _, etd := range p.UpdateList {
-		fmt.Println("wangjian sql-1a is", etd)
 		vec, _, err := etd.Eval(bat, proc)
 		if err != nil {
 			batch.Clean(updateBatch, proc.Mp)
 			proc.Reg.InputBatch = &batch.Batch{}
 			return false, err
 		}
-		newVec := &vector.Vector{Data: vec.Data, Typ: vec.Typ, Col: vec.Col, Nsp: vec.Nsp}
+		newVec := &vector.Vector{Typ: vec.Typ, Col: vec.Col, Nsp: vec.Nsp}
 		// TODO: nsp
 		err = constantPadding(newVec, affectedRows)
 		if err != nil {
@@ -63,30 +63,29 @@ func Call(proc *process.Process, arg interface{}) (bool, error) {
 	}
 	for _, attr := range p.OtherAttrs {
 		vec := batch.GetVector(bat, attr)
-		vec.Ref++
-		updateBatch.Vecs = append(updateBatch.Vecs, vec)
-		fmt.Println("wangjian sql-1c is", updateBatch.Vecs, updateBatch.Zs, updateBatch.Attrs)
+		// vec.Ref++
+		newVec := &vector.Vector{Typ: vec.Typ, Col: vec.Col, Nsp: vec.Nsp}
+		updateBatch.Vecs = append(updateBatch.Vecs, newVec)
 	}
 
 	// delete tag
 	for i, _ := range bat.Zs {
 		bat.Zs[i] = -1
 	}
-	fmt.Println("wangjian sql0 is", bat.Zs, bat.Vecs, bat.Attrs)
+
 	// update tag
 	updateBatch.Zs = make([]int64, affectedRows)
 	for i, _ := range updateBatch.Zs {
 		updateBatch.Zs[i] = 1
 	}
-	fmt.Println("wangjian sql1 is", updateBatch.Zs, updateBatch.Vecs, updateBatch.Attrs)
-	unionBat, err := bat.Append(proc.Mp, updateBatch)
+
+	unionBat, err := mergeBatches(bat, updateBatch)
 	if err != nil {
 		batch.Clean(unionBat, proc.Mp)
 		batch.Clean(updateBatch, proc.Mp)
 		proc.Reg.InputBatch = &batch.Batch{}
 		return false, err
 	}
-	fmt.Println("wangjian sql2 is", unionBat.Zs, unionBat.Vecs, unionBat.Attrs)
 	// write batch to the storage
 	if err := p.Relation.Write(p.Ts, unionBat); err != nil {
 		batch.Clean(unionBat, proc.Mp)
@@ -102,6 +101,71 @@ func Call(proc *process.Process, arg interface{}) (bool, error) {
 	p.AffectedRows += affectedRows
 	p.M.Unlock()
 	return false, nil
+}
+
+func mergeBatches(toBat *batch.Batch, bat *batch.Batch) (*batch.Batch, error) {
+	if toBat == nil {
+		return toBat, nil
+	}
+	if len(bat.Vecs) != len(toBat.Vecs) {
+		return nil, errors.New(errno.InternalError, "unexpected error happens in batch merge")
+	}
+	if len(toBat.Vecs) == 0 {
+		return toBat, nil
+	}
+	for i, attr := range bat.Attrs {
+		toVec := batch.GetVector(toBat, attr)
+		vec := bat.Vecs[i]
+		if toVec.Typ.Oid != vec.Typ.Oid {
+			panic("old batch type is not equal to update batch type")
+		}
+		switch toVec.Typ.Oid {
+		case types.T_int8:
+			toCol := toVec.Col.([]int8)
+			col := vec.Col.([]int8)
+			toCol = append(toCol, col...)
+			vector.SetCol(toVec, toCol)
+		case types.T_int16:
+			toCol := toVec.Col.([]int16)
+			col := vec.Col.([]int16)
+			toCol = append(toCol, col...)
+			vector.SetCol(toVec, toCol)
+		case types.T_int32:
+			toCol := toVec.Col.([]int32)
+			col := vec.Col.([]int32)
+			toCol = append(toCol, col...)
+			vector.SetCol(toVec, toCol)
+		case types.T_int64:
+			toCol := toVec.Col.([]int64)
+			col := vec.Col.([]int64)
+			toCol = append(toCol, col...)
+			vector.SetCol(toVec, toCol)
+		case types.T_uint8:
+			toCol := toVec.Col.([]uint8)
+			col := vec.Col.([]uint8)
+			toCol = append(toCol, col...)
+			vector.SetCol(toVec, toCol)
+		case types.T_uint16:
+			toCol := toVec.Col.([]uint16)
+			col := vec.Col.([]uint16)
+			toCol = append(toCol, col...)
+			vector.SetCol(toVec, toCol)
+		case types.T_uint32:
+			toCol := toVec.Col.([]uint32)
+			col := vec.Col.([]uint32)
+			toCol = append(toCol, col...)
+			vector.SetCol(toVec, toCol)
+		case types.T_uint64:
+			toCol := toVec.Col.([]uint64)
+			col := vec.Col.([]uint64)
+			toCol = append(toCol, col...)
+			vector.SetCol(toVec, toCol)
+		default:
+			panic(fmt.Sprintf("unexpect type %s for function mergeBatches", vec.Typ))
+		}
+	}
+	toBat.Zs = append(toBat.Zs, bat.Zs...)
+	return toBat, nil
 }
 
 func constantPadding(vec *vector.Vector, count uint64) error {

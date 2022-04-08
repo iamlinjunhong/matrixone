@@ -90,8 +90,10 @@ func (chi *ComputationHandlerImpl) Write(writeCtx interface{}, bat *batch.Batch)
 	var err error
 	if GetDeleteFlag(bat) {
 		err = chi.indexHandler.DeleteFromIndex(writeCtx, bat)
-	} else {
+	} else if bat.Zs == nil {
 		err = chi.indexHandler.WriteIntoIndex(writeCtx, bat)
+	} else {
+		err = chi.indexHandler.UpdateIntoIndex(writeCtx, bat)
 	}
 	
 	if err != nil {
