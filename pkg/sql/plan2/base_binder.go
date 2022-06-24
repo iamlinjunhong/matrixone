@@ -869,7 +869,7 @@ func bindFuncExprImplByPlanExpr(name string, args []*Expr) (*plan.Expr, error) {
 }
 
 func (b *baseBinder) bindNumVal(astExpr *tree.NumVal) (*Expr, error) {
-	over_int64_err := errors.New("", "Constants over int64 will support in future version.")
+	// over_int64_err := errors.New("", "Constants over int64 will support in future version.")
 
 	getStringExpr := func(val string) *Expr {
 		return &Expr{
@@ -900,8 +900,8 @@ func (b *baseBinder) bindNumVal(astExpr *tree.NumVal) (*Expr, error) {
 		return appendCastBeforeExpr(getStringExpr(val), typ)
 	}
 
-	switch astExpr.Value.Kind() {
-	case constant.Unknown:
+	switch astExpr.ValType {
+	case tree.P_null:
 		return &Expr{
 			Expr: &plan.Expr_C{
 				C: &Const{
@@ -913,7 +913,7 @@ func (b *baseBinder) bindNumVal(astExpr *tree.NumVal) (*Expr, error) {
 				Nullable: true,
 			},
 		}, nil
-	case constant.Bool:
+	case tree.P_bool:
 		boolValue := constant.BoolVal(astExpr.Value)
 		return &Expr{
 			Expr: &plan.Expr_C{
@@ -930,23 +930,10 @@ func (b *baseBinder) bindNumVal(astExpr *tree.NumVal) (*Expr, error) {
 				Size:     1,
 			},
 		}, nil
-	case constant.Int:
-		var intValue int64
-		var ok bool
-		var err error
-		if astExpr.ValType == tree.P_hexnum {
-			intValue, err = strconv.ParseInt(astExpr.String(), 0, 64)
-			if err != nil {
-				return nil, over_int64_err
-			}
-		} else {
-			intValue, ok = constant.Int64Val(astExpr.Value)
-			if !ok {
-				return nil, over_int64_err
-			}
-		}
-		if astExpr.Negative() {
-			intValue = -intValue
+	case tree.P_int64:
+		intValue, ok := constant.Int64Val(astExpr.Value)
+		if !ok {
+			return nil, errors.New("", "Parser error")
 		}
 		return &Expr{
 			Expr: &plan.Expr_C{
@@ -963,13 +950,32 @@ func (b *baseBinder) bindNumVal(astExpr *tree.NumVal) (*Expr, error) {
 				Size:     8,
 			},
 		}, nil
-	case constant.Float:
+	case tree.P_uint64:
+		return returnDecimalExpr(astExpr.String())
+	case tree.P_hexnum:
+		intValue, err := strconv.ParseInt(astExpr.String(), 0, 64)
+		if err != nil {
+			return returnDecimalExpr(astExpr.String())
+		}
+		return &Expr{
+			Expr: &plan.Expr_C{
+				C: &Const{
+					Isnull: false,
+					Value: &plan.Const_Ival{
+						Ival: intValue,
+					},
+				},
+			},
+			Typ: &plan.Type{
+				Id:       plan.Type_INT64,
+				Nullable: false,
+				Size:     8,
+			},
+		}, nil
+	case tree.P_float64:
 		floatValue, ok := constant.Float64Val(astExpr.Value)
 		if !ok {
 			return returnDecimalExpr(astExpr.String())
-		}
-		if astExpr.Negative() {
-			floatValue = -floatValue
 		}
 		return &Expr{
 			Expr: &plan.Expr_C{
@@ -986,15 +992,11 @@ func (b *baseBinder) bindNumVal(astExpr *tree.NumVal) (*Expr, error) {
 				Size:     8,
 			},
 		}, nil
-	case constant.String:
+	case tree.P_char:
 		stringValue := constant.StringVal(astExpr.Value)
 		return getStringExpr(stringValue), nil
 	default:
-<<<<<<< HEAD
 		return nil, errors.New("", fmt.Sprintf("unsupport value: %v", astExpr.Value))
-=======
-		return nil, errors.New(errno.SyntaxErrororAccessRuleViolation, fmt.Sprintf("unsupport constant: %v", astExpr.Value))
->>>>>>> fbef51d3 (constants over int64 is not support now)
 	}
 }
 

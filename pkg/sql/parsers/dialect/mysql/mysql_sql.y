@@ -16,6 +16,7 @@
 package mysql
     
 import (
+	"fmt"
     "strings"
     "go/constant"
 
@@ -5007,12 +5008,12 @@ datetime_precision:
     }
 |   '(' INTEGRAL ')'
     {
-        ival, errStr := util.GetInt64($1)
+        ival, errStr := util.GetInt64($2)
         if errStr != "" {
             yylex.Error(errStr)
             return 1
         }
-        $$ = tree.NewNumValWithType(constant.MakeInt64(ival), yylex.(*Lexer).scanner.LastToken, false, ival)
+        $$ = tree.NewNumValWithType(constant.MakeInt64(ival), fmt.Sprintf("%v", ival), false, tree.P_int64)
     }
 
 name_datetime_precision:
@@ -5307,11 +5308,11 @@ literal:
     }
 |   INTEGRAL
     {
-    	swich v := $1.(type) {
+    	switch v := $1.(type) {
     	case uint64:
     		$$ = tree.NewNumValWithType(constant.MakeUint64(v), yylex.(*Lexer).scanner.LastToken, false, tree.P_uint64)
     	case int64:
-    		$$ = tree.NewNumValWithType(constant.MakeUint64(v), yylex.(*Lexer).scanner.LastToken, false, tree.P_int64)
+    		$$ = tree.NewNumValWithType(constant.MakeInt64(v), yylex.(*Lexer).scanner.LastToken, false, tree.P_int64)
     	default:
     		yylex.Error("parse integral fail")
             return 1

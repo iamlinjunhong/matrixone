@@ -26,8 +26,7 @@ var (
 		input  string
 		output string
 	}{
-		input:  "load data infile 'test/loadfile5' ignore INTO TABLE T.A FIELDS TERMINATED BY  ',' (@,@,c,d,e,f)",
-		output: "load data infile test/loadfile5 ignore into table t.a fields terminated by , (, , c, d, e, f)",
+		input:  "select sysdate(), curtime(22) from t",
 	}
 )
 

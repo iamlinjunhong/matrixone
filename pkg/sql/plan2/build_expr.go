@@ -17,7 +17,7 @@ package plan2
 import (
 	"fmt"
 	"go/constant"
-	"math"
+	"strconv"
 
 	"github.com/matrixorigin/matrixone/pkg/errno"
 	"github.com/matrixorigin/matrixone/pkg/pb/plan"
@@ -111,7 +111,7 @@ func buildExpr(stmt tree.Expr, ctx CompilerContext, query *Query, node *Node, bi
 
 	switch astExpr := stmt.(type) {
 	case *tree.NumVal:
-		resultExpr, err = buildNumVal(astExpr.Value)
+		resultExpr, err = buildNumVal(astExpr)
 		isAgg = needAgg
 	case *tree.ParenExpr:
 		resultExpr, isAgg, err = buildExpr(astExpr.Expr, ctx, query, node, binderCtx, needAgg)
@@ -463,9 +463,38 @@ func buildBinaryExpr(astExpr *tree.BinaryExpr, ctx CompilerContext, query *Query
 	return nil, false, errors.New(errno.SyntaxErrororAccessRuleViolation, fmt.Sprintf("'%v' is not support now", astExpr))
 }
 
-func buildNumVal(val constant.Value) (*Expr, error) {
-	switch val.Kind() {
-	case constant.Unknown:
+func buildNumVal(astExpr *tree.NumVal) (*Expr, error) {
+	getStringExpr := func(val string) *Expr {
+		return &Expr{
+			Expr: &plan.Expr_C{
+				C: &Const{
+					Isnull: false,
+					Value: &plan.Const_Sval{
+						Sval: val,
+					},
+				},
+			},
+			Typ: &plan.Type{
+				Id:       plan.Type_VARCHAR,
+				Nullable: false,
+				Size:     4,
+				Width:    int32(len(val)),
+			},
+		}
+	}
+
+	returnDecimalExpr := func(val string) (*Expr, error) {
+		typ := &plan.Type{
+			Id:       plan.Type_DECIMAL128,
+			Width:    int32(len(val)),
+			Scale:    0,
+			Nullable: false,
+		}
+		return appendCastBeforeExpr(getStringExpr(val), typ)
+	}
+
+	switch astExpr.ValType {
+	case tree.P_null:
 		return &Expr{
 			Expr: &plan.Expr_C{
 				C: &Const{
@@ -479,8 +508,8 @@ func buildNumVal(val constant.Value) (*Expr, error) {
 				Precision: 0,
 			},
 		}, nil
-	case constant.Bool:
-		boolValue := constant.BoolVal(val)
+	case tree.P_bool:
+		boolValue := constant.BoolVal(astExpr.Value)
 		return &Expr{
 			Expr: &plan.Expr_C{
 				C: &Const{
@@ -498,8 +527,11 @@ func buildNumVal(val constant.Value) (*Expr, error) {
 				Precision: 0,
 			},
 		}, nil
-	case constant.Int:
-		intValue, _ := constant.Int64Val(val)
+	case tree.P_int64:
+		intValue, ok := constant.Int64Val(astExpr.Value)
+		if !ok {
+			return nil, errors.New("", "Parser error")
+		}
 		return &Expr{
 			Expr: &plan.Expr_C{
 				C: &Const{
@@ -517,8 +549,35 @@ func buildNumVal(val constant.Value) (*Expr, error) {
 				Precision: 0,
 			},
 		}, nil
-	case constant.Float:
-		floatValue, _ := constant.Float64Val(val)
+	case tree.P_uint64:
+		return returnDecimalExpr(astExpr.String())
+	case tree.P_hexnum:
+		intValue, err := strconv.ParseInt(astExpr.String(), 0, 64)
+		if err != nil {
+			return returnDecimalExpr(astExpr.String())
+		}
+		return &Expr{
+			Expr: &plan.Expr_C{
+				C: &Const{
+					Isnull: false,
+					Value: &plan.Const_Ival{
+						Ival: intValue,
+					},
+				},
+			},
+			Typ: &plan.Type{
+				Id:        plan.Type_INT64,
+				Nullable:  false,
+				Size:      8,
+				Width:     0,
+				Precision: 0,
+			},
+		}, nil
+	case tree.P_float64:
+		floatValue, ok := constant.Float64Val(astExpr.Value)
+		if !ok {
+			return returnDecimalExpr(astExpr.String())
+		}
 		return &Expr{
 			Expr: &plan.Expr_C{
 				C: &Const{
@@ -536,25 +595,10 @@ func buildNumVal(val constant.Value) (*Expr, error) {
 				Precision: 0,
 			},
 		}, nil
-	case constant.String:
-		stringValue := constant.StringVal(val)
-		return &Expr{
-			Expr: &plan.Expr_C{
-				C: &Const{
-					Isnull: false,
-					Value: &plan.Const_Sval{
-						Sval: stringValue,
-					},
-				},
-			},
-			Typ: &plan.Type{
-				Id:        plan.Type_VARCHAR,
-				Nullable:  false,
-				Width:     math.MaxInt32,
-				Precision: 0,
-			},
-		}, nil
+	case tree.P_char:
+		stringValue := constant.StringVal(astExpr.Value)
+		return getStringExpr(stringValue), nil
 	default:
-		return nil, errors.New(errno.SyntaxErrororAccessRuleViolation, fmt.Sprintf("unsupport value: %v", val))
+		return nil, errors.New("", fmt.Sprintf("unsupport value: %v", astExpr.Value))
 	}
 }
