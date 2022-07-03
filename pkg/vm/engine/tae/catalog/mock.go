@@ -15,7 +15,6 @@
 package catalog
 
 import (
-	"github.com/matrixorigin/matrixone/pkg/catalog"
 	"sync"
 
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/tae/containers"
