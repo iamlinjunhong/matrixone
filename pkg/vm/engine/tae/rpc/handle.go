@@ -657,22 +657,21 @@ func (h *Handle) HandleUpdateConstraint(
 		return err
 	}
 
-	cstr := string(req.Constraint)
+	cstr := req.Constraint
 	req.Constraint = nil
 	logutil.Infof("[precommit] update cstr: %+v cstr %d bytes\n txn: %s\n", req, len(cstr), txn.String())
 
-	// Todo later
-	// dbase, err := h.eng.GetDatabaseByID(ctx, req.DatabaseId, txn)
-	// if err != nil {
-	// 	return
-	// }
+	dbase, err := h.eng.GetDatabaseByID(ctx, req.DatabaseId, txn)
+	if err != nil {
+		return
+	}
 
-	// tbl, err := dbase.GetRelationByID(ctx, req.TableId)
-	// if err != nil {
-	// 	return
-	// }
+	tbl, err := dbase.GetRelationByID(ctx, req.TableId)
+	if err != nil {
+		return
+	}
 
-	// logutil.Infof("[precommit] update cstr %d", tbl.GetRelationID(ctx))
+	tbl.UpdateConstraintWithBin(ctx, cstr)
 
 	return nil
 }
