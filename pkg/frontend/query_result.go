@@ -97,7 +97,7 @@ func initQueryResulConfig(ses *Session) error {
 		p = uint64(v)
 	}
 	ses.createdTime = time.Now()
-	ses.expiredTime = ses.createdTime.Add(time.Hour * time.Duration(p))
+	ses.expiredTime = ses.createdTime.Add(time.Minute * time.Duration(p))
 	return nil
 }
 

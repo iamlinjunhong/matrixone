@@ -1,0 +1,51 @@
+service-type = "DN"
+
+[log]
+level = "info"
+format = "console"
+max-size = 512
+
+[hakeeper-client]
+service-addresses = [
+  "127.0.0.1:32001",
+]
+
+[[fileservice]]
+name = "LOCAL"
+backend = "DISK"
+
+[[fileservice]]
+name = "S3"
+backend = "S3"
+
+[fileservice.s3]
+bucket = "junhong-local-test"
+endpoint = "https://s3.us-west-2.amazonaws.com"
+key-prefix = "0103-2/mo-data"
+
+[fileservice.cache]
+memory-capacity = "512MB"
+disk-capacity = "8GB"
+
+[[fileservice]]
+name = "ETL"
+backend = "S3"
+
+[fileservice.s3]
+bucket = "junhong-local-test"
+endpoint = "https://s3.us-west-2.amazonaws.com"
+key-prefix = "0103-2/etl"
+
+[dn]
+uuid = "dd4dccb4-4d3c-41f8-b482-5251dc7a41bf"
+
+[dn.Txn.Storage]
+backend = "TAE"
+log-backend = "logservice"
+
+[dn.Ckp]
+flush-interval = "60s"
+min-count = 100
+scan-interval = "5s"
+incremental-interval = "180s"
+global-min-count = 60
