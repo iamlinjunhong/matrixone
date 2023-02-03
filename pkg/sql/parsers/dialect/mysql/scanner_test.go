@@ -28,19 +28,19 @@ func TestLiteralID(t *testing.T) {
 		out string
 	}{{
 		in:  "`aa`",
-		id:  ID,
+		id:  QUOTE_ID,
 		out: "aa",
 	}, {
 		in:  "```a```",
-		id:  ID,
+		id:  QUOTE_ID,
 		out: "`a`",
 	}, {
 		in:  "`a``b`",
-		id:  ID,
+		id:  QUOTE_ID,
 		out: "a`b",
 	}, {
 		in:  "`a``b`c",
-		id:  ID,
+		id:  QUOTE_ID,
 		out: "a`b",
 	}, {
 		in:  "`a``b",

@@ -16,6 +16,7 @@ package tree
 
 import (
 	"fmt"
+	"github.com/matrixorigin/matrixone/pkg/common/id"
 	"strings"
 )
 
@@ -282,14 +283,14 @@ func (node *SelectExprs) Format(ctx *FmtCtx) {
 type SelectExpr struct {
 	exprImpl
 	Expr Expr
-	As   UnrestrictedIdentifier
+	As   *id.CStr
 }
 
 func (node *SelectExpr) Format(ctx *FmtCtx) {
 	node.Expr.Format(ctx)
-	if node.As != "" {
+	if node.As != nil && !node.As.Empty() {
 		ctx.WriteString(" as ")
-		ctx.WriteString(string(node.As))
+		ctx.WriteString(node.As.Origin())
 	}
 }
 
