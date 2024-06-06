@@ -20,6 +20,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"runtime/debug"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -1117,6 +1118,9 @@ func (tc *txnOperator) needUnlockLocked() bool {
 func (tc *txnOperator) closeLocked() {
 	if !tc.mu.closed {
 		tc.mu.closed = true
+		util.GetLogger().Warn("close locked",
+			zap.String("txn ID", hex.EncodeToString(tc.mu.txn.ID)),
+			zap.String("stack", string(debug.Stack())))
 		tc.triggerEventLocked(
 			TxnEvent{
 				Event: ClosedEvent,
