@@ -898,6 +898,72 @@ func doTimestampAdd(loc *time.Location, start types.Timestamp, diff int64, iTyp 
 	}
 }
 
+func Truncate(ivecs []*vector.Vector, result vector.FunctionResultWrapper, proc *process.Process, length int, selectList *FunctionSelectList) (err error) {
+	diff, _ := vector.GenerateFunctionFixedTypeParameter[int64](ivecs[1]).GetValue(0)
+	unit, _ := vector.GenerateFunctionFixedTypeParameter[int64](ivecs[2]).GetValue(0)
+	iTyp := types.IntervalType(unit)
+	err = types.JudgeIntervalNumOverflow(diff, iTyp)
+	if err != nil {
+		return err
+	}
+
+	var num int64
+	switch iTyp {
+	case types.Second:
+		num = diff * types.MicroSecsPerSec
+	case types.Minute:
+		num = diff * types.SecsPerMinute * types.MicroSecsPerSec
+	case types.Hour:
+		num = diff * types.SecsPerHour * types.MicroSecsPerSec
+	case types.Day:
+		num = diff * types.SecsPerDay * types.MicroSecsPerSec
+	default:
+		return moerr.NewNotSupported(proc.Ctx, "now TRUNCATE support SECOND, MINUTE, HOUR, DAY as the time unit")
+	}
+
+	ivec := vector.GenerateFunctionFixedTypeParameter[types.Datetime](ivecs[0])
+	rs := vector.MustFunctionResult[int64](result)
+
+	for i := uint64(0); i < uint64(length); i++ {
+		v, null := ivec.GetValue(i)
+		if null {
+			return moerr.NewNotSupported(proc.Ctx, "now args of TRUNCATE can not be NULL")
+		}
+		t := int64(v)
+		if err = rs.Append(t-t%num, false); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func Divisor(ivecs []*vector.Vector, result vector.FunctionResultWrapper, proc *process.Process, length int, selectList *FunctionSelectList) (err error) {
+	ivec1 := vector.GenerateFunctionFixedTypeParameter[int64](ivecs[0])
+	ivec2 := vector.GenerateFunctionFixedTypeParameter[int64](ivecs[1])
+	rs := vector.MustFunctionResult[int64](result)
+
+	gcd := func(a, b int64) int64 {
+		for b != 0 {
+			a, b = b, a%b
+		}
+		return a
+	}
+
+	for i := uint64(0); i < uint64(length); i++ {
+		v1, null1 := ivec1.GetValue(i)
+		v2, null2 := ivec2.GetValue(i)
+		if null1 || null2 {
+			return moerr.NewNotSupported(proc.Ctx, "now args of DIVISOR can not be NULL")
+		}
+		if err = rs.Append(gcd(v1, v2), false); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func DateAdd(ivecs []*vector.Vector, result vector.FunctionResultWrapper, proc *process.Process, length int, selectList *FunctionSelectList) (err error) {
 	unit, _ := vector.GenerateFunctionFixedTypeParameter[int64](ivecs[2]).GetValue(0)
 	iTyp := types.IntervalType(unit)

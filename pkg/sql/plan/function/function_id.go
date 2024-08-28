@@ -116,6 +116,7 @@ const (
 	TIMEDIFF
 	TIMESTAMPDIFF
 	DENSE_RANK
+	DIVISOR
 	EMPTY
 	ENDSWITH
 	EXP
@@ -304,6 +305,7 @@ const (
 	ADD_FAULT_POINT     // Add a fault point
 	REMOVE_FAULT_POINT  // Remove
 	TRIGGER_FAULT_POINT // Trigger.
+	TRUNCATE
 
 	MO_MEMORY_USAGE // Dump memory usage
 	MO_ENABLE_MEMORY_USAGE_DETAIL
@@ -594,9 +596,11 @@ var functionIdRegister = map[string]int32{
 	"enable_fault_injection":         ENABLE_FAULT_INJECTION,
 	"disable_fault_injection":        DISABLE_FAULT_INJECTION,
 	"dense_rank":                     DENSE_RANK,
+	"divisor":                        DIVISOR,
 	"add_fault_point":                ADD_FAULT_POINT,
 	"remove_fault_point":             REMOVE_FAULT_POINT,
 	"trigger_fault_point":            TRIGGER_FAULT_POINT,
+	"truncate":                       TRUNCATE,
 	"uuid":                           UUID,
 	"load_file":                      LOAD_FILE,
 	"hex":                            HEX,

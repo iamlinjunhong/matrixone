@@ -950,10 +950,15 @@ func (b *baseBinder) bindFuncExpr(astExpr *tree.FuncExpr, depth int32, isRoot bo
 	funcName := funcRef.ColName()
 
 	if function.GetFunctionIsAggregateByName(funcName) && astExpr.WindowSpec == nil {
+
+		expr, err := b.impl.BindAggFunc(funcName, astExpr, depth, isRoot)
+		if err != nil {
+			return expr, err
+		}
 		if b.ctx.timeTag > 0 {
 			return b.impl.BindTimeWindowFunc(funcName, astExpr, depth, isRoot)
 		}
-		return b.impl.BindAggFunc(funcName, astExpr, depth, isRoot)
+		return expr, err
 	} else if function.GetFunctionIsWinFunByName(funcName) {
 		return b.impl.BindWinFunc(funcName, astExpr, depth, isRoot)
 	}
@@ -1325,6 +1330,22 @@ func BindFuncExprImplByPlanExpr(ctx context.Context, name string, args []*Expr) 
 		// date_add(col_name, "1 day"), will rewrite to date_add(col_name, number, unit)
 		if len(args) != 2 {
 			return nil, moerr.NewInvalidArg(ctx, "date_add/date_sub function need two args", len(args))
+		}
+		args, err = resetDateFunction(ctx, args[0], args[1])
+		if err != nil {
+			return nil, err
+		}
+	case "truncate":
+		// rewrite date_add/date_sub function
+		// date_add(col_name, "1 day"), will rewrite to date_add(col_name, number, unit)
+		if len(args) != 2 {
+			return nil, moerr.NewInvalidArg(ctx, "date_add/date_sub function need two args", len(args))
+		}
+		args[0], err = appendCastBeforeExpr(ctx, args[0], plan.Type{
+			Id: int32(types.T_datetime),
+		})
+		if err != nil {
+			return nil, err
 		}
 		args, err = resetDateFunction(ctx, args[0], args[1])
 		if err != nil {

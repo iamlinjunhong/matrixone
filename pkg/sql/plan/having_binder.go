@@ -289,19 +289,46 @@ func (b *HavingBinder) BindTimeWindowFunc(funcName string, astExpr *tree.FuncExp
 		return nil, moerr.NewNotSupported(b.GetContext(), "DISTINCT in time window")
 	}
 
-	b.insideAgg = true
-	expr, err := b.bindFuncExprImplByAstExpr(funcName, astExpr.Exprs, depth)
-	if err != nil {
-		return nil, err
+	//b.insideAgg = true
+	//expr, err := b.bindFuncExprImplByAstExpr(funcName, astExpr.Exprs, depth)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//b.insideAgg = false
+	forgeColCnt := int32(0)
+	for _, expr := range b.ctx.times {
+		if e, ok := expr.Expr.(*plan.Expr_Col); ok {
+			if e.Col.Name == TimeWindowStart {
+				forgeColCnt++
+			}
+			if e.Col.Name == TimeWindowEnd {
+				forgeColCnt++
+			}
+		}
 	}
-	b.insideAgg = false
 
 	colPos := int32(len(b.ctx.times))
+	aggColPos := colPos - forgeColCnt
+
+	expr := DeepCopyExpr(b.ctx.aggregates[aggColPos])
+	expr.Expr.(*plan.Expr_F).F.Args = []*plan.Expr{
+		{
+			Typ: b.ctx.aggregates[aggColPos].Typ,
+			Expr: &plan.Expr_Col{
+				Col: &plan.ColRef{
+					RelPos: b.ctx.aggregateTag,
+					ColPos: aggColPos,
+				},
+			},
+		},
+	}
+	b.ctx.times = append(b.ctx.times, expr)
+
 	astStr := tree.String(astExpr, dialect.MYSQL)
 	b.ctx.timeByAst[astStr] = colPos
-	b.ctx.times = append(b.ctx.times, expr)
+
 	return &plan.Expr{
-		Typ: expr.Typ,
+		Typ: b.ctx.aggregates[aggColPos].Typ,
 		Expr: &plan.Expr_Col{
 			Col: &plan.ColRef{
 				RelPos: b.ctx.timeTag,
