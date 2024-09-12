@@ -58,16 +58,14 @@ type container struct {
 	rbat   *batch.Batch
 	colCnt int
 
-	i    int
-	bats []*batch.Batch
+	i         int
+	rowCounts []int
 
-	aggExe   []colexec.ExpressionExecutor
-	aggVec   [][]*vector.Vector
-	aggIndex int
+	aggExe []colexec.ExpressionExecutor
+	aggVec [][]*vector.Vector
 
-	tsExe   colexec.ExpressionExecutor
-	tsVec   []*vector.Vector
-	tsIndex int
+	tsExe colexec.ExpressionExecutor
+	tsVec []*vector.Vector
 
 	tsOid types.T
 	tsTyp *types.Type
@@ -184,8 +182,6 @@ func (ctr *container) resetParam() {
 	ctr.preIdx = 0
 	ctr.preRow = 0
 	ctr.nextStart = 0
-	ctr.tsIndex = 0
-	ctr.aggIndex = 0
 }
 
 func (ctr *container) freeExes() {

@@ -1139,7 +1139,7 @@ func constructTimeWindow(_ context.Context, n *plan.Node) *timewin.TimeWin {
 	arg := timewin.NewArgument()
 	arg.Types = typs
 	arg.Aggs = aggregationExpressions
-	arg.Ts = n.OrderBy[0].Expr
+	arg.Ts = n.GroupBy[0]
 	arg.WStart = wStart
 	arg.WEnd = wEnd
 	arg.Interval = itr

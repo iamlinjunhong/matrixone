@@ -2396,7 +2396,7 @@ func (builder *QueryBuilder) buildSelect(stmt *tree.Select, ctx *BindContext, is
 		}
 
 		if astTimeWindow != nil {
-			itr, sld, trc, err = makeHelpFuncForTimeWindow(astTimeWindow, builder.GetContext());
+			itr, sld, trc, err = makeHelpFuncForTimeWindow(astTimeWindow, builder.GetContext())
 			if err != nil {
 				return 0, err
 			}
@@ -2407,15 +2407,17 @@ func (builder *QueryBuilder) buildSelect(stmt *tree.Select, ctx *BindContext, is
 				return 0, moerr.NewParseErrorf(builder.GetContext(), "not support group by in recursive cte: '%v'", tree.String(clause.GroupBy, dialect.MYSQL))
 			}
 			groupBinder := NewGroupBinder(builder, ctx, selectList)
-			for _, group := range clause.GroupBy.GroupByExprs {
-				group, err = ctx.qualifyColumnNames(group, AliasAfterColumn)
-				if err != nil {
-					return 0, err
-				}
+			if clause.GroupBy != nil {
+				for _, group := range clause.GroupBy.GroupByExprs {
+					group, err = ctx.qualifyColumnNames(group, AliasAfterColumn)
+					if err != nil {
+						return 0, err
+					}
 
-				_, err = groupBinder.BindExpr(group, 0, true)
-				if err != nil {
-					return 0, err
+					_, err = groupBinder.BindExpr(group, 0, true)
+					if err != nil {
+						return 0, err
+					}
 				}
 			}
 
