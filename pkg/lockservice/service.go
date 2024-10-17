@@ -128,7 +128,7 @@ func (s *service) Lock(
 	rows [][]byte,
 	txnID []byte,
 	options pb.LockOptions) (pb.Result, error) {
-
+	lockBegin := time.Now()
 	if !s.canLockOnServiceStatus(txnID, options, tableID, rows) {
 		return pb.Result{}, moerr.NewNewTxnInCNRollingRestart()
 	}
@@ -191,6 +191,7 @@ func (s *service) Lock(
 			result = r
 			err = e
 		})
+	logTxnLockTime(s.logger, time.Since(lockBegin).String(), txn)
 	return result, err
 }
 

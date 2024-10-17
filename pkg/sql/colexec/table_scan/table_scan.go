@@ -16,6 +16,10 @@ package table_scan
 
 import (
 	"bytes"
+	"encoding/hex"
+	"github.com/matrixorigin/matrixone/pkg/common/log"
+	"github.com/matrixorigin/matrixone/pkg/common/runtime"
+	"go.uber.org/zap"
 	"time"
 
 	"github.com/matrixorigin/matrixone/pkg/container/batch"
@@ -31,6 +35,10 @@ import (
 )
 
 const opName = "table_scan"
+
+func getLogger(sid string) *log.MOLogger {
+	return runtime.ServiceRuntime(sid).Logger()
+}
 
 func (tableScan *TableScan) String(buf *bytes.Buffer) {
 	buf.WriteString(opName)
@@ -152,6 +160,9 @@ func (tableScan *TableScan) Call(proc *process.Process) (vm.CallResult, error) {
 		return vm.CancelResult, err
 	}
 	analyzer.Output(retBatch)
+	getLogger(proc.GetService()).Info("table scan",
+		zap.String("table scan duration:", time.Since(start).String()),
+		zap.String("txn", hex.EncodeToString(proc.GetTxnOperator().Txn().ID)))
 	return vm.CallResult{Batch: retBatch, Status: vm.ExecNext}, nil
 
 }

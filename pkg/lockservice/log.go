@@ -167,7 +167,7 @@ func logLocalLockWaitOn(
 		return
 	}
 
-	if logger.Enabled(zap.DebugLevel) {
+	if logger.Enabled(zap.InfoLevel) {
 		var waits [][]byte
 		waitOn.waiters.iter(func(v *waiter) bool {
 			waits = append(waits, v.txn.TxnID)
@@ -176,7 +176,7 @@ func logLocalLockWaitOn(
 
 		logger.Log(
 			"lock wait on local",
-			getLogOptions(zap.DebugLevel),
+			getLogOptions(zap.InfoLevel),
 			txnField(txn),
 			zap.Uint64("table", tableID),
 			zap.Stringer("waiter", w),
@@ -893,6 +893,25 @@ func logTxnCreated(
 		logger.Log(
 			"txn created",
 			getLogOptions(zap.DebugLevel),
+			txnField(txn),
+		)
+	}
+}
+
+func logTxnLockTime(
+	logger *log.MOLogger,
+	time string,
+	txn *activeTxn,
+) {
+	if logger == nil {
+		return
+	}
+
+	if logger.Enabled(zap.InfoLevel) {
+		logger.Log(
+			"txn lock duration",
+			getLogOptions(zap.InfoLevel),
+			zap.String("duration: ", time),
 			txnField(txn),
 		)
 	}
