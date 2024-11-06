@@ -13,3 +13,36 @@
 // limitations under the License.
 
 package partitionservice
+
+import (
+	"fmt"
+
+	"github.com/matrixorigin/matrixone/pkg/catalog"
+)
+
+var (
+	PartitionTableMetadataSQL = fmt.Sprintf(`create table %s.%s(
+		table_id 		           bigint        unsigned not null,  
+		partition_method           varchar(13)            not null,  
+		partition_id               bigint        unsigned not null,
+		partition_ordinal_position int	         unsigned not null,
+		partition_expression       varchar(2048)          not null,
+		partition_description      text                   not null,
+		partition_comment          text
+	)`, catalog.MO_CATALOG, catalog.MOShardsMetadata)
+
+	InitSQLs = []string{
+		PartitionTableMetadataSQL,
+	}
+)
+
+type PartitionMethod string
+
+type Partition struct {
+	// PartitionID we implement the partitioned table using a real physical table corresponding to
+	// each partition given to the partitioned table. The ID of the partitioned table is the id of
+	// the physical table.
+	PartitionID uint64
+	// PartitionMethod is the method of partition. (HASH, RANGE, LIST etc.)
+	PartitionMethod PartitionMethod
+}
