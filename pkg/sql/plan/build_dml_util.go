@@ -21,8 +21,6 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-	"golang.org/x/exp/slices"
-
 	"github.com/matrixorigin/matrixone/pkg/catalog"
 	"github.com/matrixorigin/matrixone/pkg/common/moerr"
 	moruntime "github.com/matrixorigin/matrixone/pkg/common/runtime"
@@ -35,6 +33,7 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/txn/trace"
 	"github.com/matrixorigin/matrixone/pkg/util/executor"
 	"github.com/matrixorigin/matrixone/pkg/util/sysview"
+	"golang.org/x/exp/slices"
 )
 
 // TODO: choose either PostInsertFullText or PreInsertFullText
@@ -350,10 +349,6 @@ func buildDeletePlans(ctx CompilerContext, builder *QueryBuilder, bindCtx *BindC
 	// delete origin table
 	lastNodeId := appendSinkScanNode(builder, bindCtx, delCtx.sourceStep)
 	partExprIdx := -1
-	if delCtx.tableDef.Partition != nil {
-		partExprIdx = len(delCtx.tableDef.Cols) + delCtx.updateColLength
-		lastNodeId = appendPreDeleteNode(builder, bindCtx, delCtx.objRef, delCtx.tableDef, lastNodeId)
-	}
 	pkPos, pkTyp := getPkPos(delCtx.tableDef, false)
 	delNodeInfo := makeDeleteNodeInfo(ctx, delCtx.objRef, delCtx.tableDef, delCtx.rowIdPos, partExprIdx, true, pkPos, pkTyp, delCtx.lockTable, delCtx.partitionInfos)
 	lastNodeId, err = makeOneDeletePlan(builder, bindCtx, lastNodeId, delNodeInfo, false, false, canTruncate)
@@ -910,7 +905,7 @@ func buildInsertPlansWithRelatedHiddenTable(
 func makeOneInsertPlan(
 	ctx CompilerContext, builder *QueryBuilder, bindCtx *BindContext, objRef *ObjectRef, tableDef *TableDef,
 	updateColLength int, sourceStep int32, addAffectedRows bool, isFkRecursionCall bool, updatePkCol bool,
-	pkFilterExprs []*Expr, partitionExpr *Expr, ifExistAutoPkCol bool, ifCheckPkDup bool, ifInsertFromUnique bool,
+	pkFilterExprs []*Expr, ifExistAutoPkCol bool, ifCheckPkDup bool, ifInsertFromUnique bool,
 	indexSourceColTypes []*plan.Type, fuzzymessage *OriginTableMessageForFuzzy,
 ) (err error) {
 
@@ -934,7 +929,7 @@ func makeOneInsertPlan(
 	}
 
 	if ifCheckPkDup {
-		if err = appendPrimaryConstraintPlan(builder, bindCtx, tableDef, objRef, partitionExpr, pkFilterExprs,
+		if err = appendPrimaryConstraintPlan(builder, bindCtx, tableDef, objRef, pkFilterExprs,
 			indexSourceColTypes, sourceStep, updateColLength > 0, updatePkCol, ifInsertFromUnique, fuzzymessage); err != nil {
 			return err
 		}
@@ -1293,22 +1288,6 @@ func makeDeleteNodeInfo(ctx CompilerContext, objRef *ObjectRef, tableDef *TableD
 		}
 	}
 	return delNodeInfo
-}
-
-// Get sub tableIds and table names of the partition table
-func getPartTableIdsAndNames(ctx CompilerContext, objRef *ObjectRef, tableDef *TableDef) ([]uint64, []string) {
-	var partTableIds []uint64
-	var partTableNames []string
-	if tableDef.Partition != nil {
-		partTableIds = make([]uint64, tableDef.Partition.PartitionNum)
-		partTableNames = make([]string, tableDef.Partition.PartitionNum)
-		for i, partition := range tableDef.Partition.Partitions {
-			_, partTableDef := ctx.Resolve(objRef.SchemaName, partition.PartitionTableName, nil)
-			partTableIds[i] = partTableDef.TblId
-			partTableNames[i] = partition.PartitionTableName
-		}
-	}
-	return partTableIds, partTableNames
 }
 
 func appendSinkScanNode(builder *QueryBuilder, bindCtx *BindContext, sourceStep int32) int32 {

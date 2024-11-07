@@ -1375,7 +1375,6 @@ func appendPrimaryConstraintPlan(
 	bindCtx *BindContext,
 	tableDef *TableDef,
 	objRef *ObjectRef,
-	partitionExpr *Expr,
 	pkFilterExprs []*Expr,
 	indexSourceColTypes []*plan.Type,
 	sourceStep int32,
@@ -1512,10 +1511,6 @@ func appendPrimaryConstraintPlan(
 				}
 			}
 
-			if scanTableDef.Partition != nil && partitionExpr != nil {
-				scanTableDef.Partition.PartitionExpression = partitionExpr
-			}
-
 			scanNode := &plan.Node{
 				NodeType: plan.Node_TABLE_SCAN,
 				Stats:    &plan.Stats{},
@@ -1552,11 +1547,6 @@ func appendPrimaryConstraintPlan(
 			} else {
 				tableScanId = builder.appendNode(scanNode, bindCtx)
 				scanNode.Stats.ForceOneCN = true
-			}
-
-			// Perform partition pruning on the full table scan of the partitioned table in the insert statement
-			if scanTableDef.Partition != nil && partitionExpr != nil {
-				builder.partitionPrune(tableScanId)
 			}
 
 			// fuzzy_filter

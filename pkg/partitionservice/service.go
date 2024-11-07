@@ -30,18 +30,13 @@ func (s *service) Create(
 	tableID uint64,
 	txnOp client.TxnOperator,
 ) error {
-	_, _, v, err := s.engine.GetRelationById(
+	_, _, _, err := s.engine.GetRelationById(
 		ctx,
 		txnOp,
 		tableID,
 	)
 	if err != nil {
 		return err
-	}
-
-	def := v.GetTableDef(ctx)
-	if def.Partition == nil {
-		return nil
 	}
 
 	return nil
