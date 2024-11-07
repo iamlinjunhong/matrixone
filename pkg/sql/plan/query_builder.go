@@ -1352,8 +1352,6 @@ func (builder *QueryBuilder) remapAllColRefs(nodeID int32, step int32, colRefCnt
 	case plan.Node_LOCK_OP:
 		preNode := builder.qry.Nodes[node.Children[0]]
 
-		var pkExprs, partExprs []*plan.Expr
-		var oldPkPos, oldPartPos [][2]int32
 		for _, lockTarget := range node.LockTargets {
 			pkExpr := &plan.Expr{
 				// Typ: node.LockTargets[0].GetPrimaryColTyp(),
@@ -1366,25 +1364,6 @@ func (builder *QueryBuilder) remapAllColRefs(nodeID int32, step int32, colRefCnt
 			}
 			increaseRefCnt(pkExpr, 1, colRefCnt)
 			pkExprs = append(pkExprs, pkExpr)
-			oldPkPos = append(oldPkPos, [2]int32{lockTarget.PrimaryColRelPos, lockTarget.PrimaryColIdxInBat})
-
-			if lockTarget.IsPartitionTable {
-				partExpr := &Expr{
-					// Typ: node.ProjectList[len(node.ProjectList)-1].Typ,
-					Expr: &plan.Expr_Col{
-						Col: &plan.ColRef{
-							RelPos: lockTarget.FilterColRelPos,
-							ColPos: lockTarget.FilterColIdxInBat,
-						},
-					},
-				}
-				increaseRefCnt(partExpr, 1, colRefCnt)
-				partExprs = append(partExprs, partExpr)
-				oldPartPos = append(oldPartPos, [2]int32{lockTarget.FilterColRelPos, lockTarget.FilterColIdxInBat})
-			} else {
-				partExprs = append(partExprs, nil)
-				oldPartPos = append(oldPartPos, [2]int32{-1, -1})
-			}
 		}
 
 		childRemapping, err := builder.remapAllColRefs(node.Children[0], step, colRefCnt, colRefBool, sinkColRef)
@@ -1869,7 +1848,6 @@ func (builder *QueryBuilder) createQuery() (*Query, error) {
 		// XXX: This will be removed soon, after merging implementation of all hash-join operators
 		builder.swapJoinChildren(rootID)
 		ReCalcNodeStats(rootID, builder, true, true, true)
-		builder.partitionPrune(rootID)
 
 		determineHashOnPK(rootID, builder)
 		determineShuffleMethod(rootID, builder)
@@ -3268,22 +3246,6 @@ func (builder *QueryBuilder) bindSelect(stmt *tree.Select, ctx *BindContext, isR
 		}
 
 		for i, w := range ctx.windows {
-			e := w.GetW()
-			if len(e.PartitionBy) > 0 {
-				partitionBy := make([]*plan.OrderBySpec, 0, len(e.PartitionBy))
-				for _, p := range e.PartitionBy {
-					partitionBy = append(partitionBy, &plan.OrderBySpec{
-						Expr: p,
-						Flag: plan.OrderBySpec_INTERNAL,
-					})
-				}
-				nodeID = builder.appendNode(&plan.Node{
-					NodeType:    plan.Node_PARTITION,
-					Children:    []int32{nodeID},
-					OrderBy:     partitionBy,
-					BindingTags: []int32{ctx.windowTag},
-				}, ctx)
-			}
 			nodeID = builder.appendNode(&plan.Node{
 				NodeType:    plan.Node_WINDOW,
 				Children:    []int32{nodeID},
@@ -3476,9 +3438,6 @@ func DeepProcessExprForGroupConcat(expr *Expr, ctx *BindContext) *Expr {
 			item.F.Args[i] = DeepProcessExprForGroupConcat(arg, ctx)
 		}
 	case *plan.Expr_W:
-		for i, p := range item.W.PartitionBy {
-			item.W.PartitionBy[i] = DeepProcessExprForGroupConcat(p, ctx)
-		}
 		for i, o := range item.W.OrderBy {
 			item.W.OrderBy[i].Expr = DeepProcessExprForGroupConcat(o.Expr, ctx)
 		}

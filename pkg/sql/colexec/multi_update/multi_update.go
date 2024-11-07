@@ -24,7 +24,6 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/container/batch"
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/matrixorigin/matrixone/pkg/perfcounter"
-	"github.com/matrixorigin/matrixone/pkg/sql/colexec"
 	v2 "github.com/matrixorigin/matrixone/pkg/util/metric/v2"
 	"github.com/matrixorigin/matrixone/pkg/vm"
 	"github.com/matrixorigin/matrixone/pkg/vm/process"
@@ -70,15 +69,7 @@ func (update *MultiUpdate) Prepare(proc *process.Process) error {
 		info := update.ctr.updateCtxInfos[updateCtx.TableDef.Name]
 		info.Sources = nil
 		if update.Action != UpdateWriteS3 {
-			rel, partitionRels, err := colexec.GetRelAndPartitionRelsByObjRef(proc.Ctx, proc, update.Engine, updateCtx.ObjRef, updateCtx.PartitionTableNames)
-			if err != nil {
-				return err
-			}
-			if len(updateCtx.PartitionTableNames) > 0 {
-				info.Sources = append(info.Sources, partitionRels...)
-			} else {
-				info.Sources = append(info.Sources, rel)
-			}
+			info.Sources = append(info.Sources, rel)
 		}
 	}
 
@@ -238,7 +229,6 @@ func (update *MultiUpdate) updateFlushS3Info(proc *process.Process, analyzer pro
 
 	actions := vector.MustFixedColNoTypeCheck[uint8](input.Batch.Vecs[0])
 	updateCtxIdx := vector.MustFixedColNoTypeCheck[uint16](input.Batch.Vecs[1])
-	partitionIdx := vector.MustFixedColNoTypeCheck[uint16](input.Batch.Vecs[2])
 	rowCounts := vector.MustFixedColNoTypeCheck[uint64](input.Batch.Vecs[3])
 	nameData, nameArea := vector.MustVarlenaRawData(input.Batch.Vecs[4])
 	batData, batArea := vector.MustVarlenaRawData(input.Batch.Vecs[5])
@@ -267,7 +257,6 @@ func (update *MultiUpdate) updateFlushS3Info(proc *process.Process, analyzer pro
 			tableType := update.ctr.updateCtxInfos[updateCtx.TableDef.Name].tableType
 			update.addDeleteAffectRows(tableType, rowCounts[i])
 			name := nameData[i].UnsafeGetString(nameArea)
-			source := update.ctr.updateCtxInfos[updateCtx.TableDef.Name].Sources[partitionIdx[i]]
 
 			crs := analyzer.GetOpCounterSet()
 			newCtx := perfcounter.AttachS3RequestKey(proc.Ctx, crs)
@@ -291,7 +280,6 @@ func (update *MultiUpdate) updateFlushS3Info(proc *process.Process, analyzer pro
 
 			tableType := update.ctr.updateCtxInfos[updateCtx.TableDef.Name].tableType
 			update.addInsertAffectRows(tableType, rowCounts[i])
-			source := update.ctr.updateCtxInfos[updateCtx.TableDef.Name].Sources[partitionIdx[i]]
 
 			crs := analyzer.GetOpCounterSet()
 			newCtx := perfcounter.AttachS3RequestKey(ctx, crs)

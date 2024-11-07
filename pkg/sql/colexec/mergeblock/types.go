@@ -52,11 +52,10 @@ type MergeBlock struct {
 	// Tbl engine.Relation
 	// // 2. partition sub tables
 	// PartitionSources []engine.Relation
-	AddAffectedRows     bool
-	Engine              engine.Engine
-	Ref                 *plan.ObjectRef
-	PartitionTableNames []string
-	container           Container
+	AddAffectedRows bool
+	Engine          engine.Engine
+	Ref             *plan.ObjectRef
+	container       Container
 
 	vm.OperatorBase
 }
@@ -93,11 +92,6 @@ func (mergeBlock *MergeBlock) WithObjectRef(ref *plan.ObjectRef) *MergeBlock {
 
 func (mergeBlock *MergeBlock) WithEngine(eng engine.Engine) *MergeBlock {
 	mergeBlock.Engine = eng
-	return mergeBlock
-}
-
-func (mergeBlock *MergeBlock) WithParitionNames(names []string) *MergeBlock {
-	mergeBlock.PartitionTableNames = append(mergeBlock.PartitionTableNames, names...)
 	return mergeBlock
 }
 

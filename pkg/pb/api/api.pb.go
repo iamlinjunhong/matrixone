@@ -1466,53 +1466,6 @@ func (m *AlterTableAddColumn) GetInsertPosition() int32 {
 	return 0
 }
 
-type AlterTableAddPartition struct {
-	PartitionDef         *plan.PartitionByDef `protobuf:"bytes,1,opt,name=partition_def,json=partitionDef,proto3" json:"partition_def,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
-	XXX_unrecognized     []byte               `json:"-"`
-	XXX_sizecache        int32                `json:"-"`
-}
-
-func (m *AlterTableAddPartition) Reset()         { *m = AlterTableAddPartition{} }
-func (m *AlterTableAddPartition) String() string { return proto.CompactTextString(m) }
-func (*AlterTableAddPartition) ProtoMessage()    {}
-func (*AlterTableAddPartition) Descriptor() ([]byte, []int) {
-	return fileDescriptor_00212fb1f9d3bf1c, []int{19}
-}
-func (m *AlterTableAddPartition) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *AlterTableAddPartition) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_AlterTableAddPartition.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *AlterTableAddPartition) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AlterTableAddPartition.Merge(m, src)
-}
-func (m *AlterTableAddPartition) XXX_Size() int {
-	return m.ProtoSize()
-}
-func (m *AlterTableAddPartition) XXX_DiscardUnknown() {
-	xxx_messageInfo_AlterTableAddPartition.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_AlterTableAddPartition proto.InternalMessageInfo
-
-func (m *AlterTableAddPartition) GetPartitionDef() *plan.PartitionByDef {
-	if m != nil {
-		return m.PartitionDef
-	}
-	return nil
-}
-
 type AlterTableDropColumn struct {
 	LogicalIdx           uint32   `protobuf:"varint,1,opt,name=logical_idx,json=logicalIdx,proto3" json:"logical_idx,omitempty"`
 	SequenceNum          uint32   `protobuf:"varint,2,opt,name=sequence_num,json=sequenceNum,proto3" json:"sequence_num,omitempty"`
@@ -1525,7 +1478,7 @@ func (m *AlterTableDropColumn) Reset()         { *m = AlterTableDropColumn{} }
 func (m *AlterTableDropColumn) String() string { return proto.CompactTextString(m) }
 func (*AlterTableDropColumn) ProtoMessage()    {}
 func (*AlterTableDropColumn) Descriptor() ([]byte, []int) {
-	return fileDescriptor_00212fb1f9d3bf1c, []int{20}
+	return fileDescriptor_00212fb1f9d3bf1c, []int{19}
 }
 func (m *AlterTableDropColumn) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1579,7 +1532,6 @@ type AlterTableReq struct {
 	//	*AlterTableReq_UpdateComment
 	//	*AlterTableReq_UpdateCstr
 	//	*AlterTableReq_UpdatePolicy
-	//	*AlterTableReq_AddPartition
 	//	*AlterTableReq_RenameCol
 	Operation            isAlterTableReq_Operation `protobuf_oneof:"operation"`
 	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
@@ -1591,7 +1543,7 @@ func (m *AlterTableReq) Reset()         { *m = AlterTableReq{} }
 func (m *AlterTableReq) String() string { return proto.CompactTextString(m) }
 func (*AlterTableReq) ProtoMessage()    {}
 func (*AlterTableReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_00212fb1f9d3bf1c, []int{21}
+	return fileDescriptor_00212fb1f9d3bf1c, []int{20}
 }
 func (m *AlterTableReq) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1644,9 +1596,6 @@ type AlterTableReq_UpdateCstr struct {
 type AlterTableReq_UpdatePolicy struct {
 	UpdatePolicy *AlterTablePolicy `protobuf:"bytes,9,opt,name=update_policy,json=updatePolicy,proto3,oneof" json:"update_policy,omitempty"`
 }
-type AlterTableReq_AddPartition struct {
-	AddPartition *AlterTableAddPartition `protobuf:"bytes,10,opt,name=add_partition,json=addPartition,proto3,oneof" json:"add_partition,omitempty"`
-}
 type AlterTableReq_RenameCol struct {
 	RenameCol *AlterTableRenameCol `protobuf:"bytes,11,opt,name=rename_col,json=renameCol,proto3,oneof" json:"rename_col,omitempty"`
 }
@@ -1657,7 +1606,6 @@ func (*AlterTableReq_RenameTable) isAlterTableReq_Operation()   {}
 func (*AlterTableReq_UpdateComment) isAlterTableReq_Operation() {}
 func (*AlterTableReq_UpdateCstr) isAlterTableReq_Operation()    {}
 func (*AlterTableReq_UpdatePolicy) isAlterTableReq_Operation()  {}
-func (*AlterTableReq_AddPartition) isAlterTableReq_Operation()  {}
 func (*AlterTableReq_RenameCol) isAlterTableReq_Operation()     {}
 
 func (m *AlterTableReq) GetOperation() isAlterTableReq_Operation {
@@ -1730,13 +1678,6 @@ func (m *AlterTableReq) GetUpdatePolicy() *AlterTablePolicy {
 	return nil
 }
 
-func (m *AlterTableReq) GetAddPartition() *AlterTableAddPartition {
-	if x, ok := m.GetOperation().(*AlterTableReq_AddPartition); ok {
-		return x.AddPartition
-	}
-	return nil
-}
-
 func (m *AlterTableReq) GetRenameCol() *AlterTableRenameCol {
 	if x, ok := m.GetOperation().(*AlterTableReq_RenameCol); ok {
 		return x.RenameCol
@@ -1753,7 +1694,6 @@ func (*AlterTableReq) XXX_OneofWrappers() []interface{} {
 		(*AlterTableReq_UpdateComment)(nil),
 		(*AlterTableReq_UpdateCstr)(nil),
 		(*AlterTableReq_UpdatePolicy)(nil),
-		(*AlterTableReq_AddPartition)(nil),
 		(*AlterTableReq_RenameCol)(nil),
 	}
 }
@@ -1781,7 +1721,7 @@ func (m *SchemaExtra) Reset()         { *m = SchemaExtra{} }
 func (m *SchemaExtra) String() string { return proto.CompactTextString(m) }
 func (*SchemaExtra) ProtoMessage()    {}
 func (*SchemaExtra) Descriptor() ([]byte, []int) {
-	return fileDescriptor_00212fb1f9d3bf1c, []int{22}
+	return fileDescriptor_00212fb1f9d3bf1c, []int{21}
 }
 func (m *SchemaExtra) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1899,7 +1839,7 @@ func (m *Int64Map) Reset()         { *m = Int64Map{} }
 func (m *Int64Map) String() string { return proto.CompactTextString(m) }
 func (*Int64Map) ProtoMessage()    {}
 func (*Int64Map) Descriptor() ([]byte, []int) {
-	return fileDescriptor_00212fb1f9d3bf1c, []int{23}
+	return fileDescriptor_00212fb1f9d3bf1c, []int{22}
 }
 func (m *Int64Map) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1948,7 +1888,7 @@ func (m *TransDestPos) Reset()         { *m = TransDestPos{} }
 func (m *TransDestPos) String() string { return proto.CompactTextString(m) }
 func (*TransDestPos) ProtoMessage()    {}
 func (*TransDestPos) Descriptor() ([]byte, []int) {
-	return fileDescriptor_00212fb1f9d3bf1c, []int{24}
+	return fileDescriptor_00212fb1f9d3bf1c, []int{23}
 }
 func (m *TransDestPos) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2009,7 +1949,7 @@ func (m *BlkTransMap) Reset()         { *m = BlkTransMap{} }
 func (m *BlkTransMap) String() string { return proto.CompactTextString(m) }
 func (*BlkTransMap) ProtoMessage()    {}
 func (*BlkTransMap) Descriptor() ([]byte, []int) {
-	return fileDescriptor_00212fb1f9d3bf1c, []int{25}
+	return fileDescriptor_00212fb1f9d3bf1c, []int{24}
 }
 func (m *BlkTransMap) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2056,7 +1996,7 @@ func (m *BlkTransferBooking) Reset()         { *m = BlkTransferBooking{} }
 func (m *BlkTransferBooking) String() string { return proto.CompactTextString(m) }
 func (*BlkTransferBooking) ProtoMessage()    {}
 func (*BlkTransferBooking) Descriptor() ([]byte, []int) {
-	return fileDescriptor_00212fb1f9d3bf1c, []int{26}
+	return fileDescriptor_00212fb1f9d3bf1c, []int{25}
 }
 func (m *BlkTransferBooking) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2111,7 +2051,7 @@ func (m *MergeCommitEntry) Reset()         { *m = MergeCommitEntry{} }
 func (m *MergeCommitEntry) String() string { return proto.CompactTextString(m) }
 func (*MergeCommitEntry) ProtoMessage()    {}
 func (*MergeCommitEntry) Descriptor() ([]byte, []int) {
-	return fileDescriptor_00212fb1f9d3bf1c, []int{27}
+	return fileDescriptor_00212fb1f9d3bf1c, []int{26}
 }
 func (m *MergeCommitEntry) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2223,7 +2163,7 @@ func (m *MergeTaskEntry) Reset()         { *m = MergeTaskEntry{} }
 func (m *MergeTaskEntry) String() string { return proto.CompactTextString(m) }
 func (*MergeTaskEntry) ProtoMessage()    {}
 func (*MergeTaskEntry) Descriptor() ([]byte, []int) {
-	return fileDescriptor_00212fb1f9d3bf1c, []int{28}
+	return fileDescriptor_00212fb1f9d3bf1c, []int{27}
 }
 func (m *MergeTaskEntry) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2327,7 +2267,7 @@ func (m *CheckpointResp) Reset()         { *m = CheckpointResp{} }
 func (m *CheckpointResp) String() string { return proto.CompactTextString(m) }
 func (*CheckpointResp) ProtoMessage()    {}
 func (*CheckpointResp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_00212fb1f9d3bf1c, []int{29}
+	return fileDescriptor_00212fb1f9d3bf1c, []int{28}
 }
 func (m *CheckpointResp) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2394,7 +2334,6 @@ func init() {
 	proto.RegisterType((*AlterTableRenameTable)(nil), "api.AlterTableRenameTable")
 	proto.RegisterType((*AlterTableRenameCol)(nil), "api.AlterTableRenameCol")
 	proto.RegisterType((*AlterTableAddColumn)(nil), "api.AlterTableAddColumn")
-	proto.RegisterType((*AlterTableAddPartition)(nil), "api.AlterTableAddPartition")
 	proto.RegisterType((*AlterTableDropColumn)(nil), "api.AlterTableDropColumn")
 	proto.RegisterType((*AlterTableReq)(nil), "api.AlterTableReq")
 	proto.RegisterType((*SchemaExtra)(nil), "api.SchemaExtra")
@@ -3582,45 +3521,6 @@ func (m *AlterTableAddColumn) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *AlterTableAddPartition) Marshal() (dAtA []byte, err error) {
-	size := m.ProtoSize()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *AlterTableAddPartition) MarshalTo(dAtA []byte) (int, error) {
-	size := m.ProtoSize()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *AlterTableAddPartition) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	if m.PartitionDef != nil {
-		{
-			size, err := m.PartitionDef.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintApi(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
 func (m *AlterTableDropColumn) Marshal() (dAtA []byte, err error) {
 	size := m.ProtoSize()
 	dAtA = make([]byte, size)
@@ -3835,27 +3735,6 @@ func (m *AlterTableReq_UpdatePolicy) MarshalToSizedBuffer(dAtA []byte) (int, err
 	}
 	return len(dAtA) - i, nil
 }
-func (m *AlterTableReq_AddPartition) MarshalTo(dAtA []byte) (int, error) {
-	size := m.ProtoSize()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *AlterTableReq_AddPartition) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.AddPartition != nil {
-		{
-			size, err := m.AddPartition.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintApi(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x52
-	}
-	return len(dAtA) - i, nil
-}
 func (m *AlterTableReq_RenameCol) MarshalTo(dAtA []byte) (int, error) {
 	size := m.ProtoSize()
 	return m.MarshalToSizedBuffer(dAtA[:size])
@@ -3917,20 +3796,20 @@ func (m *SchemaExtra) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		dAtA[i] = 0x48
 	}
 	if len(m.Hints) > 0 {
-		dAtA28 := make([]byte, len(m.Hints)*10)
-		var j27 int
+		dAtA26 := make([]byte, len(m.Hints)*10)
+		var j25 int
 		for _, num := range m.Hints {
 			for num >= 1<<7 {
-				dAtA28[j27] = uint8(uint64(num)&0x7f | 0x80)
+				dAtA26[j25] = uint8(uint64(num)&0x7f | 0x80)
 				num >>= 7
-				j27++
+				j25++
 			}
-			dAtA28[j27] = uint8(num)
-			j27++
+			dAtA26[j25] = uint8(num)
+			j25++
 		}
-		i -= j27
-		copy(dAtA[i:], dAtA28[:j27])
-		i = encodeVarintApi(dAtA, i, uint64(j27))
+		i -= j25
+		copy(dAtA[i:], dAtA26[:j25])
+		i = encodeVarintApi(dAtA, i, uint64(j25))
 		i--
 		dAtA[i] = 0x42
 	}
@@ -4845,22 +4724,6 @@ func (m *AlterTableAddColumn) ProtoSize() (n int) {
 	return n
 }
 
-func (m *AlterTableAddPartition) ProtoSize() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.PartitionDef != nil {
-		l = m.PartitionDef.ProtoSize()
-		n += 1 + l + sovApi(uint64(l))
-	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
 func (m *AlterTableDropColumn) ProtoSize() (n int) {
 	if m == nil {
 		return 0
@@ -4971,18 +4834,6 @@ func (m *AlterTableReq_UpdatePolicy) ProtoSize() (n int) {
 	_ = l
 	if m.UpdatePolicy != nil {
 		l = m.UpdatePolicy.ProtoSize()
-		n += 1 + l + sovApi(uint64(l))
-	}
-	return n
-}
-func (m *AlterTableReq_AddPartition) ProtoSize() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.AddPartition != nil {
-		l = m.AddPartition.ProtoSize()
 		n += 1 + l + sovApi(uint64(l))
 	}
 	return n
@@ -7980,93 +7831,6 @@ func (m *AlterTableAddColumn) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *AlterTableAddPartition) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowApi
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: AlterTableAddPartition: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: AlterTableAddPartition: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionDef", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthApi
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.PartitionDef == nil {
-				m.PartitionDef = &plan.PartitionByDef{}
-			}
-			if err := m.PartitionDef.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipApi(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthApi
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
 func (m *AlterTableDropColumn) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -8451,41 +8215,6 @@ func (m *AlterTableReq) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			m.Operation = &AlterTableReq_UpdatePolicy{v}
-			iNdEx = postIndex
-		case 10:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field AddPartition", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthApi
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &AlterTableAddPartition{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Operation = &AlterTableReq_AddPartition{v}
 			iNdEx = postIndex
 		case 11:
 			if wireType != 2 {

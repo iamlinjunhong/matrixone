@@ -15,9 +15,11 @@
 package partitionservice
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/matrixorigin/matrixone/pkg/catalog"
+	"github.com/matrixorigin/matrixone/pkg/txn/client"
 )
 
 var (
@@ -45,4 +47,14 @@ type Partition struct {
 	PartitionID uint64
 	// PartitionMethod is the method of partition. (HASH, RANGE, LIST etc.)
 	PartitionMethod PartitionMethod
+}
+
+// PartitionService is used to maintaining the metadata of the partition table.
+type PartitionService interface {
+	// Create creates metadata of the partition table.
+	Create(
+		ctx context.Context,
+		tableID uint64,
+		txnOp client.TxnOperator,
+	) error
 }

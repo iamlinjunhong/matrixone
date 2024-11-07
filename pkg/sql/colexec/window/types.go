@@ -46,8 +46,6 @@ type container struct {
 	orderVecs []group.ExprEvalVector
 	sels      []int64
 
-	ps      []int64 // index of partition by
-	os      []int64 // Sorted partitions
 	aggVecs []group.ExprEvalVector
 
 	vec  *vector.Vector
@@ -125,8 +123,6 @@ func (ctr *container) resetParam() {
 	ctr.desc = nil
 	ctr.nullsLast = nil
 	ctr.sels = nil
-	ctr.ps = nil
-	ctr.os = nil
 }
 
 func (ctr *container) resetVectors() {

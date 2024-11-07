@@ -48,14 +48,11 @@ func (mergeBlock *MergeBlock) Prepare(proc *process.Process) error {
 
 	ref := mergeBlock.Ref
 	eng := mergeBlock.Engine
-	partitionNames := mergeBlock.PartitionTableNames
-	rel, partitionRels, err := colexec.GetRelAndPartitionRelsByObjRef(proc.Ctx, proc, eng, ref, partitionNames)
+	rel, err := colexec.GetRelAndPartitionRelsByObjRef(proc.Ctx, proc, eng, ref)
 	if err != nil {
 		return err
 	}
 	mergeBlock.container.source = rel
-	mergeBlock.container.partitionSources = partitionRels
-
 	mergeBlock.container.affectedRows = 0
 	return nil
 }

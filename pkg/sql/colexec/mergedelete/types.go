@@ -34,13 +34,11 @@ type container struct {
 	bat              *batch.Batch
 }
 type MergeDelete struct {
-	ctr                 container
-	AddAffectedRows     bool
-	Ref                 *plan.ObjectRef
-	Engine              engine.Engine
-	PartitionTableNames []string
-
 	vm.OperatorBase
+	ctr             container
+	AddAffectedRows bool
+	Ref             *plan.ObjectRef
+	Engine          engine.Engine
 }
 
 func (mergeDelete *MergeDelete) GetOperatorBase() *vm.OperatorBase {
@@ -70,11 +68,6 @@ func NewArgument() *MergeDelete {
 
 func (mergeDelete *MergeDelete) WithObjectRef(ref *plan.ObjectRef) *MergeDelete {
 	mergeDelete.Ref = ref
-	return mergeDelete
-}
-
-func (mergeDelete *MergeDelete) WithParitionNames(names []string) *MergeDelete {
-	mergeDelete.PartitionTableNames = append(mergeDelete.PartitionTableNames, names...)
 	return mergeDelete
 }
 

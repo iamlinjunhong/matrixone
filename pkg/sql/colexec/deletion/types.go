@@ -128,18 +128,12 @@ func (deletion *Deletion) Release() {
 }
 
 type DeleteCtx struct {
-	CanTruncate           bool
-	RowIdIdx              int      // The array index position of the rowid column
-	PartitionTableIDs     []uint64 // Align array index with the partition number
-	PartitionTableNames   []string // Align array index with the partition number
-	PartitionIndexInBatch int      // The array index position of the partition expression column
-	// PartitionSources      []engine.Relation // Align array index with the partition number
-	// Source                engine.Relation
+	CanTruncate     bool
+	RowIdIdx        int // The array index position of the rowid column
 	Ref             *plan.ObjectRef
 	AddAffectedRows bool // for hidden table, should not update affect Rows
 	PrimaryKeyIdx   int
-
-	Engine engine.Engine
+	Engine          engine.Engine
 }
 
 func (deletion *Deletion) Reset(proc *process.Process, pipelineFailed bool, err error) {
@@ -215,28 +209,7 @@ func (deletion *Deletion) GetAffectedRows() uint64 {
 
 func (deletion *Deletion) SplitBatch(proc *process.Process, srcBat *batch.Batch, analyzer process.Analyzer) error {
 	delCtx := deletion.DeleteCtx
-	// If the target table is a partition table, group and split the batch data
-	if len(deletion.ctr.partitionSources) != 0 {
-		pkTyp := srcBat.Vecs[delCtx.PrimaryKeyIdx].GetType()
-		deletion.ctr.resBat.SetVector(0, vector.NewVec(types.T_Rowid.ToType()))
-		deletion.ctr.resBat.SetVector(1, vector.NewVec(*pkTyp))
-		var err error
-
-		for partIdx := range len(delCtx.PartitionTableIDs) {
-			deletion.ctr.resBat.CleanOnlyData()
-			expect := int32(partIdx)
-			err = colexec.FillPartitionBatchForDelete(proc, srcBat, deletion.ctr.resBat, expect, delCtx.RowIdIdx, delCtx.PartitionIndexInBatch, delCtx.PrimaryKeyIdx)
-			if err != nil {
-				deletion.ctr.resBat.Clean(proc.Mp())
-				return err
-			}
-
-			collectBatchInfo(proc, deletion, deletion.ctr.resBat, 0, partIdx, 1)
-		}
-		deletion.ctr.resBat.CleanOnlyData()
-	} else {
-		collectBatchInfo(proc, deletion, srcBat, deletion.DeleteCtx.RowIdIdx, 0, delCtx.PrimaryKeyIdx)
-	}
+	collectBatchInfo(proc, deletion, srcBat, deletion.DeleteCtx.RowIdIdx, 0, delCtx.PrimaryKeyIdx)
 	// we will flush all
 	if deletion.ctr.batch_size >= uint32(flushThreshold) {
 		size, err := deletion.ctr.flush(proc, analyzer)

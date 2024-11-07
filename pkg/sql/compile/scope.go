@@ -56,6 +56,8 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/vm/message"
 	"github.com/matrixorigin/matrixone/pkg/vm/pipeline"
 	"github.com/matrixorigin/matrixone/pkg/vm/process"
+	"github.com/panjf2000/ants/v2"
+	"go.uber.org/zap"
 )
 
 func newScope(magic magicType) *Scope {
@@ -1000,7 +1002,7 @@ func (s *Scope) buildReaders(c *Compile) (readers []engine.Reader, err error) {
 			return
 		}
 	// Reader can be generated from local relation.
-	case s.DataSource.Rel != nil && s.DataSource.TableDef.Partition == nil:
+	case s.DataSource.Rel != nil:
 		ctx := c.proc.Ctx
 		stats := statistic.StatsInfoFromContext(ctx)
 		crs := new(perfcounter.CounterSet)
@@ -1088,13 +1090,11 @@ func (s *Scope) buildReaders(c *Compile) (readers []engine.Reader, err error) {
 		}
 
 		var mainRds []engine.Reader
-		var subRds []engine.Reader
-
 		stats := statistic.StatsInfoFromContext(ctx)
 		crs := new(perfcounter.CounterSet)
 		newCtx := perfcounter.AttachS3RequestKey(ctx, crs)
 
-		if rel.GetEngineType() == engine.Memory || s.DataSource.PartitionRelationNames == nil {
+		if rel.GetEngineType() == engine.Memory {
 			mainRds, err = s.DataSource.Rel.BuildReaders(
 				newCtx,
 				c.proc,
@@ -1114,38 +1114,6 @@ func (s *Scope) buildReaders(c *Compile) (readers []engine.Reader, err error) {
 			var mp map[int16]engine.RelData
 			if s.NodeInfo.Data != nil && s.NodeInfo.Data.DataCnt() > 1 {
 				mp = s.NodeInfo.Data.GroupByPartitionNum()
-			}
-			var subRel engine.Relation
-			for num, relName := range s.DataSource.PartitionRelationNames {
-				subRel, err = db.Relation(newCtx, relName, c.proc)
-				if err != nil {
-					return
-				}
-
-				var subBlkList engine.RelData
-				if s.NodeInfo.Data == nil || s.NodeInfo.Data.DataCnt() <= 1 {
-					//Even if subBlkList is nil,
-					//we still need to build reader for sub partition table to read data from memory.
-					subBlkList = nil
-				} else {
-					subBlkList = mp[int16(num)]
-				}
-
-				subRds, err = subRel.BuildReaders(
-					newCtx,
-					c.proc,
-					s.DataSource.FilterExpr,
-					subBlkList,
-					s.NodeInfo.Mcpu,
-					s.TxnOffset,
-					len(s.DataSource.OrderBy) > 0,
-					engine.Policy_CheckAll,
-					engine.FilterHint{},
-				)
-				if err != nil {
-					return
-				}
-				readers = append(readers, subRds...)
 			}
 		}
 

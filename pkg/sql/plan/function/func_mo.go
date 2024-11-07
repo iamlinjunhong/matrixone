@@ -111,47 +111,9 @@ func MoTableRows(ivecs []*vector.Vector, result vector.FunctionResultWrapper, pr
 				return err
 			}
 
-			// get the table definition information and check whether the current table is a partition table
-			var engineDefs []engine.TableDef
-			engineDefs, err = rel.TableDefs(foolCtx)
-			if err != nil {
-				return err
-			}
-			var partitionInfo *plan.PartitionByDef
-			for _, def := range engineDefs {
-				if partitionDef, ok := def.(*engine.PartitionDef); ok {
-					if partitionDef.Partitioned > 0 {
-						p := &plan.PartitionByDef{}
-						err = p.UnMarshalPartitionInfo(([]byte)(partitionDef.Partition))
-						if err != nil {
-							return err
-						}
-						partitionInfo = p
-					}
-				}
-			}
-
 			var rows uint64
-			// check if the current table is partitioned
-			if partitionInfo != nil {
-				var prel engine.Relation
-				var prows uint64
-				// for partition table,  the table rows is equal to the sum of the partition tables.
-				for _, partitionTable := range partitionInfo.PartitionTableNames {
-					prel, err = dbo.Relation(foolCtx, partitionTable, nil)
-					if err != nil {
-						return err
-					}
-					prows, err = prel.Rows(foolCtx)
-					if err != nil {
-						return err
-					}
-					rows += prows
-				}
-			} else {
-				if rows, err = rel.Rows(foolCtx); err != nil {
-					return err
-				}
+			if rows, err = rel.Rows(foolCtx); err != nil {
+				return err
 			}
 
 			if err = rs.Append(int64(rows), false); err != nil {
@@ -268,52 +230,11 @@ func specialTableFilterForNonSys(ctx context.Context, dbStr, tblStr string) (boo
 }
 
 func originalTableSize(ctx context.Context, db engine.Database, rel engine.Relation) (size uint64, err error) {
-	return getTableSize(ctx, db, rel)
+	return getTableSize(ctx, rel)
 }
 
-func getTableSize(ctx context.Context, db engine.Database, rel engine.Relation) (size uint64, err error) {
-	// get the table definition information and check whether the current table is a partition table
-	var engineDefs []engine.TableDef
-	engineDefs, err = rel.TableDefs(ctx)
-	if err != nil {
-		return 0, err
-	}
-	var partitionInfo *plan.PartitionByDef
-	for _, def := range engineDefs {
-		if partitionDef, ok := def.(*engine.PartitionDef); ok {
-			if partitionDef.Partitioned > 0 {
-				p := &plan.PartitionByDef{}
-				err = p.UnMarshalPartitionInfo(([]byte)(partitionDef.Partition))
-				if err != nil {
-					return 0, err
-				}
-				partitionInfo = p
-			}
-		}
-	}
-
-	// check if the current table is partitioned
-	if partitionInfo != nil {
-		var prel engine.Relation
-		var psize uint64
-		// for partition table, the table size is equal to the sum of the partition tables.
-		for _, partitionTable := range partitionInfo.PartitionTableNames {
-			prel, err = db.Relation(ctx, partitionTable, nil)
-			if err != nil {
-				return 0, err
-			}
-			if psize, err = prel.Size(ctx, AllColumns); err != nil {
-				return 0, err
-			}
-			size += psize
-		}
-	} else {
-		if size, err = rel.Size(ctx, AllColumns); err != nil {
-			return 0, err
-		}
-	}
-
-	return size, nil
+func getTableSize(ctx context.Context, rel engine.Relation) (size uint64, err error) {
+	return rel.Size(ctx, AllColumns)
 }
 
 func indexesTableSize(ctx context.Context, db engine.Database, rel engine.Relation) (totalSize uint64, err error) {
@@ -328,7 +249,7 @@ func indexesTableSize(ctx context.Context, db engine.Database, rel engine.Relati
 			continue
 		}
 
-		if size, err = getTableSize(ctx, db, irel); err != nil {
+		if size, err = getTableSize(ctx, irel); err != nil {
 			logutil.Info("indexesTableSize->getTableSize",
 				zap.String("originTable", rel.GetTableName()),
 				zap.String("indexTableName", idef.IndexTableName),

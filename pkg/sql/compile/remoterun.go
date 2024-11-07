@@ -412,14 +412,11 @@ func convertToPipelineInstruction(op vm.Operator, proc *process.Process, ctx *sc
 	switch t := op.(type) {
 	case *insert.Insert:
 		in.Insert = &pipeline.Insert{
-			ToWriteS3:           t.ToWriteS3,
-			Ref:                 t.InsertCtx.Ref,
-			Attrs:               t.InsertCtx.Attrs,
-			AddAffectedRows:     t.InsertCtx.AddAffectedRows,
-			PartitionTableIds:   t.InsertCtx.PartitionTableIDs,
-			PartitionTableNames: t.InsertCtx.PartitionTableNames,
-			PartitionIdx:        int32(t.InsertCtx.PartitionIndexInBatch),
-			TableDef:            t.InsertCtx.TableDef,
+			ToWriteS3:       t.ToWriteS3,
+			Ref:             t.InsertCtx.Ref,
+			Attrs:           t.InsertCtx.Attrs,
+			AddAffectedRows: t.InsertCtx.AddAffectedRows,
+			TableDef:        t.InsertCtx.TableDef,
 		}
 	case *deletion.Deletion:
 		in.Delete = &pipeline.Deletion{
@@ -429,13 +426,10 @@ func convertToPipelineInstruction(op vm.Operator, proc *process.Process, ctx *sc
 			IBucket:      t.IBucket,
 			NBucket:      t.Nbucket,
 			// deleteCtx
-			RowIdIdx:              int32(t.DeleteCtx.RowIdIdx),
-			PartitionTableIds:     t.DeleteCtx.PartitionTableIDs,
-			PartitionTableNames:   t.DeleteCtx.PartitionTableNames,
-			PartitionIndexInBatch: int32(t.DeleteCtx.PartitionIndexInBatch),
-			AddAffectedRows:       t.DeleteCtx.AddAffectedRows,
-			Ref:                   t.DeleteCtx.Ref,
-			PrimaryKeyIdx:         int32(t.DeleteCtx.PrimaryKeyIdx),
+			RowIdIdx:        int32(t.DeleteCtx.RowIdIdx),
+			AddAffectedRows: t.DeleteCtx.AddAffectedRows,
+			Ref:             t.DeleteCtx.Ref,
+			PrimaryKeyIdx:   int32(t.DeleteCtx.PrimaryKeyIdx),
 		}
 	case *onduplicatekey.OnDuplicatekey:
 		in.OnDuplicateKey = &pipeline.OnDuplicateKey{
@@ -903,14 +897,11 @@ func convertToVmOperator(opr *pipeline.Instruction, ctx *scopeContext, eng engin
 		arg.IBucket = t.IBucket
 		arg.Nbucket = t.NBucket
 		arg.DeleteCtx = &deletion.DeleteCtx{
-			CanTruncate:           t.CanTruncate,
-			RowIdIdx:              int(t.RowIdIdx),
-			PartitionTableIDs:     t.PartitionTableIds,
-			PartitionTableNames:   t.PartitionTableNames,
-			PartitionIndexInBatch: int(t.PartitionIndexInBatch),
-			Ref:                   t.Ref,
-			AddAffectedRows:       t.AddAffectedRows,
-			PrimaryKeyIdx:         int(t.PrimaryKeyIdx),
+			CanTruncate:     t.CanTruncate,
+			RowIdIdx:        int(t.RowIdIdx),
+			Ref:             t.Ref,
+			AddAffectedRows: t.AddAffectedRows,
+			PrimaryKeyIdx:   int(t.PrimaryKeyIdx),
 		}
 		op = arg
 	case vm.Insert:
@@ -918,13 +909,10 @@ func convertToVmOperator(opr *pipeline.Instruction, ctx *scopeContext, eng engin
 		arg := insert.NewArgument()
 		arg.ToWriteS3 = t.ToWriteS3
 		arg.InsertCtx = &insert.InsertCtx{
-			Ref:                   t.Ref,
-			AddAffectedRows:       t.AddAffectedRows,
-			Attrs:                 t.Attrs,
-			PartitionTableIDs:     t.PartitionTableIds,
-			PartitionTableNames:   t.PartitionTableNames,
-			PartitionIndexInBatch: int(t.PartitionIdx),
-			TableDef:              t.TableDef,
+			Ref:             t.Ref,
+			AddAffectedRows: t.AddAffectedRows,
+			Attrs:           t.Attrs,
+			TableDef:        t.TableDef,
 		}
 		op = arg
 	case vm.PreInsert:

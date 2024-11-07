@@ -592,15 +592,12 @@ func constructRestrict(n *plan.Node, filterExpr *plan.Expr) *filter.Filter {
 func constructDeletion(n *plan.Node, eg engine.Engine) (*deletion.Deletion, error) {
 	oldCtx := n.DeleteCtx
 	delCtx := &deletion.DeleteCtx{
-		Ref:                   oldCtx.Ref,
-		RowIdIdx:              int(oldCtx.RowIdIdx),
-		CanTruncate:           oldCtx.CanTruncate,
-		AddAffectedRows:       oldCtx.AddAffectedRows,
-		PartitionTableIDs:     oldCtx.PartitionTableIds,
-		PartitionTableNames:   oldCtx.PartitionTableNames,
-		PartitionIndexInBatch: int(oldCtx.PartitionIdx),
-		PrimaryKeyIdx:         int(oldCtx.PrimaryKeyIdx),
-		Engine:                eg,
+		Ref:             oldCtx.Ref,
+		RowIdIdx:        int(oldCtx.RowIdIdx),
+		CanTruncate:     oldCtx.CanTruncate,
+		AddAffectedRows: oldCtx.AddAffectedRows,
+		PrimaryKeyIdx:   int(oldCtx.PrimaryKeyIdx),
+		Engine:          eg,
 	}
 
 	op := deletion.NewArgument()
@@ -741,7 +738,6 @@ func constructMergeblock(eg engine.Engine, n *plan.Node) *mergeblock.MergeBlock 
 	return mergeblock.NewArgument().
 		WithEngine(eg).
 		WithObjectRef(n.InsertCtx.Ref).
-		WithParitionNames(n.InsertCtx.PartitionTableNames).
 		WithAddAffectedRows(n.InsertCtx.AddAffectedRows)
 }
 
@@ -749,22 +745,11 @@ func constructLockOp(n *plan.Node, eng engine.Engine) (*lockop.LockOp, error) {
 	arg := lockop.NewArgumentByEngine(eng)
 	for _, target := range n.LockTargets {
 		typ := plan2.MakeTypeByPlan2Type(target.PrimaryColTyp)
-		if target.IsPartitionTable {
-			arg.AddLockTargetWithPartition(target.GetPartitionTableIds(), target.GetPrimaryColIdxInBat(), typ, target.GetRefreshTsIdxInBat(), target.GetLockRows(), target.GetLockTableAtTheEnd(), target.GetFilterColIdxInBat())
-		} else {
-			arg.AddLockTarget(target.GetTableId(), target.GetPrimaryColIdxInBat(), typ, target.GetRefreshTsIdxInBat(), target.GetLockRows(), target.GetLockTableAtTheEnd())
-		}
-
+		arg.AddLockTarget(target.GetTableId(), target.GetPrimaryColIdxInBat(), typ, target.GetRefreshTsIdxInBat(), target.GetLockRows(), target.GetLockTableAtTheEnd())
 	}
 	for _, target := range n.LockTargets {
 		if target.LockTable {
-			if target.IsPartitionTable {
-				for _, pTblId := range target.PartitionTableIds {
-					arg.LockTable(pTblId, false)
-				}
-			} else {
-				arg.LockTable(target.TableId, false)
-			}
+			arg.LockTable(target.TableId, false)
 		}
 	}
 	return arg, nil
@@ -811,14 +796,11 @@ func constructInsert(n *plan.Node, eg engine.Engine) *insert.Insert {
 		}
 	}
 	newCtx := &insert.InsertCtx{
-		Ref:                   oldCtx.Ref,
-		AddAffectedRows:       oldCtx.AddAffectedRows,
-		Engine:                eg,
-		Attrs:                 attrs,
-		PartitionTableIDs:     oldCtx.PartitionTableIds,
-		PartitionTableNames:   oldCtx.PartitionTableNames,
-		PartitionIndexInBatch: int(oldCtx.PartitionIdx),
-		TableDef:              oldCtx.TableDef,
+		Ref:             oldCtx.Ref,
+		AddAffectedRows: oldCtx.AddAffectedRows,
+		Engine:          eg,
+		Attrs:           attrs,
+		TableDef:        oldCtx.TableDef,
 	}
 	arg := insert.NewArgument()
 	arg.InsertCtx = newCtx

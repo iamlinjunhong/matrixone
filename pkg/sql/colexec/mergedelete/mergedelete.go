@@ -45,13 +45,11 @@ func (mergeDelete *MergeDelete) Prepare(proc *process.Process) error {
 
 	ref := mergeDelete.Ref
 	eng := mergeDelete.Engine
-	partitionNames := mergeDelete.PartitionTableNames
-	rel, partitionRels, err := colexec.GetRelAndPartitionRelsByObjRef(proc.Ctx, proc, eng, ref, partitionNames)
+	rel, err := colexec.GetRelAndPartitionRelsByObjRef(proc.Ctx, proc, eng, ref)
 	if err != nil {
 		return err
 	}
 	mergeDelete.ctr.delSource = rel
-	mergeDelete.ctr.partitionSources = partitionRels
 	mergeDelete.ctr.affectedRows = 0
 	mergeDelete.ctr.bat = batch.NewOffHeapEmpty()
 	return nil

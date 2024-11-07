@@ -128,69 +128,24 @@ func (c *compilerContext) Stats(obj *plan.ObjectRef, snapshot *plan.Snapshot) (*
 	if err != nil {
 		return nil, err
 	}
-	tableDefs, err := table.TableDefs(ctx)
+
+	stats := statistic.StatsInfoFromContext(ctx)
+	crs := new(perfcounter.CounterSet)
+	newCtx := perfcounter.AttachS3RequestKey(ctx, crs)
+
+	statsInfo, err := table.Stats(newCtx, true)
 	if err != nil {
 		return nil, err
 	}
-	var partitionInfo *plan.PartitionByDef
-	for _, def := range tableDefs {
-		if partitionDef, ok := def.(*engine.PartitionDef); ok {
-			if partitionDef.Partitioned > 0 {
-				p := &plan.PartitionByDef{}
-				err = p.UnMarshalPartitionInfo(([]byte)(partitionDef.Partition))
-				if err != nil {
-					return nil, err
-				}
-				partitionInfo = p
-			}
-			break
-		}
-	}
-	var statsInfo *pb.StatsInfo
-	stats := statistic.StatsInfoFromContext(ctx)
-	// This is a partition table.
-	if partitionInfo != nil {
-		crs := new(perfcounter.CounterSet)
-		statsInfo = plan.NewStatsInfo()
-		for _, partitionTable := range partitionInfo.PartitionTableNames {
-			parCtx, parTable, err := c.getRelation(dbName, partitionTable, snapshot)
-			if err != nil {
-				return nil, err
-			}
-			newParCtx := perfcounter.AttachS3RequestKey(parCtx, crs)
-			parStats, err := parTable.Stats(newParCtx, true)
-			if err != nil {
-				return nil, err
-			}
-			statsInfo.Merge(parStats)
-		}
 
-		stats.AddBuildPlanStatsS3Request(statistic.S3Request{
-			List:      crs.FileService.S3.List.Load(),
-			Head:      crs.FileService.S3.Head.Load(),
-			Put:       crs.FileService.S3.Put.Load(),
-			Get:       crs.FileService.S3.Get.Load(),
-			Delete:    crs.FileService.S3.Delete.Load(),
-			DeleteMul: crs.FileService.S3.DeleteMulti.Load(),
-		})
-	} else {
-		crs := new(perfcounter.CounterSet)
-		newCtx := perfcounter.AttachS3RequestKey(ctx, crs)
-
-		statsInfo, err = table.Stats(newCtx, true)
-		if err != nil {
-			return nil, err
-		}
-
-		stats.AddBuildPlanStatsS3Request(statistic.S3Request{
-			List:      crs.FileService.S3.List.Load(),
-			Head:      crs.FileService.S3.Head.Load(),
-			Put:       crs.FileService.S3.Put.Load(),
-			Get:       crs.FileService.S3.Get.Load(),
-			Delete:    crs.FileService.S3.Delete.Load(),
-			DeleteMul: crs.FileService.S3.DeleteMulti.Load(),
-		})
-	}
+	stats.AddBuildPlanStatsS3Request(statistic.S3Request{
+		List:      crs.FileService.S3.List.Load(),
+		Head:      crs.FileService.S3.Head.Load(),
+		Put:       crs.FileService.S3.Put.Load(),
+		Get:       crs.FileService.S3.Get.Load(),
+		Delete:    crs.FileService.S3.Delete.Load(),
+		DeleteMul: crs.FileService.S3.DeleteMulti.Load(),
+	})
 	return statsInfo, nil
 }
 
@@ -452,7 +407,6 @@ func (c *compilerContext) getTableDef(
 	var defs []*plan.TableDefType
 	var properties []*plan.Property
 	var TableType, Createsql string
-	var partitionInfo *plan.PartitionByDef
 	var viewSql *plan.ViewDef
 	var foreignKeys []*plan.ForeignKeyDef
 	var primarykey *plan.PrimaryKeyDef
@@ -532,15 +486,6 @@ func (c *compilerContext) getTableDef(
 				Key:   catalog.SystemRelAttr_Comment,
 				Value: commnetDef.Comment,
 			})
-		} else if partitionDef, ok := def.(*engine.PartitionDef); ok {
-			if partitionDef.Partitioned > 0 {
-				p := &plan.PartitionByDef{}
-				err = p.UnMarshalPartitionInfo(([]byte)(partitionDef.Partition))
-				if err != nil {
-					return nil, nil
-				}
-				partitionInfo = p
-			}
 		} else if v, ok := def.(*engine.VersionDef); ok {
 			schemaVersion = v.Version
 		}
@@ -582,7 +527,6 @@ func (c *compilerContext) getTableDef(
 		Createsql:    Createsql,
 		Pkey:         primarykey,
 		ViewSql:      viewSql,
-		Partition:    partitionInfo,
 		Fkeys:        foreignKeys,
 		RefChildTbls: refChildTbls,
 		ClusterBy:    clusterByDef,

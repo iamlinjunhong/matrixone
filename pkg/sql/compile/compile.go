@@ -731,27 +731,16 @@ func (c *Compile) lockMetaTables() error {
 func (c *Compile) lockTable() error {
 	for _, tbl := range c.lockTables {
 		typ := plan2.MakeTypeByPlan2Type(tbl.PrimaryColTyp)
-		if len(tbl.PartitionTableIds) == 0 {
-			return lockop.LockTable(
-				c.e,
-				c.proc,
-				tbl.TableId,
-				typ,
-				false)
+		err := lockop.LockTable(
+			c.e,
+			c.proc,
+			tbl.TableId,
+			typ,
+			false,
+		)
+		if err != nil {
+			return err
 		}
-
-		for _, tblId := range tbl.PartitionTableIds {
-			err := lockop.LockTable(
-				c.e,
-				c.proc,
-				tblId,
-				typ,
-				false)
-			if err != nil {
-				return err
-			}
-		}
-
 	}
 	return nil
 }
@@ -1919,18 +1908,6 @@ func (c *Compile) compileTableScanDataSource(s *Scope) error {
 		tblDef = rel.GetTableDef(ctx)
 	}
 
-	// prcoess partitioned table
-	var partitionRelNames []string
-	if n.TableDef.Partition != nil {
-		if n.PartitionPrune != nil && n.PartitionPrune.IsPruned {
-			for _, partition := range n.PartitionPrune.SelectedPartitions {
-				partitionRelNames = append(partitionRelNames, partition.PartitionTableName)
-			}
-		} else {
-			partitionRelNames = append(partitionRelNames, n.TableDef.Partition.PartitionTableNames...)
-		}
-	}
-
 	if len(n.FilterList) != len(s.DataSource.FilterList) {
 		s.DataSource.FilterList = plan2.DeepCopyExprList(n.FilterList)
 		for _, e := range s.DataSource.FilterList {
@@ -1963,7 +1940,6 @@ func (c *Compile) compileTableScanDataSource(s *Scope) error {
 	s.DataSource.TableDef = tblDef
 	s.DataSource.Rel = rel
 	s.DataSource.RelationName = n.TableDef.Name
-	s.DataSource.PartitionRelationNames = partitionRelNames
 	s.DataSource.SchemaName = n.ObjRef.SchemaName
 	s.DataSource.AccountId = n.ObjRef.GetPubInfo()
 	s.DataSource.RuntimeFilterSpecs = n.RuntimeFilterProbeList
@@ -3360,7 +3336,6 @@ func (c *Compile) compileDelete(n *plan.Node, ss []*Scope) ([]*Scope, error) {
 
 		mergeDeleteArg := mergedelete.NewArgument().
 			WithObjectRef(arg.DeleteCtx.Ref).
-			WithParitionNames(arg.DeleteCtx.PartitionTableNames).
 			WithEngine(c.e).
 			WithAddAffectedRows(arg.DeleteCtx.AddAffectedRows)
 
@@ -3899,10 +3874,6 @@ func collectTombstones(
 	node *plan.Node,
 	rel engine.Relation,
 ) (engine.Tombstoner, error) {
-	var err error
-	var db engine.Database
-	//var relData engine.RelData
-	var tombstone engine.Tombstoner
 	var txnOp client.TxnOperator
 
 	//-----------------------------------------------------------------------------------------------------
@@ -3945,45 +3916,6 @@ func collectTombstones(
 		return nil, err
 	}
 
-	if node.TableDef.Partition != nil {
-		if node.PartitionPrune != nil && node.PartitionPrune.IsPruned {
-			for _, partitionItem := range node.PartitionPrune.SelectedPartitions {
-				partTableName := partitionItem.PartitionTableName
-				subrelation, err := db.Relation(ctx, partTableName, c.proc)
-				if err != nil {
-					return nil, err
-				}
-				subTombstone, err := subrelation.CollectTombstones(ctx, c.TxnOffset, engine.Policy_CollectAllTombstones)
-				if err != nil {
-					return nil, err
-				}
-				err = tombstone.Merge(subTombstone)
-				if err != nil {
-					return nil, err
-				}
-			}
-		} else {
-			partitionInfo := node.TableDef.Partition
-			partitionNum := int(partitionInfo.PartitionNum)
-			partitionTableNames := partitionInfo.PartitionTableNames
-			for i := 0; i < partitionNum; i++ {
-				partTableName := partitionTableNames[i]
-				subrelation, err := db.Relation(ctx, partTableName, c.proc)
-				if err != nil {
-					return nil, err
-				}
-				subTombstone, err := subrelation.CollectTombstones(ctx, c.TxnOffset, engine.Policy_CollectAllTombstones)
-				if err != nil {
-					return nil, err
-				}
-				err = tombstone.Merge(subTombstone)
-				if err != nil {
-					return nil, err
-				}
-
-			}
-		}
-	}
 	return tombstone, nil
 }
 
@@ -4009,52 +3941,6 @@ func (c *Compile) expandRanges(
 	relData, err := rel.Ranges(newCtx, blockFilterList, preAllocSize, c.TxnOffset, policy)
 	if err != nil {
 		return nil, err
-	}
-	//tombstones, err := rel.CollectTombstones(ctx, c.TxnOffset)
-
-	if node.TableDef.Partition != nil {
-		if node.PartitionPrune != nil && node.PartitionPrune.IsPruned {
-			for i, partitionItem := range node.PartitionPrune.SelectedPartitions {
-				partTableName := partitionItem.PartitionTableName
-				subrelation, err := db.Relation(newCtx, partTableName, c.proc)
-				if err != nil {
-					return nil, err
-				}
-				subRelData, err := subrelation.Ranges(newCtx, blockFilterList, 2, c.TxnOffset, policy)
-				if err != nil {
-					return nil, err
-				}
-
-				engine.ForRangeBlockInfo(1, subRelData.DataCnt(), subRelData,
-					func(blk *objectio.BlockInfo) (bool, error) {
-						blk.PartitionNum = int16(i)
-						relData.AppendBlockInfo(blk)
-						return true, nil
-					})
-			}
-		} else {
-			partitionInfo := node.TableDef.Partition
-			partitionNum := int(partitionInfo.PartitionNum)
-			partitionTableNames := partitionInfo.PartitionTableNames
-			for i := 0; i < partitionNum; i++ {
-				partTableName := partitionTableNames[i]
-				subrelation, err := db.Relation(newCtx, partTableName, c.proc)
-				if err != nil {
-					return nil, err
-				}
-				subRelData, err := subrelation.Ranges(newCtx, blockFilterList, 2, c.TxnOffset, policy)
-				if err != nil {
-					return nil, err
-				}
-
-				engine.ForRangeBlockInfo(1, subRelData.DataCnt(), subRelData,
-					func(blk *objectio.BlockInfo) (bool, error) {
-						blk.PartitionNum = int16(i)
-						relData.AppendBlockInfo(blk)
-						return true, nil
-					})
-			}
-		}
 	}
 
 	return relData, nil

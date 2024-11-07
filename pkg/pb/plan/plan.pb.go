@@ -52,49 +52,6 @@ func (CompressType) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_2d655ab2f7683c23, []int{0}
 }
 
-type PartitionType int32
-
-const (
-	PartitionType_KEY           PartitionType = 0
-	PartitionType_LINEAR_KEY    PartitionType = 1
-	PartitionType_HASH          PartitionType = 2
-	PartitionType_LINEAR_HASH   PartitionType = 3
-	PartitionType_RANGE         PartitionType = 4
-	PartitionType_RANGE_COLUMNS PartitionType = 5
-	PartitionType_LIST          PartitionType = 6
-	PartitionType_LIST_COLUMNS  PartitionType = 7
-)
-
-var PartitionType_name = map[int32]string{
-	0: "KEY",
-	1: "LINEAR_KEY",
-	2: "HASH",
-	3: "LINEAR_HASH",
-	4: "RANGE",
-	5: "RANGE_COLUMNS",
-	6: "LIST",
-	7: "LIST_COLUMNS",
-}
-
-var PartitionType_value = map[string]int32{
-	"KEY":           0,
-	"LINEAR_KEY":    1,
-	"HASH":          2,
-	"LINEAR_HASH":   3,
-	"RANGE":         4,
-	"RANGE_COLUMNS": 5,
-	"LIST":          6,
-	"LIST_COLUMNS":  7,
-}
-
-func (x PartitionType) String() string {
-	return proto.EnumName(PartitionType_name, int32(x))
-}
-
-func (PartitionType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{1}
-}
-
 type ShuffleType int32
 
 const (
@@ -117,7 +74,7 @@ func (x ShuffleType) String() string {
 }
 
 func (ShuffleType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{2}
+	return fileDescriptor_2d655ab2f7683c23, []int{1}
 }
 
 type ShuffleMethod int32
@@ -142,7 +99,7 @@ func (x ShuffleMethod) String() string {
 }
 
 func (ShuffleMethod) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{3}
+	return fileDescriptor_2d655ab2f7683c23, []int{2}
 }
 
 type ShuffleTypeForMultiCN int32
@@ -167,7 +124,7 @@ func (x ShuffleTypeForMultiCN) String() string {
 }
 
 func (ShuffleTypeForMultiCN) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{4}
+	return fileDescriptor_2d655ab2f7683c23, []int{3}
 }
 
 type ExternType int32
@@ -195,7 +152,7 @@ func (x ExternType) String() string {
 }
 
 func (ExternType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{5}
+	return fileDescriptor_2d655ab2f7683c23, []int{4}
 }
 
 type TransationCompletionType int32
@@ -223,7 +180,7 @@ func (x TransationCompletionType) String() string {
 }
 
 func (TransationCompletionType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{6}
+	return fileDescriptor_2d655ab2f7683c23, []int{5}
 }
 
 type TableLockType int32
@@ -257,7 +214,7 @@ func (x TableLockType) String() string {
 }
 
 func (TableLockType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{7}
+	return fileDescriptor_2d655ab2f7683c23, []int{6}
 }
 
 type SubqueryRef_Type int32
@@ -431,7 +388,7 @@ func (x OrderBySpec_OrderByFlag) String() string {
 }
 
 func (OrderBySpec_OrderByFlag) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{46, 0}
+	return fileDescriptor_2d655ab2f7683c23, []int{42, 0}
 }
 
 type FrameClause_FrameType int32
@@ -456,7 +413,7 @@ func (x FrameClause_FrameType) String() string {
 }
 
 func (FrameClause_FrameType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{49, 0}
+	return fileDescriptor_2d655ab2f7683c23, []int{45, 0}
 }
 
 type FrameBound_BoundType int32
@@ -484,7 +441,7 @@ func (x FrameBound_BoundType) String() string {
 }
 
 func (FrameBound_BoundType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{50, 0}
+	return fileDescriptor_2d655ab2f7683c23, []int{46, 0}
 }
 
 type Node_NodeType int32
@@ -652,7 +609,7 @@ func (x Node_NodeType) String() string {
 }
 
 func (Node_NodeType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{58, 0}
+	return fileDescriptor_2d655ab2f7683c23, []int{53, 0}
 }
 
 type Node_JoinType int32
@@ -704,7 +661,7 @@ func (x Node_JoinType) String() string {
 }
 
 func (Node_JoinType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{58, 1}
+	return fileDescriptor_2d655ab2f7683c23, []int{53, 1}
 }
 
 type Node_AggMode int32
@@ -732,7 +689,7 @@ func (x Node_AggMode) String() string {
 }
 
 func (Node_AggMode) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{58, 2}
+	return fileDescriptor_2d655ab2f7683c23, []int{53, 2}
 }
 
 type Node_FillType int32
@@ -769,7 +726,7 @@ func (x Node_FillType) String() string {
 }
 
 func (Node_FillType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{58, 3}
+	return fileDescriptor_2d655ab2f7683c23, []int{53, 3}
 }
 
 type Node_OnDuplicateAction int32
@@ -822,7 +779,11 @@ func (x Node_ApplyType) String() string {
 }
 
 func (Node_ApplyType) EnumDescriptor() ([]byte, []int) {
+<<<<<<< HEAD
 	return fileDescriptor_2d655ab2f7683c23, []int{58, 5}
+=======
+	return fileDescriptor_2d655ab2f7683c23, []int{53, 4}
+>>>>>>> 6ee7f0e07 (tmp)
 }
 
 type Query_StatementType int32
@@ -862,7 +823,7 @@ func (x Query_StatementType) String() string {
 }
 
 func (Query_StatementType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{72, 0}
+	return fileDescriptor_2d655ab2f7683c23, []int{67, 0}
 }
 
 type TransationControl_TclType int32
@@ -890,7 +851,7 @@ func (x TransationControl_TclType) String() string {
 }
 
 func (TransationControl_TclType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{73, 0}
+	return fileDescriptor_2d655ab2f7683c23, []int{68, 0}
 }
 
 type TransationBegin_TransationMode int32
@@ -918,7 +879,7 @@ func (x TransationBegin_TransationMode) String() string {
 }
 
 func (TransationBegin_TransationMode) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{74, 0}
+	return fileDescriptor_2d655ab2f7683c23, []int{69, 0}
 }
 
 type DataControl_DclType int32
@@ -967,7 +928,7 @@ func (x DataControl_DclType) String() string {
 }
 
 func (DataControl_DclType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{79, 0}
+	return fileDescriptor_2d655ab2f7683c23, []int{74, 0}
 }
 
 type DataDefinition_DdlType int32
@@ -1094,7 +1055,7 @@ func (x DataDefinition_DdlType) String() string {
 }
 
 func (DataDefinition_DdlType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{80, 0}
+	return fileDescriptor_2d655ab2f7683c23, []int{75, 0}
 }
 
 type AlterTableDrop_Typ int32
@@ -1128,7 +1089,7 @@ func (x AlterTableDrop_Typ) String() string {
 }
 
 func (AlterTableDrop_Typ) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{88, 0}
+	return fileDescriptor_2d655ab2f7683c23, []int{83, 0}
 }
 
 type AlterTable_AlgorithmType int32
@@ -1159,7 +1120,7 @@ func (x AlterTable_AlgorithmType) String() string {
 }
 
 func (AlterTable_AlgorithmType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{100, 0}
+	return fileDescriptor_2d655ab2f7683c23, []int{94, 0}
 }
 
 type MetadataScanInfo_MetadataScanInfoType int32
@@ -1217,7 +1178,7 @@ func (x MetadataScanInfo_MetadataScanInfoType) String() string {
 }
 
 func (MetadataScanInfo_MetadataScanInfoType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{123, 0}
+	return fileDescriptor_2d655ab2f7683c23, []int{117, 0}
 }
 
 type Type struct {
@@ -4090,331 +4051,6 @@ func (m *PropertiesDef) GetProperties() []*Property {
 	return nil
 }
 
-type PartitionByDef struct {
-	Type                 PartitionType     `protobuf:"varint,1,opt,name=type,proto3,enum=plan.PartitionType" json:"type,omitempty"`
-	PartitionExpr        *PartitionExpr    `protobuf:"bytes,2,opt,name=partition_expr,json=partitionExpr,proto3" json:"partition_expr,omitempty"`
-	PartitionExpression  *Expr             `protobuf:"bytes,3,opt,name=partition_expression,json=partitionExpression,proto3" json:"partition_expression,omitempty"`
-	PartitionColumns     *PartitionColumns `protobuf:"bytes,4,opt,name=partition_columns,json=partitionColumns,proto3" json:"partition_columns,omitempty"`
-	PartitionNum         uint64            `protobuf:"varint,5,opt,name=partitionNum,proto3" json:"partitionNum,omitempty"`
-	Partitions           []*PartitionItem  `protobuf:"bytes,6,rep,name=partitions,proto3" json:"partitions,omitempty"`
-	Algorithm            int64             `protobuf:"varint,7,opt,name=algorithm,proto3" json:"algorithm,omitempty"`
-	IsSubPartition       bool              `protobuf:"varint,8,opt,name=is_sub_partition,json=isSubPartition,proto3" json:"is_sub_partition,omitempty"`
-	PartitionMsg         string            `protobuf:"bytes,9,opt,name=partition_msg,json=partitionMsg,proto3" json:"partition_msg,omitempty"`
-	PartitionTableNames  []string          `protobuf:"bytes,10,rep,name=partition_table_names,json=partitionTableNames,proto3" json:"partition_table_names,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
-	XXX_unrecognized     []byte            `json:"-"`
-	XXX_sizecache        int32             `json:"-"`
-}
-
-func (m *PartitionByDef) Reset()         { *m = PartitionByDef{} }
-func (m *PartitionByDef) String() string { return proto.CompactTextString(m) }
-func (*PartitionByDef) ProtoMessage()    {}
-func (*PartitionByDef) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{34}
-}
-func (m *PartitionByDef) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *PartitionByDef) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_PartitionByDef.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *PartitionByDef) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PartitionByDef.Merge(m, src)
-}
-func (m *PartitionByDef) XXX_Size() int {
-	return m.ProtoSize()
-}
-func (m *PartitionByDef) XXX_DiscardUnknown() {
-	xxx_messageInfo_PartitionByDef.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_PartitionByDef proto.InternalMessageInfo
-
-func (m *PartitionByDef) GetType() PartitionType {
-	if m != nil {
-		return m.Type
-	}
-	return PartitionType_KEY
-}
-
-func (m *PartitionByDef) GetPartitionExpr() *PartitionExpr {
-	if m != nil {
-		return m.PartitionExpr
-	}
-	return nil
-}
-
-func (m *PartitionByDef) GetPartitionExpression() *Expr {
-	if m != nil {
-		return m.PartitionExpression
-	}
-	return nil
-}
-
-func (m *PartitionByDef) GetPartitionColumns() *PartitionColumns {
-	if m != nil {
-		return m.PartitionColumns
-	}
-	return nil
-}
-
-func (m *PartitionByDef) GetPartitionNum() uint64 {
-	if m != nil {
-		return m.PartitionNum
-	}
-	return 0
-}
-
-func (m *PartitionByDef) GetPartitions() []*PartitionItem {
-	if m != nil {
-		return m.Partitions
-	}
-	return nil
-}
-
-func (m *PartitionByDef) GetAlgorithm() int64 {
-	if m != nil {
-		return m.Algorithm
-	}
-	return 0
-}
-
-func (m *PartitionByDef) GetIsSubPartition() bool {
-	if m != nil {
-		return m.IsSubPartition
-	}
-	return false
-}
-
-func (m *PartitionByDef) GetPartitionMsg() string {
-	if m != nil {
-		return m.PartitionMsg
-	}
-	return ""
-}
-
-func (m *PartitionByDef) GetPartitionTableNames() []string {
-	if m != nil {
-		return m.PartitionTableNames
-	}
-	return nil
-}
-
-type PartitionExpr struct {
-	Expr                 *Expr    `protobuf:"bytes,1,opt,name=expr,proto3" json:"expr,omitempty"`
-	ExprStr              string   `protobuf:"bytes,2,opt,name=expr_str,json=exprStr,proto3" json:"expr_str,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *PartitionExpr) Reset()         { *m = PartitionExpr{} }
-func (m *PartitionExpr) String() string { return proto.CompactTextString(m) }
-func (*PartitionExpr) ProtoMessage()    {}
-func (*PartitionExpr) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{35}
-}
-func (m *PartitionExpr) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *PartitionExpr) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_PartitionExpr.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *PartitionExpr) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PartitionExpr.Merge(m, src)
-}
-func (m *PartitionExpr) XXX_Size() int {
-	return m.ProtoSize()
-}
-func (m *PartitionExpr) XXX_DiscardUnknown() {
-	xxx_messageInfo_PartitionExpr.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_PartitionExpr proto.InternalMessageInfo
-
-func (m *PartitionExpr) GetExpr() *Expr {
-	if m != nil {
-		return m.Expr
-	}
-	return nil
-}
-
-func (m *PartitionExpr) GetExprStr() string {
-	if m != nil {
-		return m.ExprStr
-	}
-	return ""
-}
-
-type PartitionColumns struct {
-	Columns []*Expr `protobuf:"bytes,1,rep,name=columns,proto3" json:"columns,omitempty"`
-	// letter case: lower ?
-	PartitionColumns     []string `protobuf:"bytes,2,rep,name=partition_columns,json=partitionColumns,proto3" json:"partition_columns,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *PartitionColumns) Reset()         { *m = PartitionColumns{} }
-func (m *PartitionColumns) String() string { return proto.CompactTextString(m) }
-func (*PartitionColumns) ProtoMessage()    {}
-func (*PartitionColumns) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{36}
-}
-func (m *PartitionColumns) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *PartitionColumns) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_PartitionColumns.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *PartitionColumns) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PartitionColumns.Merge(m, src)
-}
-func (m *PartitionColumns) XXX_Size() int {
-	return m.ProtoSize()
-}
-func (m *PartitionColumns) XXX_DiscardUnknown() {
-	xxx_messageInfo_PartitionColumns.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_PartitionColumns proto.InternalMessageInfo
-
-func (m *PartitionColumns) GetColumns() []*Expr {
-	if m != nil {
-		return m.Columns
-	}
-	return nil
-}
-
-func (m *PartitionColumns) GetPartitionColumns() []string {
-	if m != nil {
-		return m.PartitionColumns
-	}
-	return nil
-}
-
-type PartitionItem struct {
-	PartitionName        string   `protobuf:"bytes,1,opt,name=partition_name,json=partitionName,proto3" json:"partition_name,omitempty"`
-	OrdinalPosition      uint32   `protobuf:"varint,2,opt,name=ordinal_position,json=ordinalPosition,proto3" json:"ordinal_position,omitempty"`
-	Description          string   `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	Comment              string   `protobuf:"bytes,4,opt,name=comment,proto3" json:"comment,omitempty"`
-	LessThan             []*Expr  `protobuf:"bytes,5,rep,name=less_than,json=lessThan,proto3" json:"less_than,omitempty"`
-	InValues             []*Expr  `protobuf:"bytes,6,rep,name=in_values,json=inValues,proto3" json:"in_values,omitempty"`
-	PartitionTableName   string   `protobuf:"bytes,7,opt,name=partition_table_name,json=partitionTableName,proto3" json:"partition_table_name,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *PartitionItem) Reset()         { *m = PartitionItem{} }
-func (m *PartitionItem) String() string { return proto.CompactTextString(m) }
-func (*PartitionItem) ProtoMessage()    {}
-func (*PartitionItem) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{37}
-}
-func (m *PartitionItem) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *PartitionItem) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_PartitionItem.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *PartitionItem) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PartitionItem.Merge(m, src)
-}
-func (m *PartitionItem) XXX_Size() int {
-	return m.ProtoSize()
-}
-func (m *PartitionItem) XXX_DiscardUnknown() {
-	xxx_messageInfo_PartitionItem.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_PartitionItem proto.InternalMessageInfo
-
-func (m *PartitionItem) GetPartitionName() string {
-	if m != nil {
-		return m.PartitionName
-	}
-	return ""
-}
-
-func (m *PartitionItem) GetOrdinalPosition() uint32 {
-	if m != nil {
-		return m.OrdinalPosition
-	}
-	return 0
-}
-
-func (m *PartitionItem) GetDescription() string {
-	if m != nil {
-		return m.Description
-	}
-	return ""
-}
-
-func (m *PartitionItem) GetComment() string {
-	if m != nil {
-		return m.Comment
-	}
-	return ""
-}
-
-func (m *PartitionItem) GetLessThan() []*Expr {
-	if m != nil {
-		return m.LessThan
-	}
-	return nil
-}
-
-func (m *PartitionItem) GetInValues() []*Expr {
-	if m != nil {
-		return m.InValues
-	}
-	return nil
-}
-
-func (m *PartitionItem) GetPartitionTableName() string {
-	if m != nil {
-		return m.PartitionTableName
-	}
-	return ""
-}
-
 type ViewDef struct {
 	View                 string   `protobuf:"bytes,1,opt,name=view,proto3" json:"view,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -4426,7 +4062,7 @@ func (m *ViewDef) Reset()         { *m = ViewDef{} }
 func (m *ViewDef) String() string { return proto.CompactTextString(m) }
 func (*ViewDef) ProtoMessage()    {}
 func (*ViewDef) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{38}
+	return fileDescriptor_2d655ab2f7683c23, []int{34}
 }
 func (m *ViewDef) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -4476,7 +4112,6 @@ type TableDef struct {
 	Fkeys        []*ForeignKeyDef `protobuf:"bytes,13,rep,name=fkeys,proto3" json:"fkeys,omitempty"`
 	RefChildTbls []uint64         `protobuf:"varint,14,rep,packed,name=ref_child_tbls,json=refChildTbls,proto3" json:"ref_child_tbls,omitempty"`
 	Checks       []*CheckDef      `protobuf:"bytes,15,rep,name=checks,proto3" json:"checks,omitempty"`
-	Partition    *PartitionByDef  `protobuf:"bytes,21,opt,name=partition,proto3" json:"partition,omitempty"`
 	ClusterBy    *ClusterByDef    `protobuf:"bytes,22,opt,name=cluster_by,json=clusterBy,proto3" json:"cluster_by,omitempty"`
 	Props        []*PropertyDef   `protobuf:"bytes,23,rep,name=props,proto3" json:"props,omitempty"`
 	ViewSql      *ViewDef         `protobuf:"bytes,24,opt,name=view_sql,json=viewSql,proto3" json:"view_sql,omitempty"`
@@ -4500,7 +4135,7 @@ func (m *TableDef) Reset()         { *m = TableDef{} }
 func (m *TableDef) String() string { return proto.CompactTextString(m) }
 func (*TableDef) ProtoMessage()    {}
 func (*TableDef) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{39}
+	return fileDescriptor_2d655ab2f7683c23, []int{35}
 }
 func (m *TableDef) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -4620,13 +4255,6 @@ func (m *TableDef) GetChecks() []*CheckDef {
 	return nil
 }
 
-func (m *TableDef) GetPartition() *PartitionByDef {
-	if m != nil {
-		return m.Partition
-	}
-	return nil
-}
-
 func (m *TableDef) GetClusterBy() *ClusterByDef {
 	if m != nil {
 		return m.ClusterBy
@@ -4726,7 +4354,7 @@ func (m *TableDef_DefType) Reset()         { *m = TableDef_DefType{} }
 func (m *TableDef_DefType) String() string { return proto.CompactTextString(m) }
 func (*TableDef_DefType) ProtoMessage()    {}
 func (*TableDef_DefType) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{39, 0}
+	return fileDescriptor_2d655ab2f7683c23, []int{35, 0}
 }
 func (m *TableDef_DefType) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -4800,7 +4428,7 @@ func (m *TableFunction) Reset()         { *m = TableFunction{} }
 func (m *TableFunction) String() string { return proto.CompactTextString(m) }
 func (*TableFunction) ProtoMessage()    {}
 func (*TableFunction) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{40}
+	return fileDescriptor_2d655ab2f7683c23, []int{36}
 }
 func (m *TableFunction) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -4869,7 +4497,7 @@ func (m *HashMapStats) Reset()         { *m = HashMapStats{} }
 func (m *HashMapStats) String() string { return proto.CompactTextString(m) }
 func (*HashMapStats) ProtoMessage()    {}
 func (*HashMapStats) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{41}
+	return fileDescriptor_2d655ab2f7683c23, []int{37}
 }
 func (m *HashMapStats) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -5000,7 +4628,7 @@ func (m *Stats) Reset()         { *m = Stats{} }
 func (m *Stats) String() string { return proto.CompactTextString(m) }
 func (*Stats) ProtoMessage()    {}
 func (*Stats) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{42}
+	return fileDescriptor_2d655ab2f7683c23, []int{38}
 }
 func (m *Stats) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -5097,7 +4725,7 @@ func (m *RowsetExpr) Reset()         { *m = RowsetExpr{} }
 func (m *RowsetExpr) String() string { return proto.CompactTextString(m) }
 func (*RowsetExpr) ProtoMessage()    {}
 func (*RowsetExpr) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{43}
+	return fileDescriptor_2d655ab2f7683c23, []int{39}
 }
 func (m *RowsetExpr) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -5151,7 +4779,7 @@ func (m *ColData) Reset()         { *m = ColData{} }
 func (m *ColData) String() string { return proto.CompactTextString(m) }
 func (*ColData) ProtoMessage()    {}
 func (*ColData) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{44}
+	return fileDescriptor_2d655ab2f7683c23, []int{40}
 }
 func (m *ColData) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -5199,7 +4827,7 @@ func (m *RowsetData) Reset()         { *m = RowsetData{} }
 func (m *RowsetData) String() string { return proto.CompactTextString(m) }
 func (*RowsetData) ProtoMessage()    {}
 func (*RowsetData) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{45}
+	return fileDescriptor_2d655ab2f7683c23, []int{41}
 }
 func (m *RowsetData) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -5255,7 +4883,7 @@ func (m *OrderBySpec) Reset()         { *m = OrderBySpec{} }
 func (m *OrderBySpec) String() string { return proto.CompactTextString(m) }
 func (*OrderBySpec) ProtoMessage()    {}
 func (*OrderBySpec) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{46}
+	return fileDescriptor_2d655ab2f7683c23, []int{42}
 }
 func (m *OrderBySpec) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -5307,7 +4935,6 @@ func (m *OrderBySpec) GetFlag() OrderBySpec_OrderByFlag {
 
 type WindowSpec struct {
 	WindowFunc           *Expr          `protobuf:"bytes,1,opt,name=window_func,json=windowFunc,proto3" json:"window_func,omitempty"`
-	PartitionBy          []*Expr        `protobuf:"bytes,2,rep,name=partition_by,json=partitionBy,proto3" json:"partition_by,omitempty"`
 	OrderBy              []*OrderBySpec `protobuf:"bytes,3,rep,name=order_by,json=orderBy,proto3" json:"order_by,omitempty"`
 	Frame                *FrameClause   `protobuf:"bytes,4,opt,name=frame,proto3" json:"frame,omitempty"`
 	Name                 string         `protobuf:"bytes,5,opt,name=name,proto3" json:"name,omitempty"`
@@ -5320,7 +4947,7 @@ func (m *WindowSpec) Reset()         { *m = WindowSpec{} }
 func (m *WindowSpec) String() string { return proto.CompactTextString(m) }
 func (*WindowSpec) ProtoMessage()    {}
 func (*WindowSpec) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{47}
+	return fileDescriptor_2d655ab2f7683c23, []int{43}
 }
 func (m *WindowSpec) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -5352,13 +4979,6 @@ var xxx_messageInfo_WindowSpec proto.InternalMessageInfo
 func (m *WindowSpec) GetWindowFunc() *Expr {
 	if m != nil {
 		return m.WindowFunc
-	}
-	return nil
-}
-
-func (m *WindowSpec) GetPartitionBy() []*Expr {
-	if m != nil {
-		return m.PartitionBy
 	}
 	return nil
 }
@@ -5397,7 +5017,7 @@ func (m *SampleFuncSpec) Reset()         { *m = SampleFuncSpec{} }
 func (m *SampleFuncSpec) String() string { return proto.CompactTextString(m) }
 func (*SampleFuncSpec) ProtoMessage()    {}
 func (*SampleFuncSpec) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{48}
+	return fileDescriptor_2d655ab2f7683c23, []int{44}
 }
 func (m *SampleFuncSpec) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -5460,7 +5080,7 @@ func (m *FrameClause) Reset()         { *m = FrameClause{} }
 func (m *FrameClause) String() string { return proto.CompactTextString(m) }
 func (*FrameClause) ProtoMessage()    {}
 func (*FrameClause) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{49}
+	return fileDescriptor_2d655ab2f7683c23, []int{45}
 }
 func (m *FrameClause) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -5523,7 +5143,7 @@ func (m *FrameBound) Reset()         { *m = FrameBound{} }
 func (m *FrameBound) String() string { return proto.CompactTextString(m) }
 func (*FrameBound) ProtoMessage()    {}
 func (*FrameBound) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{50}
+	return fileDescriptor_2d655ab2f7683c23, []int{46}
 }
 func (m *FrameBound) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -5594,7 +5214,7 @@ func (m *OnDuplicateKeyCtx) Reset()         { *m = OnDuplicateKeyCtx{} }
 func (m *OnDuplicateKeyCtx) String() string { return proto.CompactTextString(m) }
 func (*OnDuplicateKeyCtx) ProtoMessage()    {}
 func (*OnDuplicateKeyCtx) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{51}
+	return fileDescriptor_2d655ab2f7683c23, []int{47}
 }
 func (m *OnDuplicateKeyCtx) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -5711,7 +5331,7 @@ func (m *UpdateCtx) Reset()         { *m = UpdateCtx{} }
 func (m *UpdateCtx) String() string { return proto.CompactTextString(m) }
 func (*UpdateCtx) ProtoMessage()    {}
 func (*UpdateCtx) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{52}
+	return fileDescriptor_2d655ab2f7683c23, []int{48}
 }
 func (m *UpdateCtx) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -5797,24 +5417,20 @@ func (m *UpdateCtx) GetDeleteCols() []ColRef {
 }
 
 type InsertCtx struct {
-	Ref             *ObjectRef `protobuf:"bytes,1,opt,name=ref,proto3" json:"ref,omitempty"`
-	AddAffectedRows bool       `protobuf:"varint,2,opt,name=add_affected_rows,json=addAffectedRows,proto3" json:"add_affected_rows,omitempty"`
-	IsClusterTable  bool       `protobuf:"varint,3,opt,name=is_cluster_table,json=isClusterTable,proto3" json:"is_cluster_table,omitempty"`
-	TableDef        *TableDef  `protobuf:"bytes,4,opt,name=table_def,json=tableDef,proto3" json:"table_def,omitempty"`
-	// Align array index with the partition number
-	PartitionTableIds    []uint64 `protobuf:"varint,5,rep,packed,name=partition_table_ids,json=partitionTableIds,proto3" json:"partition_table_ids,omitempty"`
-	PartitionTableNames  []string `protobuf:"bytes,6,rep,name=partition_table_names,json=partitionTableNames,proto3" json:"partition_table_names,omitempty"`
-	PartitionIdx         int32    `protobuf:"varint,7,opt,name=partition_idx,json=partitionIdx,proto3" json:"partition_idx,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Ref                  *ObjectRef `protobuf:"bytes,1,opt,name=ref,proto3" json:"ref,omitempty"`
+	AddAffectedRows      bool       `protobuf:"varint,2,opt,name=add_affected_rows,json=addAffectedRows,proto3" json:"add_affected_rows,omitempty"`
+	IsClusterTable       bool       `protobuf:"varint,3,opt,name=is_cluster_table,json=isClusterTable,proto3" json:"is_cluster_table,omitempty"`
+	TableDef             *TableDef  `protobuf:"bytes,4,opt,name=table_def,json=tableDef,proto3" json:"table_def,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
+	XXX_unrecognized     []byte     `json:"-"`
+	XXX_sizecache        int32      `json:"-"`
 }
 
 func (m *InsertCtx) Reset()         { *m = InsertCtx{} }
 func (m *InsertCtx) String() string { return proto.CompactTextString(m) }
 func (*InsertCtx) ProtoMessage()    {}
 func (*InsertCtx) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{53}
+	return fileDescriptor_2d655ab2f7683c23, []int{49}
 }
 func (m *InsertCtx) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -5871,48 +5487,23 @@ func (m *InsertCtx) GetTableDef() *TableDef {
 	return nil
 }
 
-func (m *InsertCtx) GetPartitionTableIds() []uint64 {
-	if m != nil {
-		return m.PartitionTableIds
-	}
-	return nil
-}
-
-func (m *InsertCtx) GetPartitionTableNames() []string {
-	if m != nil {
-		return m.PartitionTableNames
-	}
-	return nil
-}
-
-func (m *InsertCtx) GetPartitionIdx() int32 {
-	if m != nil {
-		return m.PartitionIdx
-	}
-	return 0
-}
-
 type ReplaceCtx struct {
-	Ref             *ObjectRef `protobuf:"bytes,1,opt,name=ref,proto3" json:"ref,omitempty"`
-	AddAffectedRows bool       `protobuf:"varint,2,opt,name=add_affected_rows,json=addAffectedRows,proto3" json:"add_affected_rows,omitempty"`
-	IsClusterTable  bool       `protobuf:"varint,3,opt,name=is_cluster_table,json=isClusterTable,proto3" json:"is_cluster_table,omitempty"`
-	TableDef        *TableDef  `protobuf:"bytes,4,opt,name=table_def,json=tableDef,proto3" json:"table_def,omitempty"`
-	DeleteCond      string     `protobuf:"bytes,5,opt,name=delete_cond,json=deleteCond,proto3" json:"delete_cond,omitempty"`
-	// Align array index with the partition number
-	PartitionTableIds         []uint64 `protobuf:"varint,6,rep,packed,name=partition_table_ids,json=partitionTableIds,proto3" json:"partition_table_ids,omitempty"`
-	PartitionTableNames       []string `protobuf:"bytes,7,rep,name=partition_table_names,json=partitionTableNames,proto3" json:"partition_table_names,omitempty"`
-	PartitionIdx              int32    `protobuf:"varint,8,opt,name=partition_idx,json=partitionIdx,proto3" json:"partition_idx,omitempty"`
-	RewriteFromOnDuplicateKey bool     `protobuf:"varint,9,opt,name=rewrite_from_on_duplicate_key,json=rewriteFromOnDuplicateKey,proto3" json:"rewrite_from_on_duplicate_key,omitempty"`
-	XXX_NoUnkeyedLiteral      struct{} `json:"-"`
-	XXX_unrecognized          []byte   `json:"-"`
-	XXX_sizecache             int32    `json:"-"`
+	Ref                       *ObjectRef `protobuf:"bytes,1,opt,name=ref,proto3" json:"ref,omitempty"`
+	AddAffectedRows           bool       `protobuf:"varint,2,opt,name=add_affected_rows,json=addAffectedRows,proto3" json:"add_affected_rows,omitempty"`
+	IsClusterTable            bool       `protobuf:"varint,3,opt,name=is_cluster_table,json=isClusterTable,proto3" json:"is_cluster_table,omitempty"`
+	TableDef                  *TableDef  `protobuf:"bytes,4,opt,name=table_def,json=tableDef,proto3" json:"table_def,omitempty"`
+	DeleteCond                string     `protobuf:"bytes,5,opt,name=delete_cond,json=deleteCond,proto3" json:"delete_cond,omitempty"`
+	RewriteFromOnDuplicateKey bool       `protobuf:"varint,9,opt,name=rewrite_from_on_duplicate_key,json=rewriteFromOnDuplicateKey,proto3" json:"rewrite_from_on_duplicate_key,omitempty"`
+	XXX_NoUnkeyedLiteral      struct{}   `json:"-"`
+	XXX_unrecognized          []byte     `json:"-"`
+	XXX_sizecache             int32      `json:"-"`
 }
 
 func (m *ReplaceCtx) Reset()         { *m = ReplaceCtx{} }
 func (m *ReplaceCtx) String() string { return proto.CompactTextString(m) }
 func (*ReplaceCtx) ProtoMessage()    {}
 func (*ReplaceCtx) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{54}
+	return fileDescriptor_2d655ab2f7683c23, []int{50}
 }
 func (m *ReplaceCtx) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -5976,27 +5567,6 @@ func (m *ReplaceCtx) GetDeleteCond() string {
 	return ""
 }
 
-func (m *ReplaceCtx) GetPartitionTableIds() []uint64 {
-	if m != nil {
-		return m.PartitionTableIds
-	}
-	return nil
-}
-
-func (m *ReplaceCtx) GetPartitionTableNames() []string {
-	if m != nil {
-		return m.PartitionTableNames
-	}
-	return nil
-}
-
-func (m *ReplaceCtx) GetPartitionIdx() int32 {
-	if m != nil {
-		return m.PartitionIdx
-	}
-	return 0
-}
-
 func (m *ReplaceCtx) GetRewriteFromOnDuplicateKey() bool {
 	if m != nil {
 		return m.RewriteFromOnDuplicateKey
@@ -6040,7 +5610,7 @@ func (m *AnalyzeInfo) Reset()         { *m = AnalyzeInfo{} }
 func (m *AnalyzeInfo) String() string { return proto.CompactTextString(m) }
 func (*AnalyzeInfo) ProtoMessage()    {}
 func (*AnalyzeInfo) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{55}
+	return fileDescriptor_2d655ab2f7683c23, []int{51}
 }
 func (m *AnalyzeInfo) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -6304,7 +5874,7 @@ func (m *OriginTableMessageForFuzzy) Reset()         { *m = OriginTableMessageFo
 func (m *OriginTableMessageForFuzzy) String() string { return proto.CompactTextString(m) }
 func (*OriginTableMessageForFuzzy) ProtoMessage()    {}
 func (*OriginTableMessageForFuzzy) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{57}
+	return fileDescriptor_2d655ab2f7683c23, []int{52}
 }
 func (m *OriginTableMessageForFuzzy) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -6401,7 +5971,6 @@ type Node struct {
 	Uuid                   []byte               `protobuf:"bytes,42,opt,name=uuid,proto3" json:"uuid,omitempty"`
 	RecursiveSink          bool                 `protobuf:"varint,43,opt,name=recursive_sink,json=recursiveSink,proto3" json:"recursive_sink,omitempty"`
 	ExternScan             *ExternScan          `protobuf:"bytes,44,opt,name=extern_scan,json=externScan,proto3" json:"extern_scan,omitempty"`
-	PartitionPrune         *PartitionPrune      `protobuf:"bytes,45,opt,name=partition_prune,json=partitionPrune,proto3" json:"partition_prune,omitempty"`
 	PreInsertSkCtx         *PreInsertUkCtx      `protobuf:"bytes,46,opt,name=pre_insert_sk_ctx,json=preInsertSkCtx,proto3" json:"pre_insert_sk_ctx,omitempty"`
 	Interval               *Expr                `protobuf:"bytes,47,opt,name=interval,proto3" json:"interval,omitempty"`
 	Sliding                *Expr                `protobuf:"bytes,48,opt,name=sliding,proto3" json:"sliding,omitempty"`
@@ -6435,7 +6004,7 @@ func (m *Node) Reset()         { *m = Node{} }
 func (m *Node) String() string { return proto.CompactTextString(m) }
 func (*Node) ProtoMessage()    {}
 func (*Node) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{58}
+	return fileDescriptor_2d655ab2f7683c23, []int{53}
 }
 func (m *Node) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -6765,13 +6334,6 @@ func (m *Node) GetExternScan() *ExternScan {
 	return nil
 }
 
-func (m *Node) GetPartitionPrune() *PartitionPrune {
-	if m != nil {
-		return m.PartitionPrune
-	}
-	return nil
-}
-
 func (m *Node) GetPreInsertSkCtx() *PreInsertUkCtx {
 	if m != nil {
 		return m.PreInsertSkCtx
@@ -6941,7 +6503,7 @@ func (m *Snapshot) Reset()         { *m = Snapshot{} }
 func (m *Snapshot) String() string { return proto.CompactTextString(m) }
 func (*Snapshot) ProtoMessage()    {}
 func (*Snapshot) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{59}
+	return fileDescriptor_2d655ab2f7683c23, []int{54}
 }
 func (m *Snapshot) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -6997,7 +6559,7 @@ func (m *SnapshotTenant) Reset()         { *m = SnapshotTenant{} }
 func (m *SnapshotTenant) String() string { return proto.CompactTextString(m) }
 func (*SnapshotTenant) ProtoMessage()    {}
 func (*SnapshotTenant) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{60}
+	return fileDescriptor_2d655ab2f7683c23, []int{55}
 }
 func (m *SnapshotTenant) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -7060,7 +6622,7 @@ func (m *ExternScan) Reset()         { *m = ExternScan{} }
 func (m *ExternScan) String() string { return proto.CompactTextString(m) }
 func (*ExternScan) ProtoMessage()    {}
 func (*ExternScan) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{61}
+	return fileDescriptor_2d655ab2f7683c23, []int{56}
 }
 func (m *ExternScan) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -7166,8 +6728,6 @@ type LockTarget struct {
 	RefreshTsIdxInBat    int32         `protobuf:"varint,4,opt,name=refresh_ts_idx_in_bat,json=refreshTsIdxInBat,proto3" json:"refresh_ts_idx_in_bat,omitempty"`
 	FilterColIdxInBat    int32         `protobuf:"varint,5,opt,name=filter_col_idx_in_bat,json=filterColIdxInBat,proto3" json:"filter_col_idx_in_bat,omitempty"`
 	LockTable            bool          `protobuf:"varint,6,opt,name=lock_table,json=lockTable,proto3" json:"lock_table,omitempty"`
-	IsPartitionTable     bool          `protobuf:"varint,7,opt,name=is_partition_table,json=isPartitionTable,proto3" json:"is_partition_table,omitempty"`
-	PartitionTableIds    []uint64      `protobuf:"varint,8,rep,packed,name=partition_table_ids,json=partitionTableIds,proto3" json:"partition_table_ids,omitempty"`
 	Block                bool          `protobuf:"varint,9,opt,name=block,proto3" json:"block,omitempty"`
 	Mode                 lock.LockMode `protobuf:"varint,10,opt,name=Mode,proto3,enum=lock.LockMode" json:"Mode,omitempty"`
 	PrimaryColRelPos     int32         `protobuf:"varint,11,opt,name=primary_col_rel_pos,json=primaryColRelPos,proto3" json:"primary_col_rel_pos,omitempty"`
@@ -7183,7 +6743,7 @@ func (m *LockTarget) Reset()         { *m = LockTarget{} }
 func (m *LockTarget) String() string { return proto.CompactTextString(m) }
 func (*LockTarget) ProtoMessage()    {}
 func (*LockTarget) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{62}
+	return fileDescriptor_2d655ab2f7683c23, []int{57}
 }
 func (m *LockTarget) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -7254,20 +6814,6 @@ func (m *LockTarget) GetLockTable() bool {
 	return false
 }
 
-func (m *LockTarget) GetIsPartitionTable() bool {
-	if m != nil {
-		return m.IsPartitionTable
-	}
-	return false
-}
-
-func (m *LockTarget) GetPartitionTableIds() []uint64 {
-	if m != nil {
-		return m.PartitionTableIds
-	}
-	return nil
-}
-
 func (m *LockTarget) GetBlock() bool {
 	if m != nil {
 		return m.Block
@@ -7325,7 +6871,7 @@ func (m *PreInsertUkCtx) Reset()         { *m = PreInsertUkCtx{} }
 func (m *PreInsertUkCtx) String() string { return proto.CompactTextString(m) }
 func (*PreInsertUkCtx) ProtoMessage()    {}
 func (*PreInsertUkCtx) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{63}
+	return fileDescriptor_2d655ab2f7683c23, []int{58}
 }
 func (m *PreInsertUkCtx) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -7394,7 +6940,7 @@ func (m *PreDeleteCtx) Reset()         { *m = PreDeleteCtx{} }
 func (m *PreDeleteCtx) String() string { return proto.CompactTextString(m) }
 func (*PreDeleteCtx) ProtoMessage()    {}
 func (*PreDeleteCtx) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{64}
+	return fileDescriptor_2d655ab2f7683c23, []int{59}
 }
 func (m *PreDeleteCtx) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -7446,7 +6992,7 @@ func (m *PreInsertCtx) Reset()         { *m = PreInsertCtx{} }
 func (m *PreInsertCtx) String() string { return proto.CompactTextString(m) }
 func (*PreInsertCtx) ProtoMessage()    {}
 func (*PreInsertCtx) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{65}
+	return fileDescriptor_2d655ab2f7683c23, []int{60}
 }
 func (m *PreInsertCtx) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -7531,7 +7077,7 @@ func (m *RuntimeFilterSpec) Reset()         { *m = RuntimeFilterSpec{} }
 func (m *RuntimeFilterSpec) String() string { return proto.CompactTextString(m) }
 func (*RuntimeFilterSpec) ProtoMessage()    {}
 func (*RuntimeFilterSpec) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{66}
+	return fileDescriptor_2d655ab2f7683c23, []int{61}
 }
 func (m *RuntimeFilterSpec) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -7599,7 +7145,7 @@ func (m *IdList) Reset()         { *m = IdList{} }
 func (m *IdList) String() string { return proto.CompactTextString(m) }
 func (*IdList) ProtoMessage()    {}
 func (*IdList) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{67}
+	return fileDescriptor_2d655ab2f7683c23, []int{62}
 }
 func (m *IdList) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -7646,7 +7192,7 @@ func (m *ColPosMap) Reset()         { *m = ColPosMap{} }
 func (m *ColPosMap) String() string { return proto.CompactTextString(m) }
 func (*ColPosMap) ProtoMessage()    {}
 func (*ColPosMap) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{68}
+	return fileDescriptor_2d655ab2f7683c23, []int{63}
 }
 func (m *ColPosMap) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -7683,15 +7229,11 @@ func (m *ColPosMap) GetMap() map[string]int32 {
 }
 
 type DeleteCtx struct {
-	CanTruncate     bool       `protobuf:"varint,1,opt,name=can_truncate,json=canTruncate,proto3" json:"can_truncate,omitempty"`
-	Ref             *ObjectRef `protobuf:"bytes,2,opt,name=ref,proto3" json:"ref,omitempty"`
-	RowIdIdx        int32      `protobuf:"varint,3,opt,name=row_id_idx,json=rowIdIdx,proto3" json:"row_id_idx,omitempty"`
-	AddAffectedRows bool       `protobuf:"varint,4,opt,name=add_affected_rows,json=addAffectedRows,proto3" json:"add_affected_rows,omitempty"`
-	IsClusterTable  bool       `protobuf:"varint,5,opt,name=is_cluster_table,json=isClusterTable,proto3" json:"is_cluster_table,omitempty"`
-	// Align array index with the partition number
-	PartitionTableIds    []uint64       `protobuf:"varint,6,rep,packed,name=partition_table_ids,json=partitionTableIds,proto3" json:"partition_table_ids,omitempty"`
-	PartitionTableNames  []string       `protobuf:"bytes,7,rep,name=partition_table_names,json=partitionTableNames,proto3" json:"partition_table_names,omitempty"`
-	PartitionIdx         int32          `protobuf:"varint,8,opt,name=partition_idx,json=partitionIdx,proto3" json:"partition_idx,omitempty"`
+	CanTruncate          bool           `protobuf:"varint,1,opt,name=can_truncate,json=canTruncate,proto3" json:"can_truncate,omitempty"`
+	Ref                  *ObjectRef     `protobuf:"bytes,2,opt,name=ref,proto3" json:"ref,omitempty"`
+	RowIdIdx             int32          `protobuf:"varint,3,opt,name=row_id_idx,json=rowIdIdx,proto3" json:"row_id_idx,omitempty"`
+	AddAffectedRows      bool           `protobuf:"varint,4,opt,name=add_affected_rows,json=addAffectedRows,proto3" json:"add_affected_rows,omitempty"`
+	IsClusterTable       bool           `protobuf:"varint,5,opt,name=is_cluster_table,json=isClusterTable,proto3" json:"is_cluster_table,omitempty"`
 	PrimaryKeyIdx        int32          `protobuf:"varint,9,opt,name=primary_key_idx,json=primaryKeyIdx,proto3" json:"primary_key_idx,omitempty"`
 	TruncateTable        *TruncateTable `protobuf:"bytes,10,opt,name=truncate_table,json=truncateTable,proto3" json:"truncate_table,omitempty"`
 	TableDef             *TableDef      `protobuf:"bytes,11,opt,name=table_def,json=tableDef,proto3" json:"table_def,omitempty"`
@@ -7704,7 +7246,7 @@ func (m *DeleteCtx) Reset()         { *m = DeleteCtx{} }
 func (m *DeleteCtx) String() string { return proto.CompactTextString(m) }
 func (*DeleteCtx) ProtoMessage()    {}
 func (*DeleteCtx) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{69}
+	return fileDescriptor_2d655ab2f7683c23, []int{64}
 }
 func (m *DeleteCtx) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -7768,27 +7310,6 @@ func (m *DeleteCtx) GetIsClusterTable() bool {
 	return false
 }
 
-func (m *DeleteCtx) GetPartitionTableIds() []uint64 {
-	if m != nil {
-		return m.PartitionTableIds
-	}
-	return nil
-}
-
-func (m *DeleteCtx) GetPartitionTableNames() []string {
-	if m != nil {
-		return m.PartitionTableNames
-	}
-	return nil
-}
-
-func (m *DeleteCtx) GetPartitionIdx() int32 {
-	if m != nil {
-		return m.PartitionIdx
-	}
-	return 0
-}
-
 func (m *DeleteCtx) GetPrimaryKeyIdx() int32 {
 	if m != nil {
 		return m.PrimaryKeyIdx
@@ -7824,7 +7345,7 @@ func (m *PostDmlFullTextCtx) Reset()         { *m = PostDmlFullTextCtx{} }
 func (m *PostDmlFullTextCtx) String() string { return proto.CompactTextString(m) }
 func (*PostDmlFullTextCtx) ProtoMessage()    {}
 func (*PostDmlFullTextCtx) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{70}
+	return fileDescriptor_2d655ab2f7683c23, []int{65}
 }
 func (m *PostDmlFullTextCtx) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -7899,7 +7420,7 @@ func (m *PostDmlCtx) Reset()         { *m = PostDmlCtx{} }
 func (m *PostDmlCtx) String() string { return proto.CompactTextString(m) }
 func (*PostDmlCtx) ProtoMessage()    {}
 func (*PostDmlCtx) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{71}
+	return fileDescriptor_2d655ab2f7683c23, []int{66}
 }
 func (m *PostDmlCtx) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -8011,7 +7532,7 @@ func (m *Query) Reset()         { *m = Query{} }
 func (m *Query) String() string { return proto.CompactTextString(m) }
 func (*Query) ProtoMessage()    {}
 func (*Query) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{72}
+	return fileDescriptor_2d655ab2f7683c23, []int{67}
 }
 func (m *Query) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -8114,7 +7635,7 @@ func (m *TransationControl) Reset()         { *m = TransationControl{} }
 func (m *TransationControl) String() string { return proto.CompactTextString(m) }
 func (*TransationControl) ProtoMessage()    {}
 func (*TransationControl) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{73}
+	return fileDescriptor_2d655ab2f7683c23, []int{68}
 }
 func (m *TransationControl) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -8218,7 +7739,7 @@ func (m *TransationBegin) Reset()         { *m = TransationBegin{} }
 func (m *TransationBegin) String() string { return proto.CompactTextString(m) }
 func (*TransationBegin) ProtoMessage()    {}
 func (*TransationBegin) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{74}
+	return fileDescriptor_2d655ab2f7683c23, []int{69}
 }
 func (m *TransationBegin) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -8265,7 +7786,7 @@ func (m *TransationCommit) Reset()         { *m = TransationCommit{} }
 func (m *TransationCommit) String() string { return proto.CompactTextString(m) }
 func (*TransationCommit) ProtoMessage()    {}
 func (*TransationCommit) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{75}
+	return fileDescriptor_2d655ab2f7683c23, []int{70}
 }
 func (m *TransationCommit) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -8312,7 +7833,7 @@ func (m *TransationRollback) Reset()         { *m = TransationRollback{} }
 func (m *TransationRollback) String() string { return proto.CompactTextString(m) }
 func (*TransationRollback) ProtoMessage()    {}
 func (*TransationRollback) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{76}
+	return fileDescriptor_2d655ab2f7683c23, []int{71}
 }
 func (m *TransationRollback) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -8367,7 +7888,7 @@ func (m *Plan) Reset()         { *m = Plan{} }
 func (m *Plan) String() string { return proto.CompactTextString(m) }
 func (*Plan) ProtoMessage()    {}
 func (*Plan) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{77}
+	return fileDescriptor_2d655ab2f7683c23, []int{72}
 }
 func (m *Plan) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -8490,7 +8011,7 @@ func (m *Column) Reset()         { *m = Column{} }
 func (m *Column) String() string { return proto.CompactTextString(m) }
 func (*Column) ProtoMessage()    {}
 func (*Column) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{78}
+	return fileDescriptor_2d655ab2f7683c23, []int{73}
 }
 func (m *Column) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -8546,7 +8067,7 @@ func (m *DataControl) Reset()         { *m = DataControl{} }
 func (m *DataControl) String() string { return proto.CompactTextString(m) }
 func (*DataControl) ProtoMessage()    {}
 func (*DataControl) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{79}
+	return fileDescriptor_2d655ab2f7683c23, []int{74}
 }
 func (m *DataControl) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -8701,7 +8222,7 @@ func (m *DataDefinition) Reset()         { *m = DataDefinition{} }
 func (m *DataDefinition) String() string { return proto.CompactTextString(m) }
 func (*DataDefinition) ProtoMessage()    {}
 func (*DataDefinition) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{80}
+	return fileDescriptor_2d655ab2f7683c23, []int{75}
 }
 func (m *DataDefinition) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -9005,7 +8526,7 @@ func (m *SubscriptionOption) Reset()         { *m = SubscriptionOption{} }
 func (m *SubscriptionOption) String() string { return proto.CompactTextString(m) }
 func (*SubscriptionOption) ProtoMessage()    {}
 func (*SubscriptionOption) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{81}
+	return fileDescriptor_2d655ab2f7683c23, []int{76}
 }
 func (m *SubscriptionOption) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -9062,7 +8583,7 @@ func (m *CreateDatabase) Reset()         { *m = CreateDatabase{} }
 func (m *CreateDatabase) String() string { return proto.CompactTextString(m) }
 func (*CreateDatabase) ProtoMessage()    {}
 func (*CreateDatabase) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{82}
+	return fileDescriptor_2d655ab2f7683c23, []int{77}
 }
 func (m *CreateDatabase) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -9131,7 +8652,7 @@ func (m *AlterDatabase) Reset()         { *m = AlterDatabase{} }
 func (m *AlterDatabase) String() string { return proto.CompactTextString(m) }
 func (*AlterDatabase) ProtoMessage()    {}
 func (*AlterDatabase) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{83}
+	return fileDescriptor_2d655ab2f7683c23, []int{78}
 }
 func (m *AlterDatabase) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -9193,7 +8714,7 @@ func (m *DropDatabase) Reset()         { *m = DropDatabase{} }
 func (m *DropDatabase) String() string { return proto.CompactTextString(m) }
 func (*DropDatabase) ProtoMessage()    {}
 func (*DropDatabase) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{84}
+	return fileDescriptor_2d655ab2f7683c23, []int{79}
 }
 func (m *DropDatabase) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -9269,7 +8790,7 @@ func (m *FkColName) Reset()         { *m = FkColName{} }
 func (m *FkColName) String() string { return proto.CompactTextString(m) }
 func (*FkColName) ProtoMessage()    {}
 func (*FkColName) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{85}
+	return fileDescriptor_2d655ab2f7683c23, []int{80}
 }
 func (m *FkColName) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -9335,7 +8856,7 @@ func (m *ForeignKeyInfo) Reset()         { *m = ForeignKeyInfo{} }
 func (m *ForeignKeyInfo) String() string { return proto.CompactTextString(m) }
 func (*ForeignKeyInfo) ProtoMessage()    {}
 func (*ForeignKeyInfo) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{86}
+	return fileDescriptor_2d655ab2f7683c23, []int{81}
 }
 func (m *ForeignKeyInfo) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -9411,7 +8932,6 @@ type CreateTable struct {
 	FkTables []string `protobuf:"bytes,8,rep,name=fk_tables,json=fkTables,proto3" json:"fk_tables,omitempty"`
 	// we need column name when create table, but not in ForeignKeyDef
 	FkCols            []*FkColName `protobuf:"bytes,9,rep,name=fk_cols,json=fkCols,proto3" json:"fk_cols,omitempty"`
-	PartitionTables   []*TableDef  `protobuf:"bytes,10,rep,name=partition_tables,json=partitionTables,proto3" json:"partition_tables,omitempty"`
 	CreateAsSelectSql string       `protobuf:"bytes,11,opt,name=create_as_select_sql,json=createAsSelectSql,proto3" json:"create_as_select_sql,omitempty"`
 	// create table may insert fk records related to this table
 	// into mo_foreign_keys
@@ -9428,7 +8948,7 @@ func (m *CreateTable) Reset()         { *m = CreateTable{} }
 func (m *CreateTable) String() string { return proto.CompactTextString(m) }
 func (*CreateTable) ProtoMessage()    {}
 func (*CreateTable) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{87}
+	return fileDescriptor_2d655ab2f7683c23, []int{82}
 }
 func (m *CreateTable) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -9520,13 +9040,6 @@ func (m *CreateTable) GetFkCols() []*FkColName {
 	return nil
 }
 
-func (m *CreateTable) GetPartitionTables() []*TableDef {
-	if m != nil {
-		return m.PartitionTables
-	}
-	return nil
-}
-
 func (m *CreateTable) GetCreateAsSelectSql() string {
 	if m != nil {
 		return m.CreateAsSelectSql
@@ -9568,7 +9081,7 @@ func (m *AlterTableDrop) Reset()         { *m = AlterTableDrop{} }
 func (m *AlterTableDrop) String() string { return proto.CompactTextString(m) }
 func (*AlterTableDrop) ProtoMessage()    {}
 func (*AlterTableDrop) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{88}
+	return fileDescriptor_2d655ab2f7683c23, []int{83}
 }
 func (m *AlterTableDrop) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -9633,7 +9146,7 @@ func (m *AlterTableAddFk) Reset()         { *m = AlterTableAddFk{} }
 func (m *AlterTableAddFk) String() string { return proto.CompactTextString(m) }
 func (*AlterTableAddFk) ProtoMessage()    {}
 func (*AlterTableAddFk) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{89}
+	return fileDescriptor_2d655ab2f7683c23, []int{84}
 }
 func (m *AlterTableAddFk) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -9705,7 +9218,7 @@ func (m *AlterTableAddIndex) Reset()         { *m = AlterTableAddIndex{} }
 func (m *AlterTableAddIndex) String() string { return proto.CompactTextString(m) }
 func (*AlterTableAddIndex) ProtoMessage()    {}
 func (*AlterTableAddIndex) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{90}
+	return fileDescriptor_2d655ab2f7683c23, []int{85}
 }
 func (m *AlterTableAddIndex) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -9783,7 +9296,7 @@ func (m *AlterTableDropIndex) Reset()         { *m = AlterTableDropIndex{} }
 func (m *AlterTableDropIndex) String() string { return proto.CompactTextString(m) }
 func (*AlterTableDropIndex) ProtoMessage()    {}
 func (*AlterTableDropIndex) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{91}
+	return fileDescriptor_2d655ab2f7683c23, []int{86}
 }
 func (m *AlterTableDropIndex) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -9854,7 +9367,7 @@ func (m *AlterTableAlterIndex) Reset()         { *m = AlterTableAlterIndex{} }
 func (m *AlterTableAlterIndex) String() string { return proto.CompactTextString(m) }
 func (*AlterTableAlterIndex) ProtoMessage()    {}
 func (*AlterTableAlterIndex) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{92}
+	return fileDescriptor_2d655ab2f7683c23, []int{87}
 }
 func (m *AlterTableAlterIndex) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -9925,7 +9438,7 @@ func (m *AlterTableAlterReIndex) Reset()         { *m = AlterTableAlterReIndex{}
 func (m *AlterTableAlterReIndex) String() string { return proto.CompactTextString(m) }
 func (*AlterTableAlterReIndex) ProtoMessage()    {}
 func (*AlterTableAlterReIndex) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{93}
+	return fileDescriptor_2d655ab2f7683c23, []int{88}
 }
 func (m *AlterTableAlterReIndex) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -9982,69 +9495,6 @@ func (m *AlterTableAlterReIndex) GetIndexAlgoParamList() int64 {
 	return 0
 }
 
-type AlterTableAddPartition struct {
-	Definitions          []*PartitionItem `protobuf:"bytes,1,rep,name=definitions,proto3" json:"definitions,omitempty"`
-	PartitionTables      []*TableDef      `protobuf:"bytes,2,rep,name=partition_tables,json=partitionTables,proto3" json:"partition_tables,omitempty"`
-	PartitionDef         *PartitionByDef  `protobuf:"bytes,3,opt,name=PartitionDef,proto3" json:"PartitionDef,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
-	XXX_unrecognized     []byte           `json:"-"`
-	XXX_sizecache        int32            `json:"-"`
-}
-
-func (m *AlterTableAddPartition) Reset()         { *m = AlterTableAddPartition{} }
-func (m *AlterTableAddPartition) String() string { return proto.CompactTextString(m) }
-func (*AlterTableAddPartition) ProtoMessage()    {}
-func (*AlterTableAddPartition) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{94}
-}
-func (m *AlterTableAddPartition) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *AlterTableAddPartition) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_AlterTableAddPartition.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *AlterTableAddPartition) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AlterTableAddPartition.Merge(m, src)
-}
-func (m *AlterTableAddPartition) XXX_Size() int {
-	return m.ProtoSize()
-}
-func (m *AlterTableAddPartition) XXX_DiscardUnknown() {
-	xxx_messageInfo_AlterTableAddPartition.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_AlterTableAddPartition proto.InternalMessageInfo
-
-func (m *AlterTableAddPartition) GetDefinitions() []*PartitionItem {
-	if m != nil {
-		return m.Definitions
-	}
-	return nil
-}
-
-func (m *AlterTableAddPartition) GetPartitionTables() []*TableDef {
-	if m != nil {
-		return m.PartitionTables
-	}
-	return nil
-}
-
-func (m *AlterTableAddPartition) GetPartitionDef() *PartitionByDef {
-	if m != nil {
-		return m.PartitionDef
-	}
-	return nil
-}
-
 type AlterTableComment struct {
 	NewComment           string   `protobuf:"bytes,1,opt,name=new_comment,json=newComment,proto3" json:"new_comment,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -10056,7 +9506,7 @@ func (m *AlterTableComment) Reset()         { *m = AlterTableComment{} }
 func (m *AlterTableComment) String() string { return proto.CompactTextString(m) }
 func (*AlterTableComment) ProtoMessage()    {}
 func (*AlterTableComment) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{95}
+	return fileDescriptor_2d655ab2f7683c23, []int{89}
 }
 func (m *AlterTableComment) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -10104,7 +9554,7 @@ func (m *AlterTableName) Reset()         { *m = AlterTableName{} }
 func (m *AlterTableName) String() string { return proto.CompactTextString(m) }
 func (*AlterTableName) ProtoMessage()    {}
 func (*AlterTableName) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{96}
+	return fileDescriptor_2d655ab2f7683c23, []int{90}
 }
 func (m *AlterTableName) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -10161,7 +9611,7 @@ func (m *AlterAddColumn) Reset()         { *m = AlterAddColumn{} }
 func (m *AlterAddColumn) String() string { return proto.CompactTextString(m) }
 func (*AlterAddColumn) ProtoMessage()    {}
 func (*AlterAddColumn) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{97}
+	return fileDescriptor_2d655ab2f7683c23, []int{91}
 }
 func (m *AlterAddColumn) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -10230,7 +9680,7 @@ func (m *AlterDropColumn) Reset()         { *m = AlterDropColumn{} }
 func (m *AlterDropColumn) String() string { return proto.CompactTextString(m) }
 func (*AlterDropColumn) ProtoMessage()    {}
 func (*AlterDropColumn) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{98}
+	return fileDescriptor_2d655ab2f7683c23, []int{92}
 }
 func (m *AlterDropColumn) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -10284,7 +9734,7 @@ func (m *RenameTable) Reset()         { *m = RenameTable{} }
 func (m *RenameTable) String() string { return proto.CompactTextString(m) }
 func (*RenameTable) ProtoMessage()    {}
 func (*RenameTable) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{99}
+	return fileDescriptor_2d655ab2f7683c23, []int{93}
 }
 func (m *RenameTable) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -10344,7 +9794,7 @@ func (m *AlterTable) Reset()         { *m = AlterTable{} }
 func (m *AlterTable) String() string { return proto.CompactTextString(m) }
 func (*AlterTable) ProtoMessage()    {}
 func (*AlterTable) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{100}
+	return fileDescriptor_2d655ab2f7683c23, []int{94}
 }
 func (m *AlterTable) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -10462,7 +9912,6 @@ type AlterTable_Action struct {
 	//	*AlterTable_Action_AddColumn
 	//	*AlterTable_Action_DropColumn
 	//	*AlterTable_Action_AlterReindex
-	//	*AlterTable_Action_AddPartition
 	Action               isAlterTable_Action_Action `protobuf_oneof:"action"`
 	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
 	XXX_unrecognized     []byte                     `json:"-"`
@@ -10473,7 +9922,7 @@ func (m *AlterTable_Action) Reset()         { *m = AlterTable_Action{} }
 func (m *AlterTable_Action) String() string { return proto.CompactTextString(m) }
 func (*AlterTable_Action) ProtoMessage()    {}
 func (*AlterTable_Action) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{100, 0}
+	return fileDescriptor_2d655ab2f7683c23, []int{94, 0}
 }
 func (m *AlterTable_Action) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -10535,9 +9984,6 @@ type AlterTable_Action_DropColumn struct {
 type AlterTable_Action_AlterReindex struct {
 	AlterReindex *AlterTableAlterReIndex `protobuf:"bytes,9,opt,name=alter_reindex,json=alterReindex,proto3,oneof" json:"alter_reindex,omitempty"`
 }
-type AlterTable_Action_AddPartition struct {
-	AddPartition *AlterTableAddPartition `protobuf:"bytes,10,opt,name=addPartition,proto3,oneof" json:"addPartition,omitempty"`
-}
 
 func (*AlterTable_Action_Drop) isAlterTable_Action_Action()         {}
 func (*AlterTable_Action_AddFk) isAlterTable_Action_Action()        {}
@@ -10548,7 +9994,6 @@ func (*AlterTable_Action_AlterName) isAlterTable_Action_Action()    {}
 func (*AlterTable_Action_AddColumn) isAlterTable_Action_Action()    {}
 func (*AlterTable_Action_DropColumn) isAlterTable_Action_Action()   {}
 func (*AlterTable_Action_AlterReindex) isAlterTable_Action_Action() {}
-func (*AlterTable_Action_AddPartition) isAlterTable_Action_Action() {}
 
 func (m *AlterTable_Action) GetAction() isAlterTable_Action_Action {
 	if m != nil {
@@ -10620,13 +10065,6 @@ func (m *AlterTable_Action) GetAlterReindex() *AlterTableAlterReIndex {
 	return nil
 }
 
-func (m *AlterTable_Action) GetAddPartition() *AlterTableAddPartition {
-	if x, ok := m.GetAction().(*AlterTable_Action_AddPartition); ok {
-		return x.AddPartition
-	}
-	return nil
-}
-
 // XXX_OneofWrappers is for the internal use of the proto package.
 func (*AlterTable_Action) XXX_OneofWrappers() []interface{} {
 	return []interface{}{
@@ -10639,21 +10077,19 @@ func (*AlterTable_Action) XXX_OneofWrappers() []interface{} {
 		(*AlterTable_Action_AddColumn)(nil),
 		(*AlterTable_Action_DropColumn)(nil),
 		(*AlterTable_Action_AlterReindex)(nil),
-		(*AlterTable_Action_AddPartition)(nil),
 	}
 }
 
 type DropTable struct {
-	IfExists            bool          `protobuf:"varint,1,opt,name=if_exists,json=ifExists,proto3" json:"if_exists,omitempty"`
-	Database            string        `protobuf:"bytes,2,opt,name=database,proto3" json:"database,omitempty"`
-	Table               string        `protobuf:"bytes,3,opt,name=table,proto3" json:"table,omitempty"`
-	IndexTableNames     []string      `protobuf:"bytes,4,rep,name=index_table_names,json=indexTableNames,proto3" json:"index_table_names,omitempty"`
-	ClusterTable        *ClusterTable `protobuf:"bytes,5,opt,name=cluster_table,json=clusterTable,proto3" json:"cluster_table,omitempty"`
-	TableId             uint64        `protobuf:"varint,6,opt,name=table_id,json=tableId,proto3" json:"table_id,omitempty"`
-	ForeignTbl          []uint64      `protobuf:"varint,7,rep,packed,name=foreign_tbl,json=foreignTbl,proto3" json:"foreign_tbl,omitempty"`
-	PartitionTableNames []string      `protobuf:"bytes,8,rep,name=partition_table_names,json=partitionTableNames,proto3" json:"partition_table_names,omitempty"`
-	IsView              bool          `protobuf:"varint,9,opt,name=isView,proto3" json:"isView,omitempty"`
-	TableDef            *TableDef     `protobuf:"bytes,10,opt,name=table_def,json=tableDef,proto3" json:"table_def,omitempty"`
+	IfExists        bool          `protobuf:"varint,1,opt,name=if_exists,json=ifExists,proto3" json:"if_exists,omitempty"`
+	Database        string        `protobuf:"bytes,2,opt,name=database,proto3" json:"database,omitempty"`
+	Table           string        `protobuf:"bytes,3,opt,name=table,proto3" json:"table,omitempty"`
+	IndexTableNames []string      `protobuf:"bytes,4,rep,name=index_table_names,json=indexTableNames,proto3" json:"index_table_names,omitempty"`
+	ClusterTable    *ClusterTable `protobuf:"bytes,5,opt,name=cluster_table,json=clusterTable,proto3" json:"cluster_table,omitempty"`
+	TableId         uint64        `protobuf:"varint,6,opt,name=table_id,json=tableId,proto3" json:"table_id,omitempty"`
+	ForeignTbl      []uint64      `protobuf:"varint,7,rep,packed,name=foreign_tbl,json=foreignTbl,proto3" json:"foreign_tbl,omitempty"`
+	IsView          bool          `protobuf:"varint,9,opt,name=isView,proto3" json:"isView,omitempty"`
+	TableDef        *TableDef     `protobuf:"bytes,10,opt,name=table_def,json=tableDef,proto3" json:"table_def,omitempty"`
 	// drop table may delete fk records related to this table
 	// into mo_foreign_keys
 	UpdateFkSqls []string `protobuf:"bytes,11,rep,name=updateFkSqls,proto3" json:"updateFkSqls,omitempty"`
@@ -10668,7 +10104,7 @@ func (m *DropTable) Reset()         { *m = DropTable{} }
 func (m *DropTable) String() string { return proto.CompactTextString(m) }
 func (*DropTable) ProtoMessage()    {}
 func (*DropTable) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{101}
+	return fileDescriptor_2d655ab2f7683c23, []int{95}
 }
 func (m *DropTable) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -10746,13 +10182,6 @@ func (m *DropTable) GetForeignTbl() []uint64 {
 	return nil
 }
 
-func (m *DropTable) GetPartitionTableNames() []string {
-	if m != nil {
-		return m.PartitionTableNames
-	}
-	return nil
-}
-
 func (m *DropTable) GetIsView() bool {
 	if m != nil {
 		return m.IsView
@@ -10795,7 +10224,7 @@ func (m *CreateView) Reset()         { *m = CreateView{} }
 func (m *CreateView) String() string { return proto.CompactTextString(m) }
 func (*CreateView) ProtoMessage()    {}
 func (*CreateView) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{102}
+	return fileDescriptor_2d655ab2f7683c23, []int{96}
 }
 func (m *CreateView) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -10865,7 +10294,7 @@ func (m *AlterView) Reset()         { *m = AlterView{} }
 func (m *AlterView) String() string { return proto.CompactTextString(m) }
 func (*AlterView) ProtoMessage()    {}
 func (*AlterView) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{103}
+	return fileDescriptor_2d655ab2f7683c23, []int{97}
 }
 func (m *AlterView) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -10928,7 +10357,7 @@ func (m *CreateSequence) Reset()         { *m = CreateSequence{} }
 func (m *CreateSequence) String() string { return proto.CompactTextString(m) }
 func (*CreateSequence) ProtoMessage()    {}
 func (*CreateSequence) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{104}
+	return fileDescriptor_2d655ab2f7683c23, []int{98}
 }
 func (m *CreateSequence) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -10992,7 +10421,7 @@ func (m *DropSequence) Reset()         { *m = DropSequence{} }
 func (m *DropSequence) String() string { return proto.CompactTextString(m) }
 func (*DropSequence) ProtoMessage()    {}
 func (*DropSequence) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{105}
+	return fileDescriptor_2d655ab2f7683c23, []int{99}
 }
 func (m *DropSequence) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -11062,7 +10491,7 @@ func (m *AlterSequence) Reset()         { *m = AlterSequence{} }
 func (m *AlterSequence) String() string { return proto.CompactTextString(m) }
 func (*AlterSequence) ProtoMessage()    {}
 func (*AlterSequence) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{106}
+	return fileDescriptor_2d655ab2f7683c23, []int{100}
 }
 func (m *AlterSequence) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -11128,7 +10557,7 @@ func (m *CreateIndex) Reset()         { *m = CreateIndex{} }
 func (m *CreateIndex) String() string { return proto.CompactTextString(m) }
 func (*CreateIndex) ProtoMessage()    {}
 func (*CreateIndex) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{107}
+	return fileDescriptor_2d655ab2f7683c23, []int{101}
 }
 func (m *CreateIndex) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -11210,7 +10639,7 @@ func (m *AlterIndex) Reset()         { *m = AlterIndex{} }
 func (m *AlterIndex) String() string { return proto.CompactTextString(m) }
 func (*AlterIndex) ProtoMessage()    {}
 func (*AlterIndex) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{108}
+	return fileDescriptor_2d655ab2f7683c23, []int{102}
 }
 func (m *AlterIndex) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -11260,7 +10689,7 @@ func (m *DropIndex) Reset()         { *m = DropIndex{} }
 func (m *DropIndex) String() string { return proto.CompactTextString(m) }
 func (*DropIndex) ProtoMessage()    {}
 func (*DropIndex) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{109}
+	return fileDescriptor_2d655ab2f7683c23, []int{103}
 }
 func (m *DropIndex) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -11321,7 +10750,6 @@ type TruncateTable struct {
 	Database             string        `protobuf:"bytes,1,opt,name=database,proto3" json:"database,omitempty"`
 	Table                string        `protobuf:"bytes,2,opt,name=table,proto3" json:"table,omitempty"`
 	IndexTableNames      []string      `protobuf:"bytes,3,rep,name=index_table_names,json=indexTableNames,proto3" json:"index_table_names,omitempty"`
-	PartitionTableNames  []string      `protobuf:"bytes,4,rep,name=partition_table_names,json=partitionTableNames,proto3" json:"partition_table_names,omitempty"`
 	ClusterTable         *ClusterTable `protobuf:"bytes,5,opt,name=cluster_table,json=clusterTable,proto3" json:"cluster_table,omitempty"`
 	TableId              uint64        `protobuf:"varint,6,opt,name=table_id,json=tableId,proto3" json:"table_id,omitempty"`
 	ForeignTbl           []uint64      `protobuf:"varint,7,rep,packed,name=foreign_tbl,json=foreignTbl,proto3" json:"foreign_tbl,omitempty"`
@@ -11335,7 +10763,7 @@ func (m *TruncateTable) Reset()         { *m = TruncateTable{} }
 func (m *TruncateTable) String() string { return proto.CompactTextString(m) }
 func (*TruncateTable) ProtoMessage()    {}
 func (*TruncateTable) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{110}
+	return fileDescriptor_2d655ab2f7683c23, []int{104}
 }
 func (m *TruncateTable) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -11385,13 +10813,6 @@ func (m *TruncateTable) GetIndexTableNames() []string {
 	return nil
 }
 
-func (m *TruncateTable) GetPartitionTableNames() []string {
-	if m != nil {
-		return m.PartitionTableNames
-	}
-	return nil
-}
-
 func (m *TruncateTable) GetClusterTable() *ClusterTable {
 	if m != nil {
 		return m.ClusterTable
@@ -11433,7 +10854,7 @@ func (m *ClusterTable) Reset()         { *m = ClusterTable{} }
 func (m *ClusterTable) String() string { return proto.CompactTextString(m) }
 func (*ClusterTable) ProtoMessage()    {}
 func (*ClusterTable) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{111}
+	return fileDescriptor_2d655ab2f7683c23, []int{105}
 }
 func (m *ClusterTable) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -11495,7 +10916,7 @@ func (m *ShowVariables) Reset()         { *m = ShowVariables{} }
 func (m *ShowVariables) String() string { return proto.CompactTextString(m) }
 func (*ShowVariables) ProtoMessage()    {}
 func (*ShowVariables) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{112}
+	return fileDescriptor_2d655ab2f7683c23, []int{106}
 }
 func (m *ShowVariables) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -11549,7 +10970,7 @@ func (m *SetVariables) Reset()         { *m = SetVariables{} }
 func (m *SetVariables) String() string { return proto.CompactTextString(m) }
 func (*SetVariables) ProtoMessage()    {}
 func (*SetVariables) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{113}
+	return fileDescriptor_2d655ab2f7683c23, []int{107}
 }
 func (m *SetVariables) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -11600,7 +11021,7 @@ func (m *SetVariablesItem) Reset()         { *m = SetVariablesItem{} }
 func (m *SetVariablesItem) String() string { return proto.CompactTextString(m) }
 func (*SetVariablesItem) ProtoMessage()    {}
 func (*SetVariablesItem) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{114}
+	return fileDescriptor_2d655ab2f7683c23, []int{108}
 }
 func (m *SetVariablesItem) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -11678,7 +11099,7 @@ func (m *Prepare) Reset()         { *m = Prepare{} }
 func (m *Prepare) String() string { return proto.CompactTextString(m) }
 func (*Prepare) ProtoMessage()    {}
 func (*Prepare) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{115}
+	return fileDescriptor_2d655ab2f7683c23, []int{109}
 }
 func (m *Prepare) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -11747,7 +11168,7 @@ func (m *Execute) Reset()         { *m = Execute{} }
 func (m *Execute) String() string { return proto.CompactTextString(m) }
 func (*Execute) ProtoMessage()    {}
 func (*Execute) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{116}
+	return fileDescriptor_2d655ab2f7683c23, []int{110}
 }
 func (m *Execute) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -11801,7 +11222,7 @@ func (m *Deallocate) Reset()         { *m = Deallocate{} }
 func (m *Deallocate) String() string { return proto.CompactTextString(m) }
 func (*Deallocate) ProtoMessage()    {}
 func (*Deallocate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{117}
+	return fileDescriptor_2d655ab2f7683c23, []int{111}
 }
 func (m *Deallocate) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -11848,7 +11269,7 @@ func (m *OtherDCL) Reset()         { *m = OtherDCL{} }
 func (m *OtherDCL) String() string { return proto.CompactTextString(m) }
 func (*OtherDCL) ProtoMessage()    {}
 func (*OtherDCL) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{118}
+	return fileDescriptor_2d655ab2f7683c23, []int{112}
 }
 func (m *OtherDCL) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -11896,7 +11317,7 @@ func (m *TableLockInfo) Reset()         { *m = TableLockInfo{} }
 func (m *TableLockInfo) String() string { return proto.CompactTextString(m) }
 func (*TableLockInfo) ProtoMessage()    {}
 func (*TableLockInfo) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{119}
+	return fileDescriptor_2d655ab2f7683c23, []int{113}
 }
 func (m *TableLockInfo) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -11950,7 +11371,7 @@ func (m *LockTables) Reset()         { *m = LockTables{} }
 func (m *LockTables) String() string { return proto.CompactTextString(m) }
 func (*LockTables) ProtoMessage()    {}
 func (*LockTables) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{120}
+	return fileDescriptor_2d655ab2f7683c23, []int{114}
 }
 func (m *LockTables) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -11996,7 +11417,7 @@ func (m *UnLockTables) Reset()         { *m = UnLockTables{} }
 func (m *UnLockTables) String() string { return proto.CompactTextString(m) }
 func (*UnLockTables) ProtoMessage()    {}
 func (*UnLockTables) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{121}
+	return fileDescriptor_2d655ab2f7683c23, []int{115}
 }
 func (m *UnLockTables) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -12036,7 +11457,7 @@ func (m *MetadataScanInfos) Reset()         { *m = MetadataScanInfos{} }
 func (m *MetadataScanInfos) String() string { return proto.CompactTextString(m) }
 func (*MetadataScanInfos) ProtoMessage()    {}
 func (*MetadataScanInfos) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{122}
+	return fileDescriptor_2d655ab2f7683c23, []int{116}
 }
 func (m *MetadataScanInfos) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -12093,7 +11514,7 @@ func (m *MetadataScanInfo) Reset()         { *m = MetadataScanInfo{} }
 func (m *MetadataScanInfo) String() string { return proto.CompactTextString(m) }
 func (*MetadataScanInfo) ProtoMessage()    {}
 func (*MetadataScanInfo) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2d655ab2f7683c23, []int{123}
+	return fileDescriptor_2d655ab2f7683c23, []int{117}
 }
 func (m *MetadataScanInfo) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -12201,7 +11622,6 @@ func (m *MetadataScanInfo) GetZoneMap() []byte {
 
 func init() {
 	proto.RegisterEnum("plan.CompressType", CompressType_name, CompressType_value)
-	proto.RegisterEnum("plan.PartitionType", PartitionType_name, PartitionType_value)
 	proto.RegisterEnum("plan.ShuffleType", ShuffleType_name, ShuffleType_value)
 	proto.RegisterEnum("plan.ShuffleMethod", ShuffleMethod_name, ShuffleMethod_value)
 	proto.RegisterEnum("plan.ShuffleTypeForMultiCN", ShuffleTypeForMultiCN_name, ShuffleTypeForMultiCN_value)
@@ -12262,10 +11682,6 @@ func init() {
 	proto.RegisterType((*PropertyDef)(nil), "plan.PropertyDef")
 	proto.RegisterType((*Property)(nil), "plan.Property")
 	proto.RegisterType((*PropertiesDef)(nil), "plan.PropertiesDef")
-	proto.RegisterType((*PartitionByDef)(nil), "plan.PartitionByDef")
-	proto.RegisterType((*PartitionExpr)(nil), "plan.PartitionExpr")
-	proto.RegisterType((*PartitionColumns)(nil), "plan.PartitionColumns")
-	proto.RegisterType((*PartitionItem)(nil), "plan.PartitionItem")
 	proto.RegisterType((*ViewDef)(nil), "plan.ViewDef")
 	proto.RegisterType((*TableDef)(nil), "plan.TableDef")
 	proto.RegisterMapType((map[string]int32)(nil), "plan.TableDef.Name2colIndexEntry")
@@ -12287,7 +11703,6 @@ func init() {
 	proto.RegisterType((*InsertCtx)(nil), "plan.InsertCtx")
 	proto.RegisterType((*ReplaceCtx)(nil), "plan.ReplaceCtx")
 	proto.RegisterType((*AnalyzeInfo)(nil), "plan.AnalyzeInfo")
-	proto.RegisterType((*PartitionPrune)(nil), "plan.PartitionPrune")
 	proto.RegisterType((*OriginTableMessageForFuzzy)(nil), "plan.OriginTableMessageForFuzzy")
 	proto.RegisterType((*Node)(nil), "plan.Node")
 	proto.RegisterType((*Snapshot)(nil), "plan.Snapshot")
@@ -12327,7 +11742,6 @@ func init() {
 	proto.RegisterType((*AlterTableDropIndex)(nil), "plan.AlterTableDropIndex")
 	proto.RegisterType((*AlterTableAlterIndex)(nil), "plan.AlterTableAlterIndex")
 	proto.RegisterType((*AlterTableAlterReIndex)(nil), "plan.AlterTableAlterReIndex")
-	proto.RegisterType((*AlterTableAddPartition)(nil), "plan.AlterTableAddPartition")
 	proto.RegisterType((*AlterTableComment)(nil), "plan.AlterTableComment")
 	proto.RegisterType((*AlterTableName)(nil), "plan.AlterTableName")
 	proto.RegisterType((*AlterAddColumn)(nil), "plan.AlterAddColumn")
@@ -15652,308 +15066,6 @@ func (m *PropertiesDef) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *PartitionByDef) Marshal() (dAtA []byte, err error) {
-	size := m.ProtoSize()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *PartitionByDef) MarshalTo(dAtA []byte) (int, error) {
-	size := m.ProtoSize()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *PartitionByDef) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	if len(m.PartitionTableNames) > 0 {
-		for iNdEx := len(m.PartitionTableNames) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.PartitionTableNames[iNdEx])
-			copy(dAtA[i:], m.PartitionTableNames[iNdEx])
-			i = encodeVarintPlan(dAtA, i, uint64(len(m.PartitionTableNames[iNdEx])))
-			i--
-			dAtA[i] = 0x52
-		}
-	}
-	if len(m.PartitionMsg) > 0 {
-		i -= len(m.PartitionMsg)
-		copy(dAtA[i:], m.PartitionMsg)
-		i = encodeVarintPlan(dAtA, i, uint64(len(m.PartitionMsg)))
-		i--
-		dAtA[i] = 0x4a
-	}
-	if m.IsSubPartition {
-		i--
-		if m.IsSubPartition {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i--
-		dAtA[i] = 0x40
-	}
-	if m.Algorithm != 0 {
-		i = encodeVarintPlan(dAtA, i, uint64(m.Algorithm))
-		i--
-		dAtA[i] = 0x38
-	}
-	if len(m.Partitions) > 0 {
-		for iNdEx := len(m.Partitions) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Partitions[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintPlan(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x32
-		}
-	}
-	if m.PartitionNum != 0 {
-		i = encodeVarintPlan(dAtA, i, uint64(m.PartitionNum))
-		i--
-		dAtA[i] = 0x28
-	}
-	if m.PartitionColumns != nil {
-		{
-			size, err := m.PartitionColumns.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintPlan(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x22
-	}
-	if m.PartitionExpression != nil {
-		{
-			size, err := m.PartitionExpression.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintPlan(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x1a
-	}
-	if m.PartitionExpr != nil {
-		{
-			size, err := m.PartitionExpr.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintPlan(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x12
-	}
-	if m.Type != 0 {
-		i = encodeVarintPlan(dAtA, i, uint64(m.Type))
-		i--
-		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *PartitionExpr) Marshal() (dAtA []byte, err error) {
-	size := m.ProtoSize()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *PartitionExpr) MarshalTo(dAtA []byte) (int, error) {
-	size := m.ProtoSize()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *PartitionExpr) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	if len(m.ExprStr) > 0 {
-		i -= len(m.ExprStr)
-		copy(dAtA[i:], m.ExprStr)
-		i = encodeVarintPlan(dAtA, i, uint64(len(m.ExprStr)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if m.Expr != nil {
-		{
-			size, err := m.Expr.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintPlan(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *PartitionColumns) Marshal() (dAtA []byte, err error) {
-	size := m.ProtoSize()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *PartitionColumns) MarshalTo(dAtA []byte) (int, error) {
-	size := m.ProtoSize()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *PartitionColumns) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	if len(m.PartitionColumns) > 0 {
-		for iNdEx := len(m.PartitionColumns) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.PartitionColumns[iNdEx])
-			copy(dAtA[i:], m.PartitionColumns[iNdEx])
-			i = encodeVarintPlan(dAtA, i, uint64(len(m.PartitionColumns[iNdEx])))
-			i--
-			dAtA[i] = 0x12
-		}
-	}
-	if len(m.Columns) > 0 {
-		for iNdEx := len(m.Columns) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Columns[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintPlan(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0xa
-		}
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *PartitionItem) Marshal() (dAtA []byte, err error) {
-	size := m.ProtoSize()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *PartitionItem) MarshalTo(dAtA []byte) (int, error) {
-	size := m.ProtoSize()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *PartitionItem) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	if len(m.PartitionTableName) > 0 {
-		i -= len(m.PartitionTableName)
-		copy(dAtA[i:], m.PartitionTableName)
-		i = encodeVarintPlan(dAtA, i, uint64(len(m.PartitionTableName)))
-		i--
-		dAtA[i] = 0x3a
-	}
-	if len(m.InValues) > 0 {
-		for iNdEx := len(m.InValues) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.InValues[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintPlan(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x32
-		}
-	}
-	if len(m.LessThan) > 0 {
-		for iNdEx := len(m.LessThan) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.LessThan[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintPlan(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x2a
-		}
-	}
-	if len(m.Comment) > 0 {
-		i -= len(m.Comment)
-		copy(dAtA[i:], m.Comment)
-		i = encodeVarintPlan(dAtA, i, uint64(len(m.Comment)))
-		i--
-		dAtA[i] = 0x22
-	}
-	if len(m.Description) > 0 {
-		i -= len(m.Description)
-		copy(dAtA[i:], m.Description)
-		i = encodeVarintPlan(dAtA, i, uint64(len(m.Description)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if m.OrdinalPosition != 0 {
-		i = encodeVarintPlan(dAtA, i, uint64(m.OrdinalPosition))
-		i--
-		dAtA[i] = 0x10
-	}
-	if len(m.PartitionName) > 0 {
-		i -= len(m.PartitionName)
-		copy(dAtA[i:], m.PartitionName)
-		i = encodeVarintPlan(dAtA, i, uint64(len(m.PartitionName)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
 func (m *ViewDef) Marshal() (dAtA []byte, err error) {
 	size := m.ProtoSize()
 	dAtA = make([]byte, size)
@@ -16157,20 +15269,6 @@ func (m *TableDef) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0xb2
 	}
-	if m.Partition != nil {
-		{
-			size, err := m.Partition.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintPlan(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x1
-		i--
-		dAtA[i] = 0xaa
-	}
 	if len(m.Checks) > 0 {
 		for iNdEx := len(m.Checks) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -16186,20 +15284,20 @@ func (m *TableDef) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		}
 	}
 	if len(m.RefChildTbls) > 0 {
-		dAtA46 := make([]byte, len(m.RefChildTbls)*10)
-		var j45 int
+		dAtA41 := make([]byte, len(m.RefChildTbls)*10)
+		var j40 int
 		for _, num := range m.RefChildTbls {
 			for num >= 1<<7 {
-				dAtA46[j45] = uint8(uint64(num)&0x7f | 0x80)
+				dAtA41[j40] = uint8(uint64(num)&0x7f | 0x80)
 				num >>= 7
-				j45++
+				j40++
 			}
-			dAtA46[j45] = uint8(num)
-			j45++
+			dAtA41[j40] = uint8(num)
+			j40++
 		}
-		i -= j45
-		copy(dAtA[i:], dAtA46[:j45])
-		i = encodeVarintPlan(dAtA, i, uint64(j45))
+		i -= j40
+		copy(dAtA[i:], dAtA41[:j40])
+		i = encodeVarintPlan(dAtA, i, uint64(j40))
 		i--
 		dAtA[i] = 0x72
 	}
@@ -16437,9 +15535,9 @@ func (m *HashMapStats) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	}
 	if len(m.Ranges) > 0 {
 		for iNdEx := len(m.Ranges) - 1; iNdEx >= 0; iNdEx-- {
-			f50 := math.Float64bits(float64(m.Ranges[iNdEx]))
+			f45 := math.Float64bits(float64(m.Ranges[iNdEx]))
 			i -= 8
-			encoding_binary.LittleEndian.PutUint64(dAtA[i:], uint64(f50))
+			encoding_binary.LittleEndian.PutUint64(dAtA[i:], uint64(f45))
 		}
 		i = encodeVarintPlan(dAtA, i, uint64(len(m.Ranges)*8))
 		i--
@@ -16832,20 +15930,6 @@ func (m *WindowSpec) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			dAtA[i] = 0x1a
 		}
 	}
-	if len(m.PartitionBy) > 0 {
-		for iNdEx := len(m.PartitionBy) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.PartitionBy[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintPlan(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x12
-		}
-	}
 	if m.WindowFunc != nil {
 		{
 			size, err := m.WindowFunc.MarshalToSizedBuffer(dAtA[:i])
@@ -17097,21 +16181,21 @@ func (m *OnDuplicateKeyCtx) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		}
 	}
 	if len(m.OnDuplicateIdx) > 0 {
-		dAtA61 := make([]byte, len(m.OnDuplicateIdx)*10)
-		var j60 int
+		dAtA56 := make([]byte, len(m.OnDuplicateIdx)*10)
+		var j55 int
 		for _, num1 := range m.OnDuplicateIdx {
 			num := uint64(num1)
 			for num >= 1<<7 {
-				dAtA61[j60] = uint8(uint64(num)&0x7f | 0x80)
+				dAtA56[j55] = uint8(uint64(num)&0x7f | 0x80)
 				num >>= 7
-				j60++
+				j55++
 			}
-			dAtA61[j60] = uint8(num)
-			j60++
+			dAtA56[j55] = uint8(num)
+			j55++
 		}
-		i -= j60
-		copy(dAtA[i:], dAtA61[:j60])
-		i = encodeVarintPlan(dAtA, i, uint64(j60))
+		i -= j55
+		copy(dAtA[i:], dAtA56[:j55])
+		i = encodeVarintPlan(dAtA, i, uint64(j55))
 		i--
 		dAtA[i] = 0x2a
 	}
@@ -17295,38 +16379,6 @@ func (m *InsertCtx) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if m.PartitionIdx != 0 {
-		i = encodeVarintPlan(dAtA, i, uint64(m.PartitionIdx))
-		i--
-		dAtA[i] = 0x38
-	}
-	if len(m.PartitionTableNames) > 0 {
-		for iNdEx := len(m.PartitionTableNames) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.PartitionTableNames[iNdEx])
-			copy(dAtA[i:], m.PartitionTableNames[iNdEx])
-			i = encodeVarintPlan(dAtA, i, uint64(len(m.PartitionTableNames[iNdEx])))
-			i--
-			dAtA[i] = 0x32
-		}
-	}
-	if len(m.PartitionTableIds) > 0 {
-		dAtA67 := make([]byte, len(m.PartitionTableIds)*10)
-		var j66 int
-		for _, num := range m.PartitionTableIds {
-			for num >= 1<<7 {
-				dAtA67[j66] = uint8(uint64(num)&0x7f | 0x80)
-				num >>= 7
-				j66++
-			}
-			dAtA67[j66] = uint8(num)
-			j66++
-		}
-		i -= j66
-		copy(dAtA[i:], dAtA67[:j66])
-		i = encodeVarintPlan(dAtA, i, uint64(j66))
-		i--
-		dAtA[i] = 0x2a
-	}
 	if m.TableDef != nil {
 		{
 			size, err := m.TableDef.MarshalToSizedBuffer(dAtA[:i])
@@ -17407,38 +16459,6 @@ func (m *ReplaceCtx) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		}
 		i--
 		dAtA[i] = 0x48
-	}
-	if m.PartitionIdx != 0 {
-		i = encodeVarintPlan(dAtA, i, uint64(m.PartitionIdx))
-		i--
-		dAtA[i] = 0x40
-	}
-	if len(m.PartitionTableNames) > 0 {
-		for iNdEx := len(m.PartitionTableNames) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.PartitionTableNames[iNdEx])
-			copy(dAtA[i:], m.PartitionTableNames[iNdEx])
-			i = encodeVarintPlan(dAtA, i, uint64(len(m.PartitionTableNames[iNdEx])))
-			i--
-			dAtA[i] = 0x3a
-		}
-	}
-	if len(m.PartitionTableIds) > 0 {
-		dAtA71 := make([]byte, len(m.PartitionTableIds)*10)
-		var j70 int
-		for _, num := range m.PartitionTableIds {
-			for num >= 1<<7 {
-				dAtA71[j70] = uint8(uint64(num)&0x7f | 0x80)
-				num >>= 7
-				j70++
-			}
-			dAtA71[j70] = uint8(num)
-			j70++
-		}
-		i -= j70
-		copy(dAtA[i:], dAtA71[:j70])
-		i = encodeVarintPlan(dAtA, i, uint64(j70))
-		i--
-		dAtA[i] = 0x32
 	}
 	if len(m.DeleteCond) > 0 {
 		i -= len(m.DeleteCond)
@@ -17582,40 +16602,40 @@ func (m *AnalyzeInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		dAtA[i] = 0x80
 	}
 	if len(m.TimeConsumedArrayMinor) > 0 {
-		dAtA75 := make([]byte, len(m.TimeConsumedArrayMinor)*10)
-		var j74 int
+		dAtA64 := make([]byte, len(m.TimeConsumedArrayMinor)*10)
+		var j63 int
 		for _, num1 := range m.TimeConsumedArrayMinor {
 			num := uint64(num1)
 			for num >= 1<<7 {
-				dAtA75[j74] = uint8(uint64(num)&0x7f | 0x80)
+				dAtA64[j63] = uint8(uint64(num)&0x7f | 0x80)
 				num >>= 7
-				j74++
+				j63++
 			}
-			dAtA75[j74] = uint8(num)
-			j74++
+			dAtA64[j63] = uint8(num)
+			j63++
 		}
-		i -= j74
-		copy(dAtA[i:], dAtA75[:j74])
-		i = encodeVarintPlan(dAtA, i, uint64(j74))
+		i -= j63
+		copy(dAtA[i:], dAtA64[:j63])
+		i = encodeVarintPlan(dAtA, i, uint64(j63))
 		i--
 		dAtA[i] = 0x7a
 	}
 	if len(m.TimeConsumedArrayMajor) > 0 {
-		dAtA77 := make([]byte, len(m.TimeConsumedArrayMajor)*10)
-		var j76 int
+		dAtA66 := make([]byte, len(m.TimeConsumedArrayMajor)*10)
+		var j65 int
 		for _, num1 := range m.TimeConsumedArrayMajor {
 			num := uint64(num1)
 			for num >= 1<<7 {
-				dAtA77[j76] = uint8(uint64(num)&0x7f | 0x80)
+				dAtA66[j65] = uint8(uint64(num)&0x7f | 0x80)
 				num >>= 7
-				j76++
+				j65++
 			}
-			dAtA77[j76] = uint8(num)
-			j76++
+			dAtA66[j65] = uint8(num)
+			j65++
 		}
-		i -= j76
-		copy(dAtA[i:], dAtA77[:j76])
-		i = encodeVarintPlan(dAtA, i, uint64(j76))
+		i -= j65
+		copy(dAtA[i:], dAtA66[:j65])
+		i = encodeVarintPlan(dAtA, i, uint64(j65))
 		i--
 		dAtA[i] = 0x72
 	}
@@ -17681,57 +16701,6 @@ func (m *AnalyzeInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	}
 	if m.InputRows != 0 {
 		i = encodeVarintPlan(dAtA, i, uint64(m.InputRows))
-		i--
-		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *PartitionPrune) Marshal() (dAtA []byte, err error) {
-	size := m.ProtoSize()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *PartitionPrune) MarshalTo(dAtA []byte) (int, error) {
-	size := m.ProtoSize()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *PartitionPrune) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	if len(m.SelectedPartitions) > 0 {
-		for iNdEx := len(m.SelectedPartitions) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.SelectedPartitions[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintPlan(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x12
-		}
-	}
-	if m.IsPruned {
-		i--
-		if m.IsPruned {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
 		i--
 		dAtA[i] = 0x8
 	}
@@ -18093,20 +17062,6 @@ func (m *Node) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0xf2
 	}
-	if m.PartitionPrune != nil {
-		{
-			size, err := m.PartitionPrune.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintPlan(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x2
-		i--
-		dAtA[i] = 0xea
-	}
 	if m.ExternScan != nil {
 		{
 			size, err := m.ExternScan.MarshalToSizedBuffer(dAtA[:i])
@@ -18275,21 +17230,21 @@ func (m *Node) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		dAtA[i] = 0x8a
 	}
 	if len(m.SourceStep) > 0 {
-		dAtA94 := make([]byte, len(m.SourceStep)*10)
-		var j93 int
+		dAtA82 := make([]byte, len(m.SourceStep)*10)
+		var j81 int
 		for _, num1 := range m.SourceStep {
 			num := uint64(num1)
 			for num >= 1<<7 {
-				dAtA94[j93] = uint8(uint64(num)&0x7f | 0x80)
+				dAtA82[j81] = uint8(uint64(num)&0x7f | 0x80)
 				num >>= 7
-				j93++
+				j81++
 			}
-			dAtA94[j93] = uint8(num)
-			j93++
+			dAtA82[j81] = uint8(num)
+			j81++
 		}
-		i -= j93
-		copy(dAtA[i:], dAtA94[:j93])
-		i = encodeVarintPlan(dAtA, i, uint64(j93))
+		i -= j81
+		copy(dAtA[i:], dAtA82[:j81])
+		i = encodeVarintPlan(dAtA, i, uint64(j81))
 		i--
 		dAtA[i] = 0x2
 		i--
@@ -18380,21 +17335,21 @@ func (m *Node) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		dAtA[i] = 0xca
 	}
 	if len(m.BindingTags) > 0 {
-		dAtA100 := make([]byte, len(m.BindingTags)*10)
-		var j99 int
+		dAtA88 := make([]byte, len(m.BindingTags)*10)
+		var j87 int
 		for _, num1 := range m.BindingTags {
 			num := uint64(num1)
 			for num >= 1<<7 {
-				dAtA100[j99] = uint8(uint64(num)&0x7f | 0x80)
+				dAtA88[j87] = uint8(uint64(num)&0x7f | 0x80)
 				num >>= 7
-				j99++
+				j87++
 			}
-			dAtA100[j99] = uint8(num)
-			j99++
+			dAtA88[j87] = uint8(num)
+			j87++
 		}
-		i -= j99
-		copy(dAtA[i:], dAtA100[:j99])
-		i = encodeVarintPlan(dAtA, i, uint64(j99))
+		i -= j87
+		copy(dAtA[i:], dAtA88[:j87])
+		i = encodeVarintPlan(dAtA, i, uint64(j87))
 		i--
 		dAtA[i] = 0x1
 		i--
@@ -18648,21 +17603,21 @@ func (m *Node) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		}
 	}
 	if len(m.Children) > 0 {
-		dAtA109 := make([]byte, len(m.Children)*10)
-		var j108 int
+		dAtA97 := make([]byte, len(m.Children)*10)
+		var j96 int
 		for _, num1 := range m.Children {
 			num := uint64(num1)
 			for num >= 1<<7 {
-				dAtA109[j108] = uint8(uint64(num)&0x7f | 0x80)
+				dAtA97[j96] = uint8(uint64(num)&0x7f | 0x80)
 				num >>= 7
-				j108++
+				j96++
 			}
-			dAtA109[j108] = uint8(num)
-			j108++
+			dAtA97[j96] = uint8(num)
+			j96++
 		}
-		i -= j108
-		copy(dAtA[i:], dAtA109[:j108])
-		i = encodeVarintPlan(dAtA, i, uint64(j108))
+		i -= j96
+		copy(dAtA[i:], dAtA97[:j96])
+		i = encodeVarintPlan(dAtA, i, uint64(j96))
 		i--
 		dAtA[i] = 0x22
 	}
@@ -21166,20 +20121,6 @@ func (m *CreateTable) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x5a
 	}
-	if len(m.PartitionTables) > 0 {
-		for iNdEx := len(m.PartitionTables) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.PartitionTables[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintPlan(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x52
-		}
-	}
 	if len(m.FkCols) > 0 {
 		for iNdEx := len(m.FkCols) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -21618,73 +20559,6 @@ func (m *AlterTableAlterReIndex) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 		i = encodeVarintPlan(dAtA, i, uint64(len(m.DbName)))
 		i--
 		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *AlterTableAddPartition) Marshal() (dAtA []byte, err error) {
-	size := m.ProtoSize()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *AlterTableAddPartition) MarshalTo(dAtA []byte) (int, error) {
-	size := m.ProtoSize()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *AlterTableAddPartition) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	if m.PartitionDef != nil {
-		{
-			size, err := m.PartitionDef.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintPlan(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.PartitionTables) > 0 {
-		for iNdEx := len(m.PartitionTables) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.PartitionTables[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintPlan(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x12
-		}
-	}
-	if len(m.Definitions) > 0 {
-		for iNdEx := len(m.Definitions) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Definitions[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintPlan(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0xa
-		}
 	}
 	return len(dAtA) - i, nil
 }
@@ -22266,27 +21140,6 @@ func (m *AlterTable_Action_AlterReindex) MarshalToSizedBuffer(dAtA []byte) (int,
 	}
 	return len(dAtA) - i, nil
 }
-func (m *AlterTable_Action_AddPartition) MarshalTo(dAtA []byte) (int, error) {
-	size := m.ProtoSize()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *AlterTable_Action_AddPartition) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.AddPartition != nil {
-		{
-			size, err := m.AddPartition.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintPlan(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x52
-	}
-	return len(dAtA) - i, nil
-}
 func (m *DropTable) Marshal() (dAtA []byte, err error) {
 	size := m.ProtoSize()
 	dAtA = make([]byte, size)
@@ -22359,15 +21212,6 @@ func (m *DropTable) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		}
 		i--
 		dAtA[i] = 0x48
-	}
-	if len(m.PartitionTableNames) > 0 {
-		for iNdEx := len(m.PartitionTableNames) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.PartitionTableNames[iNdEx])
-			copy(dAtA[i:], m.PartitionTableNames[iNdEx])
-			i = encodeVarintPlan(dAtA, i, uint64(len(m.PartitionTableNames[iNdEx])))
-			i--
-			dAtA[i] = 0x42
-		}
 	}
 	if len(m.ForeignTbl) > 0 {
 		dAtA197 := make([]byte, len(m.ForeignTbl)*10)
@@ -22970,15 +21814,6 @@ func (m *TruncateTable) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x2a
 	}
-	if len(m.PartitionTableNames) > 0 {
-		for iNdEx := len(m.PartitionTableNames) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.PartitionTableNames[iNdEx])
-			copy(dAtA[i:], m.PartitionTableNames[iNdEx])
-			i = encodeVarintPlan(dAtA, i, uint64(len(m.PartitionTableNames[iNdEx])))
-			i--
-			dAtA[i] = 0x22
-		}
-	}
 	if len(m.IndexTableNames) > 0 {
 		for iNdEx := len(m.IndexTableNames) - 1; iNdEx >= 0; iNdEx-- {
 			i -= len(m.IndexTableNames[iNdEx])
@@ -23035,6 +21870,7 @@ func (m *ClusterTable) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		dAtA[i] = 0x18
 	}
 	if len(m.AccountIDs) > 0 {
+<<<<<<< HEAD
 		dAtA209 := make([]byte, len(m.AccountIDs)*10)
 		var j208 int
 		for _, num := range m.AccountIDs {
@@ -23049,6 +21885,22 @@ func (m *ClusterTable) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= j208
 		copy(dAtA[i:], dAtA209[:j208])
 		i = encodeVarintPlan(dAtA, i, uint64(j208))
+=======
+		dAtA190 := make([]byte, len(m.AccountIDs)*10)
+		var j189 int
+		for _, num := range m.AccountIDs {
+			for num >= 1<<7 {
+				dAtA190[j189] = uint8(uint64(num)&0x7f | 0x80)
+				num >>= 7
+				j189++
+			}
+			dAtA190[j189] = uint8(num)
+			j189++
+		}
+		i -= j189
+		copy(dAtA[i:], dAtA190[:j189])
+		i = encodeVarintPlan(dAtA, i, uint64(j189))
+>>>>>>> 6ee7f0e07 (tmp)
 		i--
 		dAtA[i] = 0x12
 	}
@@ -23260,6 +22112,7 @@ func (m *Prepare) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	if len(m.ParamTypes) > 0 {
+<<<<<<< HEAD
 		dAtA213 := make([]byte, len(m.ParamTypes)*10)
 		var j212 int
 		for _, num1 := range m.ParamTypes {
@@ -23275,6 +22128,23 @@ func (m *Prepare) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= j212
 		copy(dAtA[i:], dAtA213[:j212])
 		i = encodeVarintPlan(dAtA, i, uint64(j212))
+=======
+		dAtA194 := make([]byte, len(m.ParamTypes)*10)
+		var j193 int
+		for _, num1 := range m.ParamTypes {
+			num := uint64(num1)
+			for num >= 1<<7 {
+				dAtA194[j193] = uint8(uint64(num)&0x7f | 0x80)
+				num >>= 7
+				j193++
+			}
+			dAtA194[j193] = uint8(num)
+			j193++
+		}
+		i -= j193
+		copy(dAtA[i:], dAtA194[:j193])
+		i = encodeVarintPlan(dAtA, i, uint64(j193))
+>>>>>>> 6ee7f0e07 (tmp)
 		i--
 		dAtA[i] = 0x22
 	}
@@ -23421,6 +22291,7 @@ func (m *OtherDCL) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	if len(m.ParamTypes) > 0 {
+<<<<<<< HEAD
 		dAtA216 := make([]byte, len(m.ParamTypes)*10)
 		var j215 int
 		for _, num1 := range m.ParamTypes {
@@ -23436,6 +22307,23 @@ func (m *OtherDCL) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= j215
 		copy(dAtA[i:], dAtA216[:j215])
 		i = encodeVarintPlan(dAtA, i, uint64(j215))
+=======
+		dAtA197 := make([]byte, len(m.ParamTypes)*10)
+		var j196 int
+		for _, num1 := range m.ParamTypes {
+			num := uint64(num1)
+			for num >= 1<<7 {
+				dAtA197[j196] = uint8(uint64(num)&0x7f | 0x80)
+				num >>= 7
+				j196++
+			}
+			dAtA197[j196] = uint8(num)
+			j196++
+		}
+		i -= j196
+		copy(dAtA[i:], dAtA197[:j196])
+		i = encodeVarintPlan(dAtA, i, uint64(j196))
+>>>>>>> 6ee7f0e07 (tmp)
 		i--
 		dAtA[i] = 0xa
 	}
@@ -24953,145 +23841,6 @@ func (m *PropertiesDef) ProtoSize() (n int) {
 	return n
 }
 
-func (m *PartitionByDef) ProtoSize() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Type != 0 {
-		n += 1 + sovPlan(uint64(m.Type))
-	}
-	if m.PartitionExpr != nil {
-		l = m.PartitionExpr.ProtoSize()
-		n += 1 + l + sovPlan(uint64(l))
-	}
-	if m.PartitionExpression != nil {
-		l = m.PartitionExpression.ProtoSize()
-		n += 1 + l + sovPlan(uint64(l))
-	}
-	if m.PartitionColumns != nil {
-		l = m.PartitionColumns.ProtoSize()
-		n += 1 + l + sovPlan(uint64(l))
-	}
-	if m.PartitionNum != 0 {
-		n += 1 + sovPlan(uint64(m.PartitionNum))
-	}
-	if len(m.Partitions) > 0 {
-		for _, e := range m.Partitions {
-			l = e.ProtoSize()
-			n += 1 + l + sovPlan(uint64(l))
-		}
-	}
-	if m.Algorithm != 0 {
-		n += 1 + sovPlan(uint64(m.Algorithm))
-	}
-	if m.IsSubPartition {
-		n += 2
-	}
-	l = len(m.PartitionMsg)
-	if l > 0 {
-		n += 1 + l + sovPlan(uint64(l))
-	}
-	if len(m.PartitionTableNames) > 0 {
-		for _, s := range m.PartitionTableNames {
-			l = len(s)
-			n += 1 + l + sovPlan(uint64(l))
-		}
-	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
-func (m *PartitionExpr) ProtoSize() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Expr != nil {
-		l = m.Expr.ProtoSize()
-		n += 1 + l + sovPlan(uint64(l))
-	}
-	l = len(m.ExprStr)
-	if l > 0 {
-		n += 1 + l + sovPlan(uint64(l))
-	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
-func (m *PartitionColumns) ProtoSize() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if len(m.Columns) > 0 {
-		for _, e := range m.Columns {
-			l = e.ProtoSize()
-			n += 1 + l + sovPlan(uint64(l))
-		}
-	}
-	if len(m.PartitionColumns) > 0 {
-		for _, s := range m.PartitionColumns {
-			l = len(s)
-			n += 1 + l + sovPlan(uint64(l))
-		}
-	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
-func (m *PartitionItem) ProtoSize() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.PartitionName)
-	if l > 0 {
-		n += 1 + l + sovPlan(uint64(l))
-	}
-	if m.OrdinalPosition != 0 {
-		n += 1 + sovPlan(uint64(m.OrdinalPosition))
-	}
-	l = len(m.Description)
-	if l > 0 {
-		n += 1 + l + sovPlan(uint64(l))
-	}
-	l = len(m.Comment)
-	if l > 0 {
-		n += 1 + l + sovPlan(uint64(l))
-	}
-	if len(m.LessThan) > 0 {
-		for _, e := range m.LessThan {
-			l = e.ProtoSize()
-			n += 1 + l + sovPlan(uint64(l))
-		}
-	}
-	if len(m.InValues) > 0 {
-		for _, e := range m.InValues {
-			l = e.ProtoSize()
-			n += 1 + l + sovPlan(uint64(l))
-		}
-	}
-	l = len(m.PartitionTableName)
-	if l > 0 {
-		n += 1 + l + sovPlan(uint64(l))
-	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
 func (m *ViewDef) ProtoSize() (n int) {
 	if m == nil {
 		return 0
@@ -25173,10 +23922,6 @@ func (m *TableDef) ProtoSize() (n int) {
 			l = e.ProtoSize()
 			n += 1 + l + sovPlan(uint64(l))
 		}
-	}
-	if m.Partition != nil {
-		l = m.Partition.ProtoSize()
-		n += 2 + l + sovPlan(uint64(l))
 	}
 	if m.ClusterBy != nil {
 		l = m.ClusterBy.ProtoSize()
@@ -25454,12 +24199,6 @@ func (m *WindowSpec) ProtoSize() (n int) {
 		l = m.WindowFunc.ProtoSize()
 		n += 1 + l + sovPlan(uint64(l))
 	}
-	if len(m.PartitionBy) > 0 {
-		for _, e := range m.PartitionBy {
-			l = e.ProtoSize()
-			n += 1 + l + sovPlan(uint64(l))
-		}
-	}
 	if len(m.OrderBy) > 0 {
 		for _, e := range m.OrderBy {
 			l = e.ProtoSize()
@@ -25626,6 +24365,7 @@ func (m *UpdateCtx) ProtoSize() (n int) {
 		l = m.TableDef.ProtoSize()
 		n += 1 + l + sovPlan(uint64(l))
 	}
+<<<<<<< HEAD
 	if len(m.PartitionTableIds) > 0 {
 		l = 0
 		for _, e := range m.PartitionTableIds {
@@ -25645,6 +24385,8 @@ func (m *UpdateCtx) ProtoSize() (n int) {
 	if m.NewPartitionIdx != 0 {
 		n += 1 + sovPlan(uint64(m.NewPartitionIdx))
 	}
+=======
+>>>>>>> 6ee7f0e07 (tmp)
 	if len(m.InsertCols) > 0 {
 		for _, e := range m.InsertCols {
 			l = e.ProtoSize()
@@ -25683,22 +24425,6 @@ func (m *InsertCtx) ProtoSize() (n int) {
 		l = m.TableDef.ProtoSize()
 		n += 1 + l + sovPlan(uint64(l))
 	}
-	if len(m.PartitionTableIds) > 0 {
-		l = 0
-		for _, e := range m.PartitionTableIds {
-			l += sovPlan(uint64(e))
-		}
-		n += 1 + sovPlan(uint64(l)) + l
-	}
-	if len(m.PartitionTableNames) > 0 {
-		for _, s := range m.PartitionTableNames {
-			l = len(s)
-			n += 1 + l + sovPlan(uint64(l))
-		}
-	}
-	if m.PartitionIdx != 0 {
-		n += 1 + sovPlan(uint64(m.PartitionIdx))
-	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
 	}
@@ -25728,22 +24454,6 @@ func (m *ReplaceCtx) ProtoSize() (n int) {
 	l = len(m.DeleteCond)
 	if l > 0 {
 		n += 1 + l + sovPlan(uint64(l))
-	}
-	if len(m.PartitionTableIds) > 0 {
-		l = 0
-		for _, e := range m.PartitionTableIds {
-			l += sovPlan(uint64(e))
-		}
-		n += 1 + sovPlan(uint64(l)) + l
-	}
-	if len(m.PartitionTableNames) > 0 {
-		for _, s := range m.PartitionTableNames {
-			l = len(s)
-			n += 1 + l + sovPlan(uint64(l))
-		}
-	}
-	if m.PartitionIdx != 0 {
-		n += 1 + sovPlan(uint64(m.PartitionIdx))
 	}
 	if m.RewriteFromOnDuplicateKey {
 		n += 2
@@ -25839,27 +24549,6 @@ func (m *AnalyzeInfo) ProtoSize() (n int) {
 	}
 	if m.DeletedRows != 0 {
 		n += 2 + sovPlan(uint64(m.DeletedRows))
-	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
-func (m *PartitionPrune) ProtoSize() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.IsPruned {
-		n += 2
-	}
-	if len(m.SelectedPartitions) > 0 {
-		for _, e := range m.SelectedPartitions {
-			l = e.ProtoSize()
-			n += 1 + l + sovPlan(uint64(l))
-		}
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -26094,10 +24783,6 @@ func (m *Node) ProtoSize() (n int) {
 		l = m.ExternScan.ProtoSize()
 		n += 2 + l + sovPlan(uint64(l))
 	}
-	if m.PartitionPrune != nil {
-		l = m.PartitionPrune.ProtoSize()
-		n += 2 + l + sovPlan(uint64(l))
-	}
 	if m.PreInsertSkCtx != nil {
 		l = m.PreInsertSkCtx.ProtoSize()
 		n += 2 + l + sovPlan(uint64(l))
@@ -26313,16 +24998,6 @@ func (m *LockTarget) ProtoSize() (n int) {
 	if m.LockTable {
 		n += 2
 	}
-	if m.IsPartitionTable {
-		n += 2
-	}
-	if len(m.PartitionTableIds) > 0 {
-		l = 0
-		for _, e := range m.PartitionTableIds {
-			l += sovPlan(uint64(e))
-		}
-		n += 1 + sovPlan(uint64(l)) + l
-	}
 	if m.Block {
 		n += 2
 	}
@@ -26512,22 +25187,6 @@ func (m *DeleteCtx) ProtoSize() (n int) {
 	}
 	if m.IsClusterTable {
 		n += 2
-	}
-	if len(m.PartitionTableIds) > 0 {
-		l = 0
-		for _, e := range m.PartitionTableIds {
-			l += sovPlan(uint64(e))
-		}
-		n += 1 + sovPlan(uint64(l)) + l
-	}
-	if len(m.PartitionTableNames) > 0 {
-		for _, s := range m.PartitionTableNames {
-			l = len(s)
-			n += 1 + l + sovPlan(uint64(l))
-		}
-	}
-	if m.PartitionIdx != 0 {
-		n += 1 + sovPlan(uint64(m.PartitionIdx))
 	}
 	if m.PrimaryKeyIdx != 0 {
 		n += 1 + sovPlan(uint64(m.PrimaryKeyIdx))
@@ -27374,12 +26033,6 @@ func (m *CreateTable) ProtoSize() (n int) {
 			n += 1 + l + sovPlan(uint64(l))
 		}
 	}
-	if len(m.PartitionTables) > 0 {
-		for _, e := range m.PartitionTables {
-			l = e.ProtoSize()
-			n += 1 + l + sovPlan(uint64(l))
-		}
-	}
 	l = len(m.CreateAsSelectSql)
 	if l > 0 {
 		n += 1 + l + sovPlan(uint64(l))
@@ -27564,34 +26217,6 @@ func (m *AlterTableAlterReIndex) ProtoSize() (n int) {
 	}
 	if m.IndexAlgoParamList != 0 {
 		n += 1 + sovPlan(uint64(m.IndexAlgoParamList))
-	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
-func (m *AlterTableAddPartition) ProtoSize() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if len(m.Definitions) > 0 {
-		for _, e := range m.Definitions {
-			l = e.ProtoSize()
-			n += 1 + l + sovPlan(uint64(l))
-		}
-	}
-	if len(m.PartitionTables) > 0 {
-		for _, e := range m.PartitionTables {
-			l = e.ProtoSize()
-			n += 1 + l + sovPlan(uint64(l))
-		}
-	}
-	if m.PartitionDef != nil {
-		l = m.PartitionDef.ProtoSize()
-		n += 1 + l + sovPlan(uint64(l))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -27888,18 +26513,6 @@ func (m *AlterTable_Action_AlterReindex) ProtoSize() (n int) {
 	}
 	return n
 }
-func (m *AlterTable_Action_AddPartition) ProtoSize() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.AddPartition != nil {
-		l = m.AddPartition.ProtoSize()
-		n += 1 + l + sovPlan(uint64(l))
-	}
-	return n
-}
 func (m *DropTable) ProtoSize() (n int) {
 	if m == nil {
 		return 0
@@ -27936,12 +26549,6 @@ func (m *DropTable) ProtoSize() (n int) {
 			l += sovPlan(uint64(e))
 		}
 		n += 1 + sovPlan(uint64(l)) + l
-	}
-	if len(m.PartitionTableNames) > 0 {
-		for _, s := range m.PartitionTableNames {
-			l = len(s)
-			n += 1 + l + sovPlan(uint64(l))
-		}
 	}
 	if m.IsView {
 		n += 2
@@ -28185,12 +26792,6 @@ func (m *TruncateTable) ProtoSize() (n int) {
 	}
 	if len(m.IndexTableNames) > 0 {
 		for _, s := range m.IndexTableNames {
-			l = len(s)
-			n += 1 + l + sovPlan(uint64(l))
-		}
-	}
-	if len(m.PartitionTableNames) > 0 {
-		for _, s := range m.PartitionTableNames {
 			l = len(s)
 			n += 1 + l + sovPlan(uint64(l))
 		}
@@ -34688,842 +33289,6 @@ func (m *PropertiesDef) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *PartitionByDef) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowPlan
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: PartitionByDef: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: PartitionByDef: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
-			}
-			m.Type = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Type |= PartitionType(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionExpr", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.PartitionExpr == nil {
-				m.PartitionExpr = &PartitionExpr{}
-			}
-			if err := m.PartitionExpr.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionExpression", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.PartitionExpression == nil {
-				m.PartitionExpression = &Expr{}
-			}
-			if err := m.PartitionExpression.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionColumns", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.PartitionColumns == nil {
-				m.PartitionColumns = &PartitionColumns{}
-			}
-			if err := m.PartitionColumns.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 5:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionNum", wireType)
-			}
-			m.PartitionNum = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.PartitionNum |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 6:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Partitions", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Partitions = append(m.Partitions, &PartitionItem{})
-			if err := m.Partitions[len(m.Partitions)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 7:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Algorithm", wireType)
-			}
-			m.Algorithm = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Algorithm |= int64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 8:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field IsSubPartition", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.IsSubPartition = bool(v != 0)
-		case 9:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionMsg", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.PartitionMsg = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 10:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionTableNames", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.PartitionTableNames = append(m.PartitionTableNames, string(dAtA[iNdEx:postIndex]))
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipPlan(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *PartitionExpr) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowPlan
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: PartitionExpr: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: PartitionExpr: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Expr", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Expr == nil {
-				m.Expr = &Expr{}
-			}
-			if err := m.Expr.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ExprStr", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ExprStr = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipPlan(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *PartitionColumns) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowPlan
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: PartitionColumns: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: PartitionColumns: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Columns", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Columns = append(m.Columns, &Expr{})
-			if err := m.Columns[len(m.Columns)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionColumns", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.PartitionColumns = append(m.PartitionColumns, string(dAtA[iNdEx:postIndex]))
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipPlan(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *PartitionItem) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowPlan
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: PartitionItem: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: PartitionItem: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionName", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.PartitionName = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OrdinalPosition", wireType)
-			}
-			m.OrdinalPosition = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.OrdinalPosition |= uint32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Description = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Comment", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Comment = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 5:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field LessThan", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.LessThan = append(m.LessThan, &Expr{})
-			if err := m.LessThan[len(m.LessThan)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 6:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field InValues", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.InValues = append(m.InValues, &Expr{})
-			if err := m.InValues[len(m.InValues)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 7:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionTableName", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.PartitionTableName = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipPlan(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
 func (m *ViewDef) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -36071,42 +33836,6 @@ func (m *TableDef) Unmarshal(dAtA []byte) error {
 			}
 			m.Checks = append(m.Checks, &CheckDef{})
 			if err := m.Checks[len(m.Checks)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 21:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Partition", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Partition == nil {
-				m.Partition = &PartitionByDef{}
-			}
-			if err := m.Partition.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -37705,40 +35434,6 @@ func (m *WindowSpec) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionBy", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.PartitionBy = append(m.PartitionBy, &Expr{})
-			if err := m.PartitionBy[len(m.PartitionBy)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field OrderBy", wireType)
@@ -38797,6 +36492,7 @@ func (m *UpdateCtx) Unmarshal(dAtA []byte) error {
 			}
 			iNdEx = postIndex
 		case 3:
+<<<<<<< HEAD
 			if wireType == 0 {
 				var v uint64
 				for shift := uint(0); ; shift += 7 {
@@ -38943,6 +36639,8 @@ func (m *UpdateCtx) Unmarshal(dAtA []byte) error {
 				}
 			}
 		case 7:
+=======
+>>>>>>> 6ee7f0e07 (tmp)
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field InsertCols", wireType)
 			}
@@ -38971,12 +36669,20 @@ func (m *UpdateCtx) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
+<<<<<<< HEAD
 			m.InsertCols = append(m.InsertCols, ColRef{})
+=======
+			m.InsertCols = append(m.InsertCols, &Expr{})
+>>>>>>> 6ee7f0e07 (tmp)
 			if err := m.InsertCols[len(m.InsertCols)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
+<<<<<<< HEAD
 		case 8:
+=======
+		case 4:
+>>>>>>> 6ee7f0e07 (tmp)
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DeleteCols", wireType)
 			}
@@ -39005,7 +36711,11 @@ func (m *UpdateCtx) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
+<<<<<<< HEAD
 			m.DeleteCols = append(m.DeleteCols, ColRef{})
+=======
+			m.DeleteCols = append(m.DeleteCols, &Expr{})
+>>>>>>> 6ee7f0e07 (tmp)
 			if err := m.DeleteCols[len(m.DeleteCols)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -39173,133 +36883,6 @@ func (m *InsertCtx) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 5:
-			if wireType == 0 {
-				var v uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return ErrIntOverflowPlan
-					}
-					if iNdEx >= l {
-						return io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					v |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				m.PartitionTableIds = append(m.PartitionTableIds, v)
-			} else if wireType == 2 {
-				var packedLen int
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return ErrIntOverflowPlan
-					}
-					if iNdEx >= l {
-						return io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					packedLen |= int(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				if packedLen < 0 {
-					return ErrInvalidLengthPlan
-				}
-				postIndex := iNdEx + packedLen
-				if postIndex < 0 {
-					return ErrInvalidLengthPlan
-				}
-				if postIndex > l {
-					return io.ErrUnexpectedEOF
-				}
-				var elementCount int
-				var count int
-				for _, integer := range dAtA[iNdEx:postIndex] {
-					if integer < 128 {
-						count++
-					}
-				}
-				elementCount = count
-				if elementCount != 0 && len(m.PartitionTableIds) == 0 {
-					m.PartitionTableIds = make([]uint64, 0, elementCount)
-				}
-				for iNdEx < postIndex {
-					var v uint64
-					for shift := uint(0); ; shift += 7 {
-						if shift >= 64 {
-							return ErrIntOverflowPlan
-						}
-						if iNdEx >= l {
-							return io.ErrUnexpectedEOF
-						}
-						b := dAtA[iNdEx]
-						iNdEx++
-						v |= uint64(b&0x7F) << shift
-						if b < 0x80 {
-							break
-						}
-					}
-					m.PartitionTableIds = append(m.PartitionTableIds, v)
-				}
-			} else {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionTableIds", wireType)
-			}
-		case 6:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionTableNames", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.PartitionTableNames = append(m.PartitionTableNames, string(dAtA[iNdEx:postIndex]))
-			iNdEx = postIndex
-		case 7:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionIdx", wireType)
-			}
-			m.PartitionIdx = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.PartitionIdx |= int32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipPlan(dAtA[iNdEx:])
@@ -39495,133 +37078,6 @@ func (m *ReplaceCtx) Unmarshal(dAtA []byte) error {
 			}
 			m.DeleteCond = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 6:
-			if wireType == 0 {
-				var v uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return ErrIntOverflowPlan
-					}
-					if iNdEx >= l {
-						return io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					v |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				m.PartitionTableIds = append(m.PartitionTableIds, v)
-			} else if wireType == 2 {
-				var packedLen int
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return ErrIntOverflowPlan
-					}
-					if iNdEx >= l {
-						return io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					packedLen |= int(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				if packedLen < 0 {
-					return ErrInvalidLengthPlan
-				}
-				postIndex := iNdEx + packedLen
-				if postIndex < 0 {
-					return ErrInvalidLengthPlan
-				}
-				if postIndex > l {
-					return io.ErrUnexpectedEOF
-				}
-				var elementCount int
-				var count int
-				for _, integer := range dAtA[iNdEx:postIndex] {
-					if integer < 128 {
-						count++
-					}
-				}
-				elementCount = count
-				if elementCount != 0 && len(m.PartitionTableIds) == 0 {
-					m.PartitionTableIds = make([]uint64, 0, elementCount)
-				}
-				for iNdEx < postIndex {
-					var v uint64
-					for shift := uint(0); ; shift += 7 {
-						if shift >= 64 {
-							return ErrIntOverflowPlan
-						}
-						if iNdEx >= l {
-							return io.ErrUnexpectedEOF
-						}
-						b := dAtA[iNdEx]
-						iNdEx++
-						v |= uint64(b&0x7F) << shift
-						if b < 0x80 {
-							break
-						}
-					}
-					m.PartitionTableIds = append(m.PartitionTableIds, v)
-				}
-			} else {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionTableIds", wireType)
-			}
-		case 7:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionTableNames", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.PartitionTableNames = append(m.PartitionTableNames, string(dAtA[iNdEx:postIndex]))
-			iNdEx = postIndex
-		case 8:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionIdx", wireType)
-			}
-			m.PartitionIdx = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.PartitionIdx |= int32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
 		case 9:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field RewriteFromOnDuplicateKey", wireType)
@@ -40263,111 +37719,6 @@ func (m *AnalyzeInfo) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipPlan(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *PartitionPrune) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowPlan
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: PartitionPrune: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: PartitionPrune: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field IsPruned", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.IsPruned = bool(v != 0)
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SelectedPartitions", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.SelectedPartitions = append(m.SelectedPartitions, &PartitionItem{})
-			if err := m.SelectedPartitions[len(m.SelectedPartitions)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipPlan(dAtA[iNdEx:])
@@ -42091,42 +39442,6 @@ func (m *Node) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 45:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionPrune", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.PartitionPrune == nil {
-				m.PartitionPrune = &PartitionPrune{}
-			}
-			if err := m.PartitionPrune.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		case 46:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field PreInsertSkCtx", wireType)
@@ -43625,102 +40940,6 @@ func (m *LockTarget) Unmarshal(dAtA []byte) error {
 				}
 			}
 			m.LockTable = bool(v != 0)
-		case 7:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field IsPartitionTable", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.IsPartitionTable = bool(v != 0)
-		case 8:
-			if wireType == 0 {
-				var v uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return ErrIntOverflowPlan
-					}
-					if iNdEx >= l {
-						return io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					v |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				m.PartitionTableIds = append(m.PartitionTableIds, v)
-			} else if wireType == 2 {
-				var packedLen int
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return ErrIntOverflowPlan
-					}
-					if iNdEx >= l {
-						return io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					packedLen |= int(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				if packedLen < 0 {
-					return ErrInvalidLengthPlan
-				}
-				postIndex := iNdEx + packedLen
-				if postIndex < 0 {
-					return ErrInvalidLengthPlan
-				}
-				if postIndex > l {
-					return io.ErrUnexpectedEOF
-				}
-				var elementCount int
-				var count int
-				for _, integer := range dAtA[iNdEx:postIndex] {
-					if integer < 128 {
-						count++
-					}
-				}
-				elementCount = count
-				if elementCount != 0 && len(m.PartitionTableIds) == 0 {
-					m.PartitionTableIds = make([]uint64, 0, elementCount)
-				}
-				for iNdEx < postIndex {
-					var v uint64
-					for shift := uint(0); ; shift += 7 {
-						if shift >= 64 {
-							return ErrIntOverflowPlan
-						}
-						if iNdEx >= l {
-							return io.ErrUnexpectedEOF
-						}
-						b := dAtA[iNdEx]
-						iNdEx++
-						v |= uint64(b&0x7F) << shift
-						if b < 0x80 {
-							break
-						}
-					}
-					m.PartitionTableIds = append(m.PartitionTableIds, v)
-				}
-			} else {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionTableIds", wireType)
-			}
 		case 9:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Block", wireType)
@@ -45030,133 +42249,6 @@ func (m *DeleteCtx) Unmarshal(dAtA []byte) error {
 				}
 			}
 			m.IsClusterTable = bool(v != 0)
-		case 6:
-			if wireType == 0 {
-				var v uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return ErrIntOverflowPlan
-					}
-					if iNdEx >= l {
-						return io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					v |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				m.PartitionTableIds = append(m.PartitionTableIds, v)
-			} else if wireType == 2 {
-				var packedLen int
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return ErrIntOverflowPlan
-					}
-					if iNdEx >= l {
-						return io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					packedLen |= int(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				if packedLen < 0 {
-					return ErrInvalidLengthPlan
-				}
-				postIndex := iNdEx + packedLen
-				if postIndex < 0 {
-					return ErrInvalidLengthPlan
-				}
-				if postIndex > l {
-					return io.ErrUnexpectedEOF
-				}
-				var elementCount int
-				var count int
-				for _, integer := range dAtA[iNdEx:postIndex] {
-					if integer < 128 {
-						count++
-					}
-				}
-				elementCount = count
-				if elementCount != 0 && len(m.PartitionTableIds) == 0 {
-					m.PartitionTableIds = make([]uint64, 0, elementCount)
-				}
-				for iNdEx < postIndex {
-					var v uint64
-					for shift := uint(0); ; shift += 7 {
-						if shift >= 64 {
-							return ErrIntOverflowPlan
-						}
-						if iNdEx >= l {
-							return io.ErrUnexpectedEOF
-						}
-						b := dAtA[iNdEx]
-						iNdEx++
-						v |= uint64(b&0x7F) << shift
-						if b < 0x80 {
-							break
-						}
-					}
-					m.PartitionTableIds = append(m.PartitionTableIds, v)
-				}
-			} else {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionTableIds", wireType)
-			}
-		case 7:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionTableNames", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.PartitionTableNames = append(m.PartitionTableNames, string(dAtA[iNdEx:postIndex]))
-			iNdEx = postIndex
-		case 8:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionIdx", wireType)
-			}
-			m.PartitionIdx = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.PartitionIdx |= int32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
 		case 9:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field PrimaryKeyIdx", wireType)
@@ -48907,40 +45999,6 @@ func (m *CreateTable) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 10:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionTables", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.PartitionTables = append(m.PartitionTables, &TableDef{})
-			if err := m.PartitionTables[len(m.PartitionTables)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		case 11:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field CreateAsSelectSql", wireType)
@@ -50090,161 +47148,6 @@ func (m *AlterTableAlterReIndex) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipPlan(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *AlterTableAddPartition) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowPlan
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: AlterTableAddPartition: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: AlterTableAddPartition: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Definitions", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Definitions = append(m.Definitions, &PartitionItem{})
-			if err := m.Definitions[len(m.Definitions)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionTables", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.PartitionTables = append(m.PartitionTables, &TableDef{})
-			if err := m.PartitionTables[len(m.PartitionTables)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionDef", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.PartitionDef == nil {
-				m.PartitionDef = &PartitionByDef{}
-			}
-			if err := m.PartitionDef.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipPlan(dAtA[iNdEx:])
@@ -51621,41 +48524,6 @@ func (m *AlterTable_Action) Unmarshal(dAtA []byte) error {
 			}
 			m.Action = &AlterTable_Action_AlterReindex{v}
 			iNdEx = postIndex
-		case 10:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field AddPartition", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &AlterTableAddPartition{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Action = &AlterTable_Action_AddPartition{v}
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipPlan(dAtA[iNdEx:])
@@ -51954,38 +48822,6 @@ func (m *DropTable) Unmarshal(dAtA []byte) error {
 			} else {
 				return fmt.Errorf("proto: wrong wireType = %d for field ForeignTbl", wireType)
 			}
-		case 8:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionTableNames", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.PartitionTableNames = append(m.PartitionTableNames, string(dAtA[iNdEx:postIndex]))
-			iNdEx = postIndex
 		case 9:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field IsView", wireType)
@@ -53527,38 +50363,6 @@ func (m *TruncateTable) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.IndexTableNames = append(m.IndexTableNames, string(dAtA[iNdEx:postIndex]))
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionTableNames", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPlan
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthPlan
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthPlan
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.PartitionTableNames = append(m.PartitionTableNames, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
 		case 5:
 			if wireType != 2 {

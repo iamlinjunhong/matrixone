@@ -27,16 +27,15 @@ import (
 	pkgcatalog "github.com/matrixorigin/matrixone/pkg/catalog"
 	"github.com/matrixorigin/matrixone/pkg/common/moerr"
 	"github.com/matrixorigin/matrixone/pkg/container/types"
+	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/matrixorigin/matrixone/pkg/logutil"
 	"github.com/matrixorigin/matrixone/pkg/objectio"
 	apipb "github.com/matrixorigin/matrixone/pkg/pb/api"
 	"github.com/matrixorigin/matrixone/pkg/pb/plan"
-	"github.com/tidwall/pretty"
-
-	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/tae/containers"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/tae/options"
+	"github.com/tidwall/pretty"
 )
 
 func i82bool(v int8) bool {
@@ -268,12 +267,7 @@ func (s *Schema) ApplyAlterTable(req *apipb.AlterTableReq) error {
 		logutil.Infof("[Alter] rename table %s -> %s", s.Name, rename.NewName)
 		s.Name = rename.NewName
 	case apipb.AlterKind_AddPartition:
-		newPartitionDef := req.GetAddPartition().GetPartitionDef()
-		bytes, err := newPartitionDef.MarshalPartitionInfo()
-		if err != nil {
-			return err
-		}
-		s.Partition = string(bytes)
+		// TODO(partition): add partition
 	default:
 		return moerr.NewNYINoCtxf("unsupported alter kind: %v", req.Kind)
 	}
