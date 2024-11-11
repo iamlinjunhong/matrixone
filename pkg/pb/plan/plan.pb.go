@@ -779,11 +779,7 @@ func (x Node_ApplyType) String() string {
 }
 
 func (Node_ApplyType) EnumDescriptor() ([]byte, []int) {
-<<<<<<< HEAD
 	return fileDescriptor_2d655ab2f7683c23, []int{58, 5}
-=======
-	return fileDescriptor_2d655ab2f7683c23, []int{53, 4}
->>>>>>> 6ee7f0e07 (tmp)
 }
 
 type Query_StatementType int32
@@ -21870,7 +21866,6 @@ func (m *ClusterTable) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		dAtA[i] = 0x18
 	}
 	if len(m.AccountIDs) > 0 {
-<<<<<<< HEAD
 		dAtA209 := make([]byte, len(m.AccountIDs)*10)
 		var j208 int
 		for _, num := range m.AccountIDs {
@@ -21885,22 +21880,6 @@ func (m *ClusterTable) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= j208
 		copy(dAtA[i:], dAtA209[:j208])
 		i = encodeVarintPlan(dAtA, i, uint64(j208))
-=======
-		dAtA190 := make([]byte, len(m.AccountIDs)*10)
-		var j189 int
-		for _, num := range m.AccountIDs {
-			for num >= 1<<7 {
-				dAtA190[j189] = uint8(uint64(num)&0x7f | 0x80)
-				num >>= 7
-				j189++
-			}
-			dAtA190[j189] = uint8(num)
-			j189++
-		}
-		i -= j189
-		copy(dAtA[i:], dAtA190[:j189])
-		i = encodeVarintPlan(dAtA, i, uint64(j189))
->>>>>>> 6ee7f0e07 (tmp)
 		i--
 		dAtA[i] = 0x12
 	}
@@ -22112,7 +22091,6 @@ func (m *Prepare) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	if len(m.ParamTypes) > 0 {
-<<<<<<< HEAD
 		dAtA213 := make([]byte, len(m.ParamTypes)*10)
 		var j212 int
 		for _, num1 := range m.ParamTypes {
@@ -22128,23 +22106,6 @@ func (m *Prepare) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= j212
 		copy(dAtA[i:], dAtA213[:j212])
 		i = encodeVarintPlan(dAtA, i, uint64(j212))
-=======
-		dAtA194 := make([]byte, len(m.ParamTypes)*10)
-		var j193 int
-		for _, num1 := range m.ParamTypes {
-			num := uint64(num1)
-			for num >= 1<<7 {
-				dAtA194[j193] = uint8(uint64(num)&0x7f | 0x80)
-				num >>= 7
-				j193++
-			}
-			dAtA194[j193] = uint8(num)
-			j193++
-		}
-		i -= j193
-		copy(dAtA[i:], dAtA194[:j193])
-		i = encodeVarintPlan(dAtA, i, uint64(j193))
->>>>>>> 6ee7f0e07 (tmp)
 		i--
 		dAtA[i] = 0x22
 	}
@@ -22291,7 +22252,6 @@ func (m *OtherDCL) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	if len(m.ParamTypes) > 0 {
-<<<<<<< HEAD
 		dAtA216 := make([]byte, len(m.ParamTypes)*10)
 		var j215 int
 		for _, num1 := range m.ParamTypes {
@@ -22307,23 +22267,6 @@ func (m *OtherDCL) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= j215
 		copy(dAtA[i:], dAtA216[:j215])
 		i = encodeVarintPlan(dAtA, i, uint64(j215))
-=======
-		dAtA197 := make([]byte, len(m.ParamTypes)*10)
-		var j196 int
-		for _, num1 := range m.ParamTypes {
-			num := uint64(num1)
-			for num >= 1<<7 {
-				dAtA197[j196] = uint8(uint64(num)&0x7f | 0x80)
-				num >>= 7
-				j196++
-			}
-			dAtA197[j196] = uint8(num)
-			j196++
-		}
-		i -= j196
-		copy(dAtA[i:], dAtA197[:j196])
-		i = encodeVarintPlan(dAtA, i, uint64(j196))
->>>>>>> 6ee7f0e07 (tmp)
 		i--
 		dAtA[i] = 0xa
 	}
@@ -24365,7 +24308,6 @@ func (m *UpdateCtx) ProtoSize() (n int) {
 		l = m.TableDef.ProtoSize()
 		n += 1 + l + sovPlan(uint64(l))
 	}
-<<<<<<< HEAD
 	if len(m.PartitionTableIds) > 0 {
 		l = 0
 		for _, e := range m.PartitionTableIds {
@@ -24385,8 +24327,6 @@ func (m *UpdateCtx) ProtoSize() (n int) {
 	if m.NewPartitionIdx != 0 {
 		n += 1 + sovPlan(uint64(m.NewPartitionIdx))
 	}
-=======
->>>>>>> 6ee7f0e07 (tmp)
 	if len(m.InsertCols) > 0 {
 		for _, e := range m.InsertCols {
 			l = e.ProtoSize()
@@ -36492,7 +36432,6 @@ func (m *UpdateCtx) Unmarshal(dAtA []byte) error {
 			}
 			iNdEx = postIndex
 		case 3:
-<<<<<<< HEAD
 			if wireType == 0 {
 				var v uint64
 				for shift := uint(0); ; shift += 7 {
@@ -36639,8 +36578,6 @@ func (m *UpdateCtx) Unmarshal(dAtA []byte) error {
 				}
 			}
 		case 7:
-=======
->>>>>>> 6ee7f0e07 (tmp)
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field InsertCols", wireType)
 			}
@@ -36669,20 +36606,12 @@ func (m *UpdateCtx) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-<<<<<<< HEAD
 			m.InsertCols = append(m.InsertCols, ColRef{})
-=======
-			m.InsertCols = append(m.InsertCols, &Expr{})
->>>>>>> 6ee7f0e07 (tmp)
 			if err := m.InsertCols[len(m.InsertCols)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
-<<<<<<< HEAD
 		case 8:
-=======
-		case 4:
->>>>>>> 6ee7f0e07 (tmp)
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DeleteCols", wireType)
 			}
@@ -36711,11 +36640,7 @@ func (m *UpdateCtx) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-<<<<<<< HEAD
 			m.DeleteCols = append(m.DeleteCols, ColRef{})
-=======
-			m.DeleteCols = append(m.DeleteCols, &Expr{})
->>>>>>> 6ee7f0e07 (tmp)
 			if err := m.DeleteCols[len(m.DeleteCols)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}

@@ -157,10 +157,8 @@ func TestSplitBatch(t *testing.T) {
 					partitionSources: []engine.Relation{nil, nil},
 				},
 				DeleteCtx: &DeleteCtx{
-					RowIdIdx:              0,
-					PrimaryKeyIdx:         1,
-					PartitionIndexInBatch: 2,
-					PartitionTableIDs:     []uint64{1, 2},
+					RowIdIdx:      0,
+					PrimaryKeyIdx: 1,
 				},
 				SegmentMap:   map[string]int32{},
 				RemoteDelete: false,

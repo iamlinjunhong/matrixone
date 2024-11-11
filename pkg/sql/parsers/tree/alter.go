@@ -153,6 +153,30 @@ func init() {
 		reuse.DefaultOptions[ColumnPosition](), //.
 	) // WithEnableChecker()
 
+	reuse.CreatePool[AlterPartitionRedefinePartitionClause](
+		func() *AlterPartitionRedefinePartitionClause { return &AlterPartitionRedefinePartitionClause{} },
+		func(a *AlterPartitionRedefinePartitionClause) { a.reset() },
+		reuse.DefaultOptions[AlterPartitionRedefinePartitionClause](), //.
+	) // WithEnableChecker()
+
+	reuse.CreatePool[AlterPartitionAddPartitionClause](
+		func() *AlterPartitionAddPartitionClause { return &AlterPartitionAddPartitionClause{} },
+		func(a *AlterPartitionAddPartitionClause) { a.reset() },
+		reuse.DefaultOptions[AlterPartitionAddPartitionClause](), //.
+	) // WithEnableChecker()
+
+	reuse.CreatePool[AlterPartitionDropPartitionClause](
+		func() *AlterPartitionDropPartitionClause { return &AlterPartitionDropPartitionClause{} },
+		func(a *AlterPartitionDropPartitionClause) { a.reset() },
+		reuse.DefaultOptions[AlterPartitionDropPartitionClause](), //.
+	) // WithEnableChecker()
+
+	reuse.CreatePool[AlterPartitionTruncatePartitionClause](
+		func() *AlterPartitionTruncatePartitionClause { return &AlterPartitionTruncatePartitionClause{} },
+		func(a *AlterPartitionTruncatePartitionClause) { a.reset() },
+		reuse.DefaultOptions[AlterPartitionTruncatePartitionClause](), //.
+	) // WithEnableChecker()
+
 	reuse.CreatePool[AccountsSetOption](
 		func() *AccountsSetOption { return &AccountsSetOption{} },
 		func(a *AccountsSetOption) { a.reset() },
@@ -459,8 +483,9 @@ func (node *AlterDataBaseConfig) reset() {
 // see https://dev.mysql.com/doc/refman/8.0/en/alter-table.html
 type AlterTable struct {
 	statementImpl
-	Table   *TableName
-	Options AlterTableOptions
+	Table           *TableName
+	Options         AlterTableOptions
+	PartitionOption AlterPartitionOption
 }
 
 func NewAlterTable(table *TableName) *AlterTable {
@@ -482,6 +507,10 @@ func (node *AlterTable) Format(ctx *FmtCtx) {
 		ctx.WriteString(prefix)
 		t.Format(ctx)
 		prefix = ", "
+	}
+
+	if node.PartitionOption != nil {
+		node.PartitionOption.Format(ctx)
 	}
 }
 
@@ -594,6 +623,23 @@ func (node *AlterTable) reset() {
 				if opt != nil {
 					panic(fmt.Sprintf("miss Free for %v", option))
 				}
+			}
+		}
+	}
+
+	if node.PartitionOption != nil {
+		switch opt := node.PartitionOption.(type) {
+		case *AlterPartitionRedefinePartitionClause:
+			opt.Free()
+		case *AlterPartitionAddPartitionClause:
+			opt.Free()
+		case *AlterPartitionDropPartitionClause:
+			opt.Free()
+		case *AlterPartitionTruncatePartitionClause:
+			opt.Free()
+		default:
+			if opt != nil {
+				panic(fmt.Sprintf("miss Free for %v", node.PartitionOption))
 			}
 		}
 	}
@@ -1375,4 +1421,182 @@ func (node *ColumnPosition) reset() {
 	// node.RelatetionColumn.Free()
 	// }
 	*node = ColumnPosition{}
+}
+
+// AlterPartitionOptionType is the type for Alter Table Partition Option Type.
+type AlterPartitionOptionType int
+
+// Alter Table Partition types.
+const (
+	AlterPartitionAddPartition AlterPartitionOptionType = iota
+	AlterPartitionDropPartition
+	AlterPartitionDiscardPartition
+	AlterPartitionImportPartition
+	AlterPartitionTruncatePartition
+	AlterPartitionCoalescePartition
+	AlterPartitionReorganizePartition
+	AlterPartitionExchangePartition
+	AlterPartitionAnalyzePartition
+	AlterPartitionCheckPartition
+	AlterPartitionOptimizePartition
+	AlterPartitionRebuildPartition
+	AlterPartitionRepairPartition
+	AlterPartitionRemovePartitioning
+	AlterPartitionRedefinePartition
+)
+
+type AlterPartitionOption interface {
+	NodeFormatter
+}
+
+type alterPartitionOptionImpl struct {
+	AlterPartitionOption
+}
+
+func (node *alterPartitionOptionImpl) Free() {
+	panic("should implement by child")
+}
+
+type AlterPartitionRedefinePartitionClause struct {
+	alterPartitionOptionImpl
+	Typ             AlterPartitionOptionType
+	PartitionOption *PartitionOption
+}
+
+func NewAlterPartitionRedefinePartitionClause(typ AlterPartitionOptionType, partitionOption *PartitionOption) *AlterPartitionRedefinePartitionClause {
+	a := reuse.Alloc[AlterPartitionRedefinePartitionClause](nil)
+	a.Typ = typ
+	a.PartitionOption = partitionOption
+	return a
+}
+
+func (node *AlterPartitionRedefinePartitionClause) Free() {
+	reuse.Free[AlterPartitionRedefinePartitionClause](node, nil)
+}
+
+func (node *AlterPartitionRedefinePartitionClause) Format(ctx *FmtCtx) {
+	ctx.WriteString(" ")
+	node.PartitionOption.Format(ctx)
+}
+
+func (node AlterPartitionRedefinePartitionClause) TypeName() string {
+	return "tree.AlterPartitionRedefinePartitionClause"
+}
+
+func (node *AlterPartitionRedefinePartitionClause) reset() {
+	if node.PartitionOption != nil {
+		node.PartitionOption.Free()
+	}
+	*node = AlterPartitionRedefinePartitionClause{}
+}
+
+type AlterPartitionAddPartitionClause struct {
+	alterPartitionOptionImpl
+	Typ        AlterPartitionOptionType
+	Partitions []*Partition
+}
+
+func NewAlterPartitionAddPartitionClause(typ AlterPartitionOptionType, partitions []*Partition) *AlterPartitionAddPartitionClause {
+	a := reuse.Alloc[AlterPartitionAddPartitionClause](nil)
+	a.Typ = typ
+	a.Partitions = partitions
+	return a
+}
+
+func (node *AlterPartitionAddPartitionClause) Free() {
+	reuse.Free[AlterPartitionAddPartitionClause](node, nil)
+}
+
+func (node *AlterPartitionAddPartitionClause) Format(ctx *FmtCtx) {
+	ctx.WriteString(" add partition (")
+	isFirst := true
+	for _, partition := range node.Partitions {
+		if isFirst {
+			partition.Format(ctx)
+			isFirst = false
+		} else {
+			ctx.WriteString(", ")
+			partition.Format(ctx)
+		}
+	}
+	ctx.WriteString(")")
+}
+
+func (node AlterPartitionAddPartitionClause) TypeName() string {
+	return "tree.AlterPartitionAddPartitionClause"
+}
+
+func (node *AlterPartitionAddPartitionClause) reset() {
+	if node.Partitions != nil {
+		for _, item := range node.Partitions {
+			item.Free()
+		}
+	}
+	*node = AlterPartitionAddPartitionClause{}
+}
+
+type AlterPartitionDropPartitionClause struct {
+	alterPartitionOptionImpl
+	Typ             AlterPartitionOptionType
+	PartitionNames  IdentifierList
+	OnAllPartitions bool
+}
+
+func NewAlterPartitionDropPartitionClause(typ AlterPartitionOptionType, partitionNames IdentifierList) *AlterPartitionDropPartitionClause {
+	a := reuse.Alloc[AlterPartitionDropPartitionClause](nil)
+	a.Typ = typ
+	a.PartitionNames = partitionNames
+	return a
+}
+
+func (node *AlterPartitionDropPartitionClause) Free() {
+	reuse.Free[AlterPartitionDropPartitionClause](node, nil)
+}
+
+func (node *AlterPartitionDropPartitionClause) Format(ctx *FmtCtx) {
+	ctx.WriteString(" drop partition ")
+	node.PartitionNames.Format(ctx)
+}
+
+func (node AlterPartitionDropPartitionClause) TypeName() string {
+	return "tree.AlterPartitionDropPartitionClause"
+}
+
+func (node *AlterPartitionDropPartitionClause) reset() {
+	*node = AlterPartitionDropPartitionClause{}
+}
+
+type AlterPartitionTruncatePartitionClause struct {
+	alterPartitionOptionImpl
+	Typ             AlterPartitionOptionType
+	PartitionNames  IdentifierList
+	OnAllPartitions bool
+}
+
+func NewAlterPartitionTruncatePartitionClause(typ AlterPartitionOptionType, partitionNames IdentifierList) *AlterPartitionTruncatePartitionClause {
+	a := reuse.Alloc[AlterPartitionTruncatePartitionClause](nil)
+	a.Typ = typ
+	a.PartitionNames = partitionNames
+	return a
+}
+
+func (node *AlterPartitionTruncatePartitionClause) Free() {
+	reuse.Free[AlterPartitionTruncatePartitionClause](node, nil)
+}
+
+func (node *AlterPartitionTruncatePartitionClause) Format(ctx *FmtCtx) {
+	ctx.WriteString(" truncate partition ")
+	if node.OnAllPartitions {
+		ctx.WriteString("all")
+	} else {
+		node.PartitionNames.Format(ctx)
+	}
+}
+
+func (node AlterPartitionTruncatePartitionClause) TypeName() string {
+	return "tree.AlterPartitionTruncatePartitionClause"
+}
+
+func (node *AlterPartitionTruncatePartitionClause) reset() {
+	*node = AlterPartitionTruncatePartitionClause{}
 }

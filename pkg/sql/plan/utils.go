@@ -2705,7 +2705,6 @@ func offsetToString(offset int) string {
 
 func getLockTableAtTheEnd(tableDef *TableDef) bool {
 	if tableDef.Pkey.PkeyColName == catalog.FakePrimaryKeyColName || //fake pk, skip
-		tableDef.Partition != nil || // unsupport partition table
 		len(tableDef.Pkey.Names) > 1 { // unsupport multi-column primary key
 		return false
 	}

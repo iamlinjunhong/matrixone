@@ -923,31 +923,6 @@ func buildCreateTable(stmt *tree.CreateTable, ctx CompilerContext) (*Plan, error
 			}})
 	}
 
-	builder := NewQueryBuilder(plan.Query_SELECT, ctx, false, false)
-	bindContext := NewBindContext(builder, nil)
-
-	// set partition(unsupport now)
-	if stmt.PartitionOption != nil {
-		// Foreign keys are not yet supported in conjunction with partitioning
-		// see: https://dev.mysql.com/doc/relnotes/mysql/8.0/en/news-8-0-14.html
-		if len(createTable.TableDef.Fkeys) > 0 {
-			return nil, moerr.NewErrForeignKeyOnPartitioned(ctx.GetContext())
-		}
-
-		nodeID := builder.appendNode(&plan.Node{
-			NodeType:    plan.Node_TABLE_SCAN,
-			Stats:       nil,
-			ObjRef:      nil,
-			TableDef:    createTable.TableDef,
-			BindingTags: []int32{builder.genNewTag()},
-		}, bindContext)
-
-		err = builder.addBinding(nodeID, tree.AliasClause{}, bindContext)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	return &Plan{
 		Plan: &plan.Plan_Ddl{
 			Ddl: &plan.DataDefinition{

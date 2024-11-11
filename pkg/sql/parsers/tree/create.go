@@ -443,6 +443,12 @@ func init() {
 		reuse.DefaultOptions[ListType](), //.
 	) //WithEnableChecker()
 
+	reuse.CreatePool[PartitionBy](
+		func() *PartitionBy { return &PartitionBy{} },
+		func(p *PartitionBy) { p.reset() },
+		reuse.DefaultOptions[PartitionBy](), //.
+	) //WithEnableChecker()
+
 	reuse.CreatePool[ValuesLessThan](
 		func() *ValuesLessThan { return &ValuesLessThan{} },
 		func(v *ValuesLessThan) { v.reset() },
@@ -453,6 +459,24 @@ func init() {
 		func() *ValuesIn { return &ValuesIn{} },
 		func(v *ValuesIn) { v.reset() },
 		reuse.DefaultOptions[ValuesIn](), //.
+	) //WithEnableChecker()
+
+	reuse.CreatePool[Partition](
+		func() *Partition { return &Partition{} },
+		func(p *Partition) { p.reset() },
+		reuse.DefaultOptions[Partition](), //.
+	) //WithEnableChecker()
+
+	reuse.CreatePool[SubPartition](
+		func() *SubPartition { return &SubPartition{} },
+		func(s *SubPartition) { s.reset() },
+		reuse.DefaultOptions[SubPartition](), //.
+	) //WithEnableChecker()
+
+	reuse.CreatePool[PartitionOption](
+		func() *PartitionOption { return &PartitionOption{} },
+		func(p *PartitionOption) { p.reset() },
+		reuse.DefaultOptions[PartitionOption](), //.
 	) //WithEnableChecker()
 
 	reuse.CreatePool[CreateIndex](
@@ -909,6 +933,7 @@ type CreateTable struct {
 	Table              TableName
 	Defs               TableDefs
 	Options            []TableOption
+	PartitionOption    *PartitionOption
 	ClusterByOption    *ClusterByOption
 	Param              *ExternParam
 	AsSource           *Select
@@ -993,6 +1018,11 @@ func (node *CreateTable) Format(ctx *FmtCtx) {
 			ctx.WriteString(prefix)
 			t.Format(ctx)
 		}
+	}
+
+	if node.PartitionOption != nil {
+		ctx.WriteByte(' ')
+		node.PartitionOption.Format(ctx)
 	}
 
 	if node.Param != nil {
@@ -1174,6 +1204,10 @@ func (node *CreateTable) reset() {
 				}
 			}
 		}
+	}
+
+	if node.PartitionOption != nil {
+		node.PartitionOption.Free()
 	}
 
 	if node.ClusterByOption != nil {
@@ -3560,6 +3594,63 @@ func NewListType() *ListType {
 	return reuse.Alloc[ListType](nil)
 }
 
+type PartitionBy struct {
+	IsSubPartition bool // for format
+	PType          PartitionType
+	Num            uint64
+}
+
+func (node *PartitionBy) Format(ctx *FmtCtx) {
+	node.PType.Format(ctx)
+	if node.Num != 0 {
+		if node.IsSubPartition {
+			ctx.WriteString(" subpartitions ")
+		} else {
+			ctx.WriteString(" partitions ")
+		}
+		ctx.WriteString(strconv.FormatUint(node.Num, 10))
+	}
+}
+
+func (node PartitionBy) TypeName() string { return "tree.PartitionBy" }
+
+func (node *PartitionBy) reset() {
+	switch t := node.PType.(type) {
+	case *HashType:
+		t.Free()
+	case *KeyType:
+		t.Free()
+	case *RangeType:
+		t.Free()
+	case *ListType:
+		t.Free()
+	default:
+		if t != nil {
+			panic(fmt.Sprintf("miss Free for %v", node.PType))
+		}
+	}
+
+	*node = PartitionBy{}
+}
+
+func (node *PartitionBy) Free() {
+	reuse.Free[PartitionBy](node, nil)
+}
+
+func NewPartitionBy(typ PartitionType) *PartitionBy {
+	pb := reuse.Alloc[PartitionBy](nil)
+	pb.PType = typ
+	return pb
+}
+
+func NewPartitionBy2(issub bool, pt PartitionType, n uint64) *PartitionBy {
+	pb := reuse.Alloc[PartitionBy](nil)
+	pb.IsSubPartition = issub
+	pb.PType = pt
+	pb.Num = n
+	return pb
+}
+
 type Values interface {
 	NodeFormatter
 }
@@ -3622,6 +3713,265 @@ func NewValuesIn(vl Exprs) *ValuesIn {
 	return vi
 }
 
+type Partition struct {
+	Name    Identifier
+	Values  Values
+	Options []TableOption
+	Subs    []*SubPartition
+}
+
+func (node *Partition) Format(ctx *FmtCtx) {
+	ctx.WriteString("partition ")
+	ctx.WriteString(string(node.Name))
+	if node.Values != nil {
+		ctx.WriteByte(' ')
+		node.Values.Format(ctx)
+	}
+	if node.Options != nil {
+		prefix := " "
+		for _, t := range node.Options {
+			ctx.WriteString(prefix)
+			t.Format(ctx)
+			prefix = " "
+		}
+	}
+	if node.Subs != nil {
+		prefix := " ("
+		for _, s := range node.Subs {
+			ctx.WriteString(prefix)
+			s.Format(ctx)
+			prefix = ", "
+		}
+		ctx.WriteByte(')')
+	}
+}
+
+func (node Partition) TypeName() string { return "tree.Partition" }
+
+func (node *Partition) reset() {
+	if node.Options != nil {
+		for _, item := range node.Options {
+			switch opt := item.(type) {
+			case *TableOptionProperties:
+				opt.Free()
+			case *TableOptionEngine:
+				opt.Free()
+			case *TableOptionEngineAttr:
+				opt.Free()
+			case *TableOptionInsertMethod:
+				opt.Free()
+			case *TableOptionSecondaryEngine:
+				opt.Free()
+			case *TableOptionSecondaryEngineNull:
+				panic("currently not used")
+			case *TableOptionCharset:
+				opt.Free()
+			case *TableOptionCollate:
+				opt.Free()
+			case *TableOptionAUTOEXTEND_SIZE:
+				opt.Free()
+			case *TableOptionAutoIncrement:
+				opt.Free()
+			case *TableOptionComment:
+				opt.Free()
+			case *TableOptionAvgRowLength:
+				opt.Free()
+			case *TableOptionChecksum:
+				opt.Free()
+			case *TableOptionCompression:
+				opt.Free()
+			case *TableOptionConnection:
+				opt.Free()
+			case *TableOptionPassword:
+				opt.Free()
+			case *TableOptionKeyBlockSize:
+				opt.Free()
+			case *TableOptionMaxRows:
+				opt.Free()
+			case *TableOptionMinRows:
+				opt.Free()
+			case *TableOptionDelayKeyWrite:
+				opt.Free()
+			case *TableOptionRowFormat:
+				opt.Free()
+			case *TableOptionStartTrans:
+				opt.Free()
+			case *TableOptionSecondaryEngineAttr:
+				opt.Free()
+			case *TableOptionStatsPersistent:
+				opt.Free()
+			case *TableOptionStatsAutoRecalc:
+				opt.Free()
+			case *TableOptionPackKeys:
+				opt.Free()
+			case *TableOptionTablespace:
+				opt.Free()
+			case *TableOptionDataDirectory:
+				opt.Free()
+			case *TableOptionIndexDirectory:
+				opt.Free()
+			case *TableOptionStorageMedia:
+				opt.Free()
+			case *TableOptionStatsSamplePages:
+				opt.Free()
+			case *TableOptionUnion:
+				opt.Free()
+			case *TableOptionEncryption:
+				opt.Free()
+			default:
+				if opt != nil {
+					panic(fmt.Sprintf("miss Free for %v", item))
+				}
+			}
+		}
+	}
+
+	if node.Values != nil {
+		switch v := node.Values.(type) {
+		case *ValuesLessThan:
+			v.Free()
+		case *ValuesIn:
+			v.Free()
+		default:
+			if v != nil {
+				panic(fmt.Sprintf("miss Free for %v", node.Values))
+			}
+		}
+	}
+
+	if node.Subs != nil {
+		for _, item := range node.Subs {
+			item.Free()
+		}
+	}
+	*node = Partition{}
+}
+
+func (node *Partition) Free() {
+	reuse.Free[Partition](node, nil)
+}
+
+func NewPartition(n Identifier, v Values, o []TableOption, s []*SubPartition) *Partition {
+	p := reuse.Alloc[Partition](nil)
+	p.Name = n
+	p.Values = v
+	p.Options = o
+	p.Subs = s
+	return p
+}
+
+type SubPartition struct {
+	Name    Identifier
+	Options []TableOption
+}
+
+func (node *SubPartition) Format(ctx *FmtCtx) {
+	ctx.WriteString("subpartition ")
+	ctx.WriteString(string(node.Name))
+
+	if node.Options != nil {
+		prefix := " "
+		for _, t := range node.Options {
+			ctx.WriteString(prefix)
+			t.Format(ctx)
+			prefix = " "
+		}
+	}
+}
+
+func (node SubPartition) TypeName() string { return "tree.SubPartition" }
+
+func (node *SubPartition) reset() {
+	if node.Options != nil {
+		for _, item := range node.Options {
+			switch opt := item.(type) {
+			case *TableOptionProperties:
+				opt.Free()
+			case *TableOptionEngine:
+				opt.Free()
+			case *TableOptionEngineAttr:
+				opt.Free()
+			case *TableOptionInsertMethod:
+				opt.Free()
+			case *TableOptionSecondaryEngine:
+				opt.Free()
+			case *TableOptionSecondaryEngineNull:
+				panic("currently not used")
+			case *TableOptionCharset:
+				opt.Free()
+			case *TableOptionCollate:
+				opt.Free()
+			case *TableOptionAUTOEXTEND_SIZE:
+				opt.Free()
+			case *TableOptionAutoIncrement:
+				opt.Free()
+			case *TableOptionComment:
+				opt.Free()
+			case *TableOptionAvgRowLength:
+				opt.Free()
+			case *TableOptionChecksum:
+				opt.Free()
+			case *TableOptionCompression:
+				opt.Free()
+			case *TableOptionConnection:
+				opt.Free()
+			case *TableOptionPassword:
+				opt.Free()
+			case *TableOptionKeyBlockSize:
+				opt.Free()
+			case *TableOptionMaxRows:
+				opt.Free()
+			case *TableOptionMinRows:
+				opt.Free()
+			case *TableOptionDelayKeyWrite:
+				opt.Free()
+			case *TableOptionRowFormat:
+				opt.Free()
+			case *TableOptionStartTrans:
+				opt.Free()
+			case *TableOptionSecondaryEngineAttr:
+				opt.Free()
+			case *TableOptionStatsPersistent:
+				opt.Free()
+			case *TableOptionStatsAutoRecalc:
+				opt.Free()
+			case *TableOptionPackKeys:
+				opt.Free()
+			case *TableOptionTablespace:
+				opt.Free()
+			case *TableOptionDataDirectory:
+				opt.Free()
+			case *TableOptionIndexDirectory:
+				opt.Free()
+			case *TableOptionStorageMedia:
+				opt.Free()
+			case *TableOptionStatsSamplePages:
+				opt.Free()
+			case *TableOptionUnion:
+				opt.Free()
+			case *TableOptionEncryption:
+				opt.Free()
+			default:
+				if opt != nil {
+					panic(fmt.Sprintf("miss Free for %v", item))
+				}
+			}
+		}
+	}
+	*node = SubPartition{}
+}
+
+func (node *SubPartition) Free() {
+	reuse.Free[SubPartition](node, nil)
+}
+
+func NewSubPartition(n Identifier, o []TableOption) *SubPartition {
+	s := reuse.Alloc[SubPartition](nil)
+	s.Name = n
+	s.Options = o
+	return s
+}
+
 type ClusterByOption struct {
 	ColumnList []*UnresolvedName
 }
@@ -3672,6 +4022,60 @@ func (node RetentionOption) Format(ctx *FmtCtx) {
 
 func (node *RetentionOption) reset() {
 	*node = RetentionOption{}
+}
+
+type PartitionOption struct {
+	statementImpl
+	PartBy     *PartitionBy
+	SubPartBy  *PartitionBy
+	Partitions []*Partition
+}
+
+func (node *PartitionOption) Format(ctx *FmtCtx) {
+	ctx.WriteString("partition by ")
+	node.PartBy.Format(ctx)
+	if node.SubPartBy != nil {
+		ctx.WriteString(" subpartition by ")
+		node.SubPartBy.Format(ctx)
+	}
+	if node.Partitions != nil {
+		prefix := " ("
+		for _, p := range node.Partitions {
+			ctx.WriteString(prefix)
+			p.Format(ctx)
+			prefix = ", "
+		}
+		ctx.WriteByte(')')
+	}
+}
+
+func (node PartitionOption) TypeName() string { return "tree.PartitionOption" }
+
+func (node *PartitionOption) reset() {
+	if node.PartBy != nil {
+		node.PartBy.Free()
+	}
+	if node.SubPartBy != nil {
+		node.SubPartBy.Free()
+	}
+	if node.Partitions != nil {
+		for _, item := range node.Partitions {
+			item.Free()
+		}
+	}
+	*node = PartitionOption{}
+}
+
+func (node *PartitionOption) Free() {
+	reuse.Free[PartitionOption](node, nil)
+}
+
+func NewPartitionOption(pb *PartitionBy, spb *PartitionBy, parts []*Partition) *PartitionOption {
+	p := reuse.Alloc[PartitionOption](nil)
+	p.PartBy = pb
+	p.SubPartBy = spb
+	p.Partitions = parts
+	return p
 }
 
 type IndexCategory int
