@@ -744,3 +744,28 @@ func TestIssue19551(t *testing.T) {
 		},
 	)
 }
+
+func Test111(t *testing.T) {
+	xxx
+	embed.RunBaseClusterTests(
+		func(c embed.Cluster) {
+			cn, _ := c.GetCNService(0)
+			testutils.ExecSQL(
+				t,
+				"mo_catalog",
+				cn,
+				`
+				CREATE TABLE members (
+    firstname VARCHAR(25) NOT NULL,
+    lastname VARCHAR(25) NOT NULL,
+    username VARCHAR(16) NOT NULL,
+    email VARCHAR(35),
+    joined DATE NOT NULL
+)
+PARTITION BY KEY(joined, email)
+PARTITIONS 6;
+				`,
+			)
+		},
+	)
+}

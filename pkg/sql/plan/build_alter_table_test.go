@@ -14,7 +14,11 @@
 
 package plan
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/matrixorigin/matrixone/pkg/sql/parsers/dialect/mysql"
+)
 
 func TestAlterTable1(t *testing.T) {
 	//sql := "ALTER TABLE t1 ADD (d TIMESTAMP, e INT not null);"
@@ -39,4 +43,18 @@ func TestAlterTableAddColumns(t *testing.T) {
 		//`ALTER TABLE t2 ADD c INT PRIMARY KEY PRIMARY KEY PRIMARY KEY;`,
 	}
 	runTestShouldPass(mock, t, sqls, false, false)
+}
+
+func buildSingleStmt(opt Optimizer, t *testing.T, sql string) (*Plan, error) {
+	statements, err := mysql.Parse(opt.CurrentContext().GetContext(), sql, 1)
+	if err != nil {
+		return nil, err
+	}
+	// this sql always return single statement
+	context := opt.CurrentContext()
+	plan, err := BuildPlan(context, statements[0], false)
+	if plan != nil {
+		testDeepCopy(plan)
+	}
+	return plan, err
 }
