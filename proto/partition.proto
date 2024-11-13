@@ -31,11 +31,15 @@ enum PartitionMethod {
 }
 
 message PartitionMetadata {
-    PartitionMethod    Method     = 1;
-    string             Expression = 2;   
-    repeated Partition Partitions = 3 [(gogoproto.nullable) = false];
+    PartitionMethod    Method      = 1;
+    string             Description = 2;   
+    repeated string    Columns     = 3;
+    repeated Partition Partitions  = 4 [(gogoproto.nullable) = false];
 }
 
 message Partition {
-    string Name = 1;
+    string Name       = 1;
+    uint32 Position   = 2;
+    string Expression = 3;
+    string Comment    = 4;
 }

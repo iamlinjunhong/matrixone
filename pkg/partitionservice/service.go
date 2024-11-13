@@ -16,28 +16,136 @@ package partitionservice
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
+	"github.com/matrixorigin/matrixone/pkg/common/moerr"
+	"github.com/matrixorigin/matrixone/pkg/container/types"
+	"github.com/matrixorigin/matrixone/pkg/pb/partition"
+	"github.com/matrixorigin/matrixone/pkg/pb/plan"
+	"github.com/matrixorigin/matrixone/pkg/sql/parsers/dialect"
+	"github.com/matrixorigin/matrixone/pkg/sql/parsers/tree"
 	"github.com/matrixorigin/matrixone/pkg/txn/client"
-	"github.com/matrixorigin/matrixone/pkg/vm/engine"
 )
 
 type service struct {
-	engine engine.Engine
+	store PartitionStorage
 }
 
 func (s *service) Create(
 	ctx context.Context,
 	tableID uint64,
+	option *tree.PartitionOption,
 	txnOp client.TxnOperator,
 ) error {
-	_, _, _, err := s.engine.GetRelationById(
-		ctx,
-		txnOp,
-		tableID,
-	)
-	if err != nil {
-		return err
-	}
 
 	return nil
+}
+
+func (s *service) getMetadata(
+	ctx context.Context,
+	tableID uint64,
+	option *tree.PartitionOption,
+	txnOp client.TxnOperator,
+) (partition.PartitionMetadata, error) {
+	if option == nil || option.PartBy == nil {
+		panic("BUG: partition option is nil")
+	}
+	if option.PartBy.IsSubPartition {
+		return partition.PartitionMetadata{}, moerr.NewNotSupportedNoCtx("sub-partition is not supported")
+	}
+
+	def, err := s.store.GetTableDef(ctx, tableID, txnOp)
+	if err != nil {
+		return partition.PartitionMetadata{}, err
+	}
+
+	method := option.PartBy.PType
+	switch method.(type) {
+	case *tree.HashType:
+		return s.getMetadataByKeyType(
+			option,
+			def,
+		)
+	default:
+		panic("BUG: unsupported partition method")
+	}
+
+}
+
+func (s *service) getMetadataByKeyType(
+	option *tree.PartitionOption,
+	tableDefine *plan.TableDef,
+) (partition.PartitionMetadata, error) {
+	method := option.PartBy.PType.(*tree.HashType)
+	if option.PartBy.Num <= 0 {
+		return partition.PartitionMetadata{}, moerr.NewInvalidInputNoCtx("partition number is invalid")
+	}
+
+	columns, ok := method.Expr.(*tree.UnresolvedName)
+	if !ok {
+		return partition.PartitionMetadata{}, moerr.NewNotSupportedNoCtx("column expression is not supported")
+	}
+	if len(columns.CStrParts) != 1 {
+		return partition.PartitionMetadata{}, moerr.NewNotSupportedNoCtx("multi-column is not supported in HASH partition")
+	}
+	validColumns, err := validColumns(
+		columns,
+		tableDefine,
+		func(t plan.Type) bool {
+			return types.T(t.Id).IsInteger()
+		},
+	)
+	if err != nil {
+		return partition.PartitionMetadata{}, err
+	}
+
+	ctx := tree.NewFmtCtx(
+		dialect.MYSQL,
+		tree.WithQuoteString(true),
+	)
+	method.Expr.Format(ctx)
+
+	metadata := partition.PartitionMetadata{
+		Columns:     validColumns,
+		Description: ctx.String(),
+		Method:      partition.PartitionMethod_Hash,
+	}
+
+	for i := uint64(0); i < option.PartBy.Num; i++ {
+		metadata.Partitions = append(
+			metadata.Partitions,
+			partition.Partition{
+				Name: fmt.Sprintf("p%d", i),
+			},
+		)
+	}
+	return metadata, nil
+}
+
+func validColumns(
+	columns *tree.UnresolvedName,
+	tableDefine *plan.TableDef,
+	validType func(plan.Type) bool,
+) ([]string, error) {
+	validColumns := make([]string, 0, len(columns.CStrParts))
+	for _, v := range columns.CStrParts {
+		col := v.Compare()
+		valid := false
+		for _, c := range tableDefine.GetCols() {
+			if !strings.EqualFold(c.Name, col) {
+				continue
+			}
+
+			if !validType(c.Typ) {
+				return nil, moerr.NewNotSupportedNoCtx("column type is not supported in hash partition")
+			}
+			break
+		}
+		if !valid {
+			return nil, moerr.NewErrWrongColumnName(moerr.Context(), v.Origin())
+		}
+		validColumns = append(validColumns, col)
+	}
+	return validColumns, nil
 }

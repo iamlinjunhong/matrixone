@@ -739,8 +739,10 @@ func buildCreateTable(stmt *tree.CreateTable, ctx CompilerContext) (*Plan, error
 	}
 
 	if stmt.PartitionOption != nil {
-		xxx
-		fmt.Println()
+		ctx := tree.NewFmtCtx(dialect.MYSQL, tree.WithQuoteString(true))
+		stmt.PartitionOption.PartBy.PType.(*tree.HashType).Expr.Format(ctx)
+		v := ctx.String()
+		fmt.Println(v)
 	}
 
 	createTable := &plan.CreateTable{
