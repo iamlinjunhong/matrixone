@@ -19,6 +19,7 @@ import (
 	"fmt"
 
 	"github.com/matrixorigin/matrixone/pkg/catalog"
+	"github.com/matrixorigin/matrixone/pkg/pb/partition"
 	"github.com/matrixorigin/matrixone/pkg/pb/plan"
 	"github.com/matrixorigin/matrixone/pkg/sql/parsers/tree"
 	"github.com/matrixorigin/matrixone/pkg/txn/client"
@@ -63,6 +64,14 @@ type PartitionService interface {
 }
 
 type PartitionStorage interface {
+	Create(
+		ctx context.Context,
+		def *plan.TableDef,
+		metadata partition.PartitionMetadata,
+		partition partition.Partition,
+		txnOp client.TxnOperator,
+	) error
+
 	GetTableDef(
 		ctx context.Context,
 		tableID uint64,

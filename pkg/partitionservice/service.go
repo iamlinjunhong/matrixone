@@ -29,7 +29,18 @@ import (
 )
 
 type service struct {
+	sid   string
 	store PartitionStorage
+}
+
+func NewService(
+	sid string,
+	store PartitionStorage,
+) PartitionService {
+	return &service{
+		sid:   sid,
+		store: store,
+	}
 }
 
 func (s *service) Create(
@@ -38,13 +49,43 @@ func (s *service) Create(
 	option *tree.PartitionOption,
 	txnOp client.TxnOperator,
 ) error {
+	def, err := s.store.GetTableDef(
+		ctx,
+		tableID,
+		txnOp,
+	)
+	if err != nil {
+		return err
+	}
+
+	metadata, err := s.getMetadata(
+		ctx,
+		def,
+		option,
+		txnOp,
+	)
+	if err != nil {
+		return err
+	}
+
+	for _, p := range metadata.Partitions {
+		if err := s.store.Create(
+			ctx,
+			def,
+			metadata,
+			p,
+			txnOp,
+		); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
 
 func (s *service) getMetadata(
 	ctx context.Context,
-	tableID uint64,
+	def *plan.TableDef,
 	option *tree.PartitionOption,
 	txnOp client.TxnOperator,
 ) (partition.PartitionMetadata, error) {
@@ -53,11 +94,6 @@ func (s *service) getMetadata(
 	}
 	if option.PartBy.IsSubPartition {
 		return partition.PartitionMetadata{}, moerr.NewNotSupportedNoCtx("sub-partition is not supported")
-	}
-
-	def, err := s.store.GetTableDef(ctx, tableID, txnOp)
-	if err != nil {
-		return partition.PartitionMetadata{}, err
 	}
 
 	method := option.PartBy.PType
@@ -75,7 +111,7 @@ func (s *service) getMetadata(
 
 func (s *service) getMetadataByKeyType(
 	option *tree.PartitionOption,
-	tableDefine *plan.TableDef,
+	def *plan.TableDef,
 ) (partition.PartitionMetadata, error) {
 	method := option.PartBy.PType.(*tree.HashType)
 	if option.PartBy.Num <= 0 {
@@ -91,7 +127,7 @@ func (s *service) getMetadataByKeyType(
 	}
 	validColumns, err := validColumns(
 		columns,
-		tableDefine,
+		def,
 		func(t plan.Type) bool {
 			return types.T(t.Id).IsInteger()
 		},
@@ -107,6 +143,7 @@ func (s *service) getMetadataByKeyType(
 	method.Expr.Format(ctx)
 
 	metadata := partition.PartitionMetadata{
+		ID:          def.TblId,
 		Columns:     validColumns,
 		Description: ctx.String(),
 		Method:      partition.PartitionMethod_Hash,
@@ -116,7 +153,11 @@ func (s *service) getMetadataByKeyType(
 		metadata.Partitions = append(
 			metadata.Partitions,
 			partition.Partition{
-				Name: fmt.Sprintf("p%d", i),
+				Name:     fmt.Sprintf("p%d", i),
+				Position: uint32(i),
+				// TODO: ???
+				Expression: "",
+				Comment:    "",
 			},
 		)
 	}
