@@ -731,16 +731,12 @@ func (c *Compile) lockMetaTables() error {
 func (c *Compile) lockTable() error {
 	for _, tbl := range c.lockTables {
 		typ := plan2.MakeTypeByPlan2Type(tbl.PrimaryColTyp)
-		err := lockop.LockTable(
+		return lockop.LockTable(
 			c.e,
 			c.proc,
 			tbl.TableId,
 			typ,
-			false,
-		)
-		if err != nil {
-			return err
-		}
+			false)
 	}
 	return nil
 }
@@ -3874,6 +3870,9 @@ func collectTombstones(
 	node *plan.Node,
 	rel engine.Relation,
 ) (engine.Tombstoner, error) {
+	var err error
+	//var relData engine.RelData
+	var tombstone engine.Tombstoner
 	var txnOp client.TxnOperator
 
 	//-----------------------------------------------------------------------------------------------------
@@ -3907,10 +3906,6 @@ func collectTombstones(
 		ctx = defines.AttachAccountId(ctx, catalog.System_Account)
 	}
 
-	db, err = c.e.Database(ctx, node.ObjRef.SchemaName, txnOp)
-	if err != nil {
-		return nil, err
-	}
 	tombstone, err = rel.CollectTombstones(ctx, c.TxnOffset, engine.Policy_CollectAllTombstones)
 	if err != nil {
 		return nil, err
@@ -3942,6 +3937,7 @@ func (c *Compile) expandRanges(
 	if err != nil {
 		return nil, err
 	}
+	//tombstones, err := rel.CollectTombstones(ctx, c.TxnOffset)
 
 	return relData, nil
 

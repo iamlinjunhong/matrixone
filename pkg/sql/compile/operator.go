@@ -745,7 +745,14 @@ func constructLockOp(n *plan.Node, eng engine.Engine) (*lockop.LockOp, error) {
 	arg := lockop.NewArgumentByEngine(eng)
 	for _, target := range n.LockTargets {
 		typ := plan2.MakeTypeByPlan2Type(target.PrimaryColTyp)
-		arg.AddLockTarget(target.GetTableId(), target.GetPrimaryColIdxInBat(), typ, target.GetRefreshTsIdxInBat(), target.GetLockRows(), target.GetLockTableAtTheEnd())
+		arg.AddLockTarget(
+			target.GetTableId(),
+			target.GetPrimaryColIdxInBat(),
+			typ,
+			target.GetRefreshTsIdxInBat(),
+			target.GetLockRows(),
+			target.GetLockTableAtTheEnd(),
+		)
 	}
 	for _, target := range n.LockTargets {
 		if target.LockTable {
@@ -773,14 +780,10 @@ func constructMultiUpdate(n *plan.Node, eg engine.Engine) *multi_update.MultiUpd
 		}
 
 		arg.MultiUpdateCtx[i] = &multi_update.MultiUpdateCtx{
-			ObjRef:              updateCtx.ObjRef,
-			TableDef:            updateCtx.TableDef,
-			InsertCols:          insertCols,
-			DeleteCols:          deleteCols,
-			PartitionTableIDs:   updateCtx.PartitionTableIds,
-			PartitionTableNames: updateCtx.PartitionTableNames,
-			OldPartitionIdx:     int(updateCtx.OldPartitionIdx),
-			NewPartitionIdx:     int(updateCtx.NewPartitionIdx),
+			ObjRef:     updateCtx.ObjRef,
+			TableDef:   updateCtx.TableDef,
+			InsertCols: insertCols,
+			DeleteCols: deleteCols,
 		}
 	}
 

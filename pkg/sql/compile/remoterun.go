@@ -834,12 +834,8 @@ func convertToPipelineInstruction(op vm.Operator, proc *process.Process, ctx *sc
 		updateCtxList := make([]*plan.UpdateCtx, len(t.MultiUpdateCtx))
 		for i, muCtx := range t.MultiUpdateCtx {
 			updateCtxList[i] = &plan.UpdateCtx{
-				ObjRef:              muCtx.ObjRef,
-				TableDef:            muCtx.TableDef,
-				PartitionTableIds:   muCtx.PartitionTableIDs,
-				PartitionTableNames: muCtx.PartitionTableNames,
-				OldPartitionIdx:     int32(muCtx.OldPartitionIdx),
-				NewPartitionIdx:     int32(muCtx.NewPartitionIdx),
+				ObjRef:   muCtx.ObjRef,
+				TableDef: muCtx.TableDef,
 			}
 
 			updateCtxList[i].InsertCols = make([]plan.ColRef, len(muCtx.InsertCols))
@@ -1360,12 +1356,8 @@ func convertToVmOperator(opr *pipeline.Instruction, ctx *scopeContext, eng engin
 		for i, muCtx := range t.UpdateCtxList {
 
 			arg.MultiUpdateCtx[i] = &multi_update.MultiUpdateCtx{
-				ObjRef:              muCtx.ObjRef,
-				TableDef:            muCtx.TableDef,
-				PartitionTableIDs:   muCtx.PartitionTableIds,
-				PartitionTableNames: muCtx.PartitionTableNames,
-				OldPartitionIdx:     int(muCtx.OldPartitionIdx),
-				NewPartitionIdx:     int(muCtx.NewPartitionIdx),
+				ObjRef:   muCtx.ObjRef,
+				TableDef: muCtx.TableDef,
 			}
 
 			arg.MultiUpdateCtx[i].InsertCols = make([]int, len(muCtx.InsertCols))

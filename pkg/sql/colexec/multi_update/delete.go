@@ -72,7 +72,7 @@ func (update *MultiUpdate) delete_table(
 			}
 		}
 	}
-	rowCount := deleteBatch.Vecs[0].Length()
+	rowCount = deleteBatch.Vecs[0].Length()
 	if rowCount > 0 {
 		deleteBatch.SetRowCount(rowCount)
 		tableType := update.ctr.updateCtxInfos[updateCtx.TableDef.Name].tableType
@@ -89,7 +89,6 @@ func (update *MultiUpdate) delete_table(
 		analyzer.AddS3RequestCount(crs)
 		analyzer.AddDiskIO(crs)
 	}
-	err = updateCtx.source.Delete(proc.Ctx, deleteBatch, catalog.Row_ID)
 
 	return
 }

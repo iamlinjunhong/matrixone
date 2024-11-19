@@ -2710,3 +2710,11 @@ func getLockTableAtTheEnd(tableDef *TableDef) bool {
 	}
 	return !strings.HasPrefix(tableDef.Name, catalog.IndexTableNamePrefix)
 }
+
+func onlyHasHiddenPrimaryKey(tableDef *TableDef) bool {
+	if tableDef == nil {
+		return false
+	}
+	pk := tableDef.GetPkey()
+	return pk != nil && pk.GetPkeyColName() == catalog.FakePrimaryKeyColName
+}

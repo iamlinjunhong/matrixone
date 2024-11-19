@@ -84,7 +84,6 @@ func (builder *QueryBuilder) appendDedupAndMultiUpdateNodesForBindInsert(
 	var err error
 	selectNode := builder.qry.Nodes[lastNodeID]
 	selectNodeTag := selectNode.BindingTags[0]
-	partitionExprIdx := int32(len(selectNode.ProjectList) - 1)
 	idxObjRefs := make([][]*plan.ObjectRef, len(dmlCtx.tableDefs))
 	idxTableDefs := make([][]*plan.TableDef, len(dmlCtx.tableDefs))
 
@@ -111,13 +110,6 @@ func (builder *QueryBuilder) appendDedupAndMultiUpdateNodesForBindInsert(
 				PrimaryColIdxInBat: int32(colName2Idx[mainTableDef.Name+"."+col.Name]),
 				PrimaryColRelPos:   selectNodeTag,
 				PrimaryColTyp:      col.Typ,
-			}
-			if mainTableDef.Partition != nil {
-				partitionTableIDs, _ := getPartitionInfos(builder.compCtx, dmlCtx.objRefs[0], mainTableDef)
-				lockTarget.IsPartitionTable = true
-				lockTarget.PartitionTableIds = partitionTableIDs
-				lockTarget.FilterColIdxInBat = partitionExprIdx
-				lockTarget.FilterColRelPos = selectNodeTag
 			}
 			lockTargets = append(lockTargets, lockTarget)
 			break
@@ -401,18 +393,9 @@ func (builder *QueryBuilder) appendDedupAndMultiUpdateNodesForBindInsert(
 	for i, tableDef := range dmlCtx.tableDefs {
 		insertCols := make([]plan.ColRef, len(tableDef.Cols)-1)
 		updateCtx := &plan.UpdateCtx{
-			ObjRef:          dmlCtx.objRefs[i],
-			TableDef:        tableDef,
-			InsertCols:      insertCols,
-			OldPartitionIdx: -1,
-			NewPartitionIdx: -1,
-		}
-		if tableDef.Partition != nil {
-			partitionTableIDs, partitionTableNames := getPartitionInfos(builder.compCtx, dmlCtx.objRefs[i], tableDef)
-			updateCtx.NewPartitionIdx = partitionExprIdx
-			updateCtx.PartitionTableIds = partitionTableIDs
-			updateCtx.PartitionTableNames = partitionTableNames
-			dmlNode.BindingTags = append(dmlNode.BindingTags, selectNodeTag)
+			ObjRef:     dmlCtx.objRefs[i],
+			TableDef:   tableDef,
+			InsertCols: insertCols,
 		}
 
 		for k, col := range tableDef.Cols {
@@ -440,11 +423,9 @@ func (builder *QueryBuilder) appendDedupAndMultiUpdateNodesForBindInsert(
 			}
 
 			dmlNode.UpdateCtxList = append(dmlNode.UpdateCtxList, &plan.UpdateCtx{
-				ObjRef:          idxObjRefs[i][j],
-				TableDef:        idxTableDef,
-				InsertCols:      idxInsertCols,
-				OldPartitionIdx: -1,
-				NewPartitionIdx: -1,
+				ObjRef:     idxObjRefs[i][j],
+				TableDef:   idxTableDef,
+				InsertCols: idxInsertCols,
 			})
 		}
 
@@ -769,14 +750,6 @@ func (builder *QueryBuilder) appendNodesForInsertStmt(
 			},
 			BindingTags: []int32{preInsertTag},
 		}, tmpCtx)
-	}
-
-	if tableDef.Partition != nil {
-		partitionExpr, err := getRemapParitionExpr(tableDef, projTag1, colName2Idx, true)
-		if err != nil {
-			return 0, nil, nil, err
-		}
-		projList2 = append(projList2, partitionExpr)
 	}
 
 	lastNodeID = builder.appendNode(&plan.Node{

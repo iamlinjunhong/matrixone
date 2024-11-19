@@ -153,7 +153,6 @@ func (update *MultiUpdate) insert_table(
 		analyzer.AddS3RequestCount(crs)
 		analyzer.AddDiskIO(crs)
 	}
-	err = updateCtx.source.Write(proc.Ctx, insertBatch)
 	return
 }
 
@@ -203,7 +202,5 @@ func (update *MultiUpdate) check_null_and_insert_table(
 		analyzer.AddS3RequestCount(crs)
 		analyzer.AddDiskIO(crs)
 	}
-
-	err = updateCtx.source.Write(proc.Ctx, insertBatch)
 	return
 }

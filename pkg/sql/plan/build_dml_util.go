@@ -21,6 +21,8 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
+	"golang.org/x/exp/slices"
+
 	"github.com/matrixorigin/matrixone/pkg/catalog"
 	"github.com/matrixorigin/matrixone/pkg/common/moerr"
 	moruntime "github.com/matrixorigin/matrixone/pkg/common/runtime"
@@ -33,7 +35,6 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/txn/trace"
 	"github.com/matrixorigin/matrixone/pkg/util/executor"
 	"github.com/matrixorigin/matrixone/pkg/util/sysview"
-	"golang.org/x/exp/slices"
 )
 
 // TODO: choose either PostInsertFullText or PreInsertFullText
@@ -97,6 +98,11 @@ type dmlPlanCtx struct {
 	isDeleteWithoutFilters bool
 }
 
+type partSubTableInfo struct {
+	partTableIDs   []uint64 // Align array index with the partition number
+	partTableNames []string // Align partition subtable names with partition numbers
+}
+
 // information of deleteNode, which is about the deleted table
 type deleteNodeInfo struct {
 	objRef          *ObjectRef
@@ -122,6 +128,7 @@ func buildInsertPlans(
 	var err error
 	var insertColsNameFromStmt []string
 	var pkFilterExpr []*Expr
+	var newPartitionExpr *Expr
 	if stmt != nil {
 		insertColsNameFromStmt, err = getInsertColsFromStmt(ctx.GetContext(), stmt, tableDef)
 		if err != nil {
@@ -131,6 +138,8 @@ func buildInsertPlans(
 		// try to build pk filter epxr for origin table
 		if canUsePkFilter(builder, ctx, stmt, tableDef, insertColsNameFromStmt, nil) {
 			pkLocationMap := newLocationMap(tableDef, nil)
+			// The insert statement subplan with a primary key has undergone manual column pruning in advance,
+			// so the partition expression needs to be remapped and judged whether partition pruning can be performed
 			if pkFilterExpr, err = getPkValueExpr(builder, ctx, tableDef, pkLocationMap, insertColsNameFromStmt); err != nil {
 				return err
 			}
@@ -153,7 +162,8 @@ func buildInsertPlans(
 	var indexSourceColTypes []*plan.Type
 	var fuzzymessage *OriginTableMessageForFuzzy
 	return buildInsertPlansWithRelatedHiddenTable(stmt, ctx, builder, insertBindCtx, objRef, tableDef,
-		updateColLength, sourceStep, addAffectedRows, isFkRecursionCall, updatePkCol, pkFilterExpr, ifExistAutoPkCol, ifNeedCheckPkDup, indexSourceColTypes, fuzzymessage, insertWithoutUniqueKeyMap, ifInsertFromUniqueColMap)
+		updateColLength, sourceStep, addAffectedRows, isFkRecursionCall, updatePkCol, pkFilterExpr,
+		newPartitionExpr, ifExistAutoPkCol, ifNeedCheckPkDup, indexSourceColTypes, fuzzymessage, insertWithoutUniqueKeyMap, ifInsertFromUniqueColMap)
 }
 
 // buildUpdatePlans  build update plan.
@@ -230,13 +240,14 @@ func buildUpdatePlans(ctx CompilerContext, builder *QueryBuilder, bindCtx *BindC
 
 	// build insert plan.
 	insertBindCtx := NewBindContext(builder, nil)
+	var partitionExpr *Expr
 	ifExistAutoPkCol := false
 	ifNeedCheckPkDup := true
 	var indexSourceColTypes []*plan.Type
 	var fuzzymessage *OriginTableMessageForFuzzy
 	return buildInsertPlansWithRelatedHiddenTable(nil, ctx, builder, insertBindCtx, updatePlanCtx.objRef, updatePlanCtx.tableDef,
 		updatePlanCtx.updateColLength, sourceStep, addAffectedRows, updatePlanCtx.isFkRecursionCall, updatePlanCtx.updatePkCol,
-		updatePlanCtx.pkFilterExprs, ifExistAutoPkCol, ifNeedCheckPkDup, indexSourceColTypes, fuzzymessage, nil, nil)
+		updatePlanCtx.pkFilterExprs, partitionExpr, ifExistAutoPkCol, ifNeedCheckPkDup, indexSourceColTypes, fuzzymessage, nil, nil)
 }
 
 func getStepByNodeId(builder *QueryBuilder, nodeId int32) int {
@@ -332,9 +343,8 @@ func buildDeletePlans(ctx CompilerContext, builder *QueryBuilder, bindCtx *BindC
 
 	// delete origin table
 	lastNodeId := appendSinkScanNode(builder, bindCtx, delCtx.sourceStep)
-	partExprIdx := -1
 	pkPos, pkTyp := getPkPos(delCtx.tableDef, false)
-	delNodeInfo := makeDeleteNodeInfo(ctx, delCtx.objRef, delCtx.tableDef, delCtx.rowIdPos, partExprIdx, true, pkPos, pkTyp, delCtx.lockTable)
+	delNodeInfo := makeDeleteNodeInfo(ctx, delCtx.objRef, delCtx.tableDef, delCtx.rowIdPos, true, pkPos, pkTyp, delCtx.lockTable)
 	lastNodeId, err = makeOneDeletePlan(builder, bindCtx, lastNodeId, delNodeInfo, false, false, canTruncate)
 	putDeleteNodeInfo(delNodeInfo)
 	if err != nil {
@@ -794,7 +804,7 @@ func appendAggNodeForFkJoin(builder *QueryBuilder, bindCtx *BindContext, lastNod
 func buildInsertPlansWithRelatedHiddenTable(
 	stmt *tree.Insert, ctx CompilerContext, builder *QueryBuilder, bindCtx *BindContext, objRef *ObjectRef,
 	tableDef *TableDef, updateColLength int, sourceStep int32, addAffectedRows bool, isFkRecursionCall bool,
-	updatePkCol bool, pkFilterExprs []*Expr, ifExistAutoPkCol bool,
+	updatePkCol bool, pkFilterExprs []*Expr, partitionExpr *Expr, ifExistAutoPkCol bool,
 	checkInsertPkDupForHiddenIndexTable bool, indexSourceColTypes []*plan.Type, fuzzymessage *OriginTableMessageForFuzzy,
 	insertWithoutUniqueKeyMap map[string]bool, ifInsertFromUniqueColMap map[string]bool,
 ) error {
@@ -1199,7 +1209,7 @@ func isMultiplePriKey(indexdef *plan.IndexDef) bool {
 
 // makeDeleteNodeInfo Get `DeleteNode` based on TableDef
 func makeDeleteNodeInfo(ctx CompilerContext, objRef *ObjectRef, tableDef *TableDef,
-	deleteIdx int, partitionIdx int, addAffectedRows bool, pkPos int, pkTyp Type, lockTable bool) *deleteNodeInfo {
+	deleteIdx int, addAffectedRows bool, pkPos int, pkTyp Type, lockTable bool) *deleteNodeInfo {
 	delNodeInfo := getDeleteNodeInfo()
 	delNodeInfo.objRef = objRef
 	delNodeInfo.tableDef = tableDef
@@ -1732,6 +1742,7 @@ func appendPreInsertNode(builder *QueryBuilder, bindCtx *BindContext,
 		tableDef.Cols = append(tableDef.Cols, tableDef.ClusterBy.CompCbkeyCol)
 	}
 
+	// append project node
 	if !isUpdate {
 		if lockNodeId, ok := appendLockNode(
 			builder,
@@ -2914,6 +2925,17 @@ func resetPartitionExprPos(expr *Expr, tableDef *TableDef, updateColPos map[stri
 	resetColPos(expr, colPos)
 }
 
+// func getColPos(expr *Expr, colPos map[int32]int32) {
+// 	switch e := expr.Expr.(type) {
+// 	case *plan.Expr_Col:
+// 		colPos[e.Col.ColPos] = 0
+// 	case *plan.Expr_F:
+// 		for _, arg := range e.F.Args {
+// 			getColPos(arg, colPos)
+// 		}
+// 	}
+// }
+
 func resetColPos(expr *Expr, colPos map[int32]int32) {
 	switch e := expr.Expr.(type) {
 	case *plan.Expr_Col:
@@ -3538,7 +3560,16 @@ func buildDeleteMultiTableIndexes(ctx CompilerContext, builder *QueryBuilder, bi
 				{
 					//sink_scan -> lock -> delete
 					lastNodeId = appendSinkScanNode(builder, bindCtx, newSourceStep)
-					delNodeInfo := makeDeleteNodeInfo(builder.compCtx, entriesObjRef, entriesTableDef, entriesDeleteIdx, -1, false, entriesTblPkPos, entriesTblPkTyp, delCtx.lockTable)
+					delNodeInfo := makeDeleteNodeInfo(
+						builder.compCtx,
+						entriesObjRef,
+						entriesTableDef,
+						entriesDeleteIdx,
+						false,
+						entriesTblPkPos,
+						entriesTblPkTyp,
+						delCtx.lockTable,
+					)
 					lastNodeId, err = makeOneDeletePlan(builder, bindCtx, lastNodeId, delNodeInfo, false, true, false)
 					putDeleteNodeInfo(delNodeInfo)
 					if err != nil {
@@ -3613,7 +3644,7 @@ func buildDeleteMultiTableIndexes(ctx CompilerContext, builder *QueryBuilder, bi
 
 			} else {
 				// it's more simple for delete hidden unique table .so we append nodes after the plan. not recursive call buildDeletePlans
-				delNodeInfo := makeDeleteNodeInfo(builder.compCtx, entriesObjRef, entriesTableDef, entriesDeleteIdx, -1, false, entriesTblPkPos, entriesTblPkTyp, delCtx.lockTable)
+				delNodeInfo := makeDeleteNodeInfo(builder.compCtx, entriesObjRef, entriesTableDef, entriesDeleteIdx, false, entriesTblPkPos, entriesTblPkTyp, delCtx.lockTable)
 				lastNodeId, err = makeOneDeletePlan(builder, bindCtx, lastNodeId, delNodeInfo, false, true, false)
 				putDeleteNodeInfo(delNodeInfo)
 				if err != nil {
@@ -3818,7 +3849,7 @@ func buildDeleteRegularIndex(ctx CompilerContext, builder *QueryBuilder, bindCtx
 		{
 			//sink_scan -> lock -> delete
 			lastNodeId = appendSinkScanNode(builder, bindCtx, newSourceStep)
-			delNodeInfo := makeDeleteNodeInfo(builder.compCtx, uniqueObjRef, uniqueTableDef, uniqueDeleteIdx, -1, false, uniqueTblPkPos, uniqueTblPkTyp, delCtx.lockTable)
+			delNodeInfo := makeDeleteNodeInfo(builder.compCtx, uniqueObjRef, uniqueTableDef, uniqueDeleteIdx, false, uniqueTblPkPos, uniqueTblPkTyp, delCtx.lockTable)
 			lastNodeId, err = makeOneDeletePlan(builder, bindCtx, lastNodeId, delNodeInfo, isUk, isSK, false)
 			putDeleteNodeInfo(delNodeInfo)
 			if err != nil {
@@ -3880,7 +3911,7 @@ func buildDeleteRegularIndex(ctx CompilerContext, builder *QueryBuilder, bindCtx
 		}
 	} else {
 		// it's more simple for delete hidden unique table .so we append nodes after the plan. not recursive call buildDeletePlans
-		delNodeInfo := makeDeleteNodeInfo(builder.compCtx, uniqueObjRef, uniqueTableDef, uniqueDeleteIdx, -1, false, uniqueTblPkPos, uniqueTblPkTyp, delCtx.lockTable)
+		delNodeInfo := makeDeleteNodeInfo(builder.compCtx, uniqueObjRef, uniqueTableDef, uniqueDeleteIdx, false, uniqueTblPkPos, uniqueTblPkTyp, delCtx.lockTable)
 		lastNodeId, err = makeOneDeletePlan(builder, bindCtx, lastNodeId, delNodeInfo, isUk, isSK, false)
 		putDeleteNodeInfo(delNodeInfo)
 		if err != nil {
@@ -3931,7 +3962,7 @@ func buildDeleteMasterIndex(ctx CompilerContext, builder *QueryBuilder, bindCtx 
 		{
 			//sink_scan -> lock -> delete
 			lastNodeId = appendSinkScanNode(builder, bindCtx, newSourceStep)
-			delNodeInfo := makeDeleteNodeInfo(builder.compCtx, masterObjRef, masterTableDef, masterDeleteIdx, -1, false, masterTblPkPos, masterTblPkTyp, delCtx.lockTable)
+			delNodeInfo := makeDeleteNodeInfo(builder.compCtx, masterObjRef, masterTableDef, masterDeleteIdx, false, masterTblPkPos, masterTblPkTyp, delCtx.lockTable)
 			lastNodeId, err = makeOneDeletePlan(builder, bindCtx, lastNodeId, delNodeInfo, false, true, false)
 			putDeleteNodeInfo(delNodeInfo)
 			if err != nil {
@@ -4014,7 +4045,7 @@ func buildDeleteMasterIndex(ctx CompilerContext, builder *QueryBuilder, bindCtx 
 
 	} else {
 		// it's more simple for delete hidden unique table .so we append nodes after the plan. not recursive call buildDeletePlans
-		delNodeInfo := makeDeleteNodeInfo(builder.compCtx, masterObjRef, masterTableDef, masterDeleteIdx, -1, false, masterTblPkPos, masterTblPkTyp, delCtx.lockTable)
+		delNodeInfo := makeDeleteNodeInfo(builder.compCtx, masterObjRef, masterTableDef, masterDeleteIdx, false, masterTblPkPos, masterTblPkTyp, delCtx.lockTable)
 		lastNodeId, err = makeOneDeletePlan(builder, bindCtx, lastNodeId, delNodeInfo, false, true, false)
 		putDeleteNodeInfo(delNodeInfo)
 		if err != nil {
@@ -4549,7 +4580,7 @@ func buildPreDeleteFullTextIndex(ctx CompilerContext, builder *QueryBuilder, bin
 	}
 
 	// delete
-	delNodeInfo := makeDeleteNodeInfo(builder.compCtx, indexObjRef, indexTableDef, deleteIdx, -1, false, pkPos, pkTyp, delCtx.lockTable)
+	delNodeInfo := makeDeleteNodeInfo(builder.compCtx, indexObjRef, indexTableDef, deleteIdx, false, pkPos, pkTyp, delCtx.lockTable)
 	lastNodeId, err = makeOneDeletePlan(builder, bindCtx, lastNodeId, delNodeInfo, false, true, false)
 	putDeleteNodeInfo(delNodeInfo)
 	if err != nil {
