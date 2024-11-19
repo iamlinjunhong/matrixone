@@ -59,10 +59,8 @@ func (s *service) Create(
 	}
 
 	metadata, err := s.getMetadata(
-		ctx,
 		def,
 		option,
-		txnOp,
 	)
 	if err != nil {
 		return err
@@ -84,10 +82,8 @@ func (s *service) Create(
 }
 
 func (s *service) getMetadata(
-	ctx context.Context,
 	def *plan.TableDef,
 	option *tree.PartitionOption,
-	txnOp client.TxnOperator,
 ) (partition.PartitionMetadata, error) {
 	if option == nil || option.PartBy == nil {
 		panic("BUG: partition option is nil")
@@ -122,7 +118,7 @@ func (s *service) getMetadataByKeyType(
 	if !ok {
 		return partition.PartitionMetadata{}, moerr.NewNotSupportedNoCtx("column expression is not supported")
 	}
-	if len(columns.CStrParts) != 1 {
+	if columns.NumParts != 1 {
 		return partition.PartitionMetadata{}, moerr.NewNotSupportedNoCtx("multi-column is not supported in HASH partition")
 	}
 	validColumns, err := validColumns(
@@ -169,21 +165,23 @@ func validColumns(
 	tableDefine *plan.TableDef,
 	validType func(plan.Type) bool,
 ) ([]string, error) {
-	validColumns := make([]string, 0, len(columns.CStrParts))
-	for _, v := range columns.CStrParts {
+	validColumns := make([]string, 0, columns.NumParts)
+	for i := 0; i < columns.NumParts; i++ {
+		v := columns.CStrParts[i]
 		col := v.Compare()
-		valid := false
+		has := false
 		for _, c := range tableDefine.GetCols() {
 			if !strings.EqualFold(c.Name, col) {
 				continue
 			}
 
+			has = true
 			if !validType(c.Typ) {
 				return nil, moerr.NewNotSupportedNoCtx("column type is not supported in hash partition")
 			}
 			break
 		}
-		if !valid {
+		if !has {
 			return nil, moerr.NewErrWrongColumnName(moerr.Context(), v.Origin())
 		}
 		validColumns = append(validColumns, col)

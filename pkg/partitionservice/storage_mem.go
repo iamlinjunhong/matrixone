@@ -29,6 +29,7 @@ import (
 
 type MemPartitionStorage struct {
 	sync.RWMutex
+	id          uint64
 	committed   map[uint64]*partitionTable
 	uncommitted map[uint64]*partitionTable
 	kv          *mem.KV
@@ -38,6 +39,7 @@ func NewMemPartitionStorage(
 	logger *log.MOLogger,
 ) PartitionStorage {
 	s := &MemPartitionStorage{
+		id:          10000,
 		committed:   make(map[uint64]*partitionTable),
 		uncommitted: make(map[uint64]*partitionTable),
 		kv:          mem.NewKV(),
@@ -73,7 +75,7 @@ func (s *MemPartitionStorage) Create(
 ) error {
 	s.Lock()
 	defer s.Unlock()
-
+	p.PartitionID = s.id
 	if v, ok := s.uncommitted[def.TblId]; !ok {
 		s.uncommitted[def.TblId] = &partitionTable{
 			metadata:   metadata,
@@ -81,6 +83,7 @@ func (s *MemPartitionStorage) Create(
 			partitions: []partition.Partition{p},
 		}
 	} else {
+		v.metadata = metadata
 		v.partitions = append(v.partitions, p)
 	}
 
@@ -100,6 +103,17 @@ func (s *MemPartitionStorage) Create(
 		},
 	)
 	return nil
+}
+
+func (s *MemPartitionStorage) addUncommittedTable(
+	def *plan.TableDef,
+) {
+	s.Lock()
+	defer s.Unlock()
+
+	s.uncommitted[def.TblId] = &partitionTable{
+		def: def,
+	}
 }
 
 type partitionTable struct {

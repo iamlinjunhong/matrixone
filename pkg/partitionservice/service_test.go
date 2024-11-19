@@ -15,19 +15,110 @@
 package partitionservice
 
 import (
+	"context"
 	"testing"
+	"time"
 
 	"github.com/matrixorigin/matrixone/pkg/common/runtime"
+	"github.com/matrixorigin/matrixone/pkg/container/types"
+	"github.com/matrixorigin/matrixone/pkg/sql/parsers/tree"
+	"github.com/matrixorigin/matrixone/pkg/sql/plan"
+	"github.com/matrixorigin/matrixone/pkg/txn/client"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateHash(t *testing.T) {
+	num := uint64(2)
+	tableID := uint64(1)
+	columns := []string{"a"}
+	allowedT := []types.T{
+		types.T_int8,
+		types.T_int16,
+		types.T_int32,
+		types.T_int64,
+		types.T_uint8,
+		types.T_uint16,
+		types.T_uint32,
+		types.T_uint64,
+	}
+
+	for _, v := range allowedT {
+		runTestPartitionServiceTest(
+			func(
+				ctx context.Context,
+				txnOp client.TxnOperator,
+				s *service,
+				store *MemPartitionStorage,
+			) {
+				def := newTestTableDefine(1, columns, []types.T{v})
+				store.addUncommittedTable(def)
+
+				option := newTestHashOption(columns[0], num)
+				assert.NoError(t, s.Create(ctx, tableID, option, txnOp))
+
+				v, ok := store.uncommitted[tableID]
+				assert.True(t, ok)
+				assert.Equal(t, columns[0], v.metadata.Description)
+				assert.Equal(t, 2, len(v.partitions))
+				for _, p := range v.partitions {
+					assert.NotEqual(t, 0, p.PartitionID)
+				}
+			},
+		)
+	}
 
 }
 
 func runTestPartitionServiceTest(
-	fn func(s *service),
+	fn func(
+		ctx context.Context,
+		txnOp client.TxnOperator,
+		s *service,
+		store *MemPartitionStorage,
+	),
 ) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	txnOp, close := client.NewTestTxnOperator(ctx)
+	defer close()
+
 	store := NewMemPartitionStorage(runtime.ServiceRuntime("").Logger())
 	s := NewService("", store)
-	fn(s.(*service))
+	fn(ctx, txnOp, s.(*service), store.(*MemPartitionStorage))
+}
+
+func newTestTableDefine(
+	id uint64,
+	columns []string,
+	types []types.T,
+) *plan.TableDef {
+	def := &plan.TableDef{
+		TblId: id,
+	}
+
+	for idx, col := range columns {
+		def.Cols = append(
+			def.Cols,
+			&plan.ColDef{
+				Name: col,
+				Typ:  plan.Type{Id: int32(types[idx])},
+			},
+		)
+	}
+	return def
+}
+
+func newTestHashOption(
+	column string,
+	num uint64,
+) *tree.PartitionOption {
+	return &tree.PartitionOption{
+		PartBy: &tree.PartitionBy{
+			PType: &tree.HashType{
+				Expr: tree.NewUnresolvedColName(column),
+			},
+			Num: num,
+		},
+	}
 }
