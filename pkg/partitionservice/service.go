@@ -95,7 +95,7 @@ func (s *service) getMetadata(
 	method := option.PartBy.PType
 	switch method.(type) {
 	case *tree.HashType:
-		return s.getMetadataByKeyType(
+		return s.getMetadataByHashType(
 			option,
 			def,
 		)
@@ -103,6 +103,61 @@ func (s *service) getMetadata(
 		panic("BUG: unsupported partition method")
 	}
 
+}
+
+func (s *service) getMetadataByHashType(
+	option *tree.PartitionOption,
+	def *plan.TableDef,
+) (partition.PartitionMetadata, error) {
+	method := option.PartBy.PType.(*tree.HashType)
+	if option.PartBy.Num <= 0 {
+		return partition.PartitionMetadata{}, moerr.NewInvalidInputNoCtx("partition number is invalid")
+	}
+
+	columns, ok := method.Expr.(*tree.UnresolvedName)
+	if !ok {
+		return partition.PartitionMetadata{}, moerr.NewNotSupportedNoCtx("column expression is not supported")
+	}
+	if columns.NumParts != 1 {
+		return partition.PartitionMetadata{}, moerr.NewNotSupportedNoCtx("multi-column is not supported in HASH partition")
+	}
+	validColumns, err := validColumns(
+		columns,
+		def,
+		func(t plan.Type) bool {
+			return types.T(t.Id).IsInteger()
+		},
+	)
+	if err != nil {
+		return partition.PartitionMetadata{}, err
+	}
+
+	ctx := tree.NewFmtCtx(
+		dialect.MYSQL,
+		tree.WithQuoteString(true),
+	)
+	method.Expr.Format(ctx)
+
+	metadata := partition.PartitionMetadata{
+		ID:          def.TblId,
+		Columns:     validColumns,
+		Description: ctx.String(),
+		Method:      partition.PartitionMethod_Hash,
+	}
+
+	for i := uint64(0); i < option.PartBy.Num; i++ {
+		metadata.Partitions = append(
+			metadata.Partitions,
+			partition.Partition{
+				Name:     fmt.Sprintf("p%d", i),
+				Position: uint32(i),
+				// TODO: ???
+				Expression: "",
+				Comment:    "",
+			},
+		)
+	}
+	return metadata, nil
 }
 
 func (s *service) getMetadataByKeyType(

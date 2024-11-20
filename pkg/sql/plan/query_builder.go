@@ -1352,6 +1352,8 @@ func (builder *QueryBuilder) remapAllColRefs(nodeID int32, step int32, colRefCnt
 	case plan.Node_LOCK_OP:
 		preNode := builder.qry.Nodes[node.Children[0]]
 
+		var pkExprs []*plan.Expr
+		var oldPkPos [][2]int32
 		for _, lockTarget := range node.LockTargets {
 			pkExpr := &plan.Expr{
 				// Typ: node.LockTargets[0].GetPrimaryColTyp(),
@@ -1363,11 +1365,22 @@ func (builder *QueryBuilder) remapAllColRefs(nodeID int32, step int32, colRefCnt
 				},
 			}
 			increaseRefCnt(pkExpr, 1, colRefCnt)
+
+			pkExprs = append(pkExprs, pkExpr)
+			oldPkPos = append(oldPkPos, [2]int32{lockTarget.PrimaryColRelPos, lockTarget.PrimaryColIdxInBat})
 		}
 
 		childRemapping, err := builder.remapAllColRefs(node.Children[0], step, colRefCnt, colRefBool, sinkColRef)
 		if err != nil {
 			return nil, err
+		}
+
+		for pkIdx, pkExpr := range pkExprs {
+			if newPos, ok := childRemapping.globalToLocal[oldPkPos[pkIdx]]; ok {
+				node.LockTargets[pkIdx].PrimaryColRelPos = newPos[0]
+				node.LockTargets[pkIdx].PrimaryColIdxInBat = newPos[1]
+			}
+			increaseRefCnt(pkExpr, -1, colRefCnt)
 		}
 
 		for i, globalRef := range childRemapping.localToGlobal {
