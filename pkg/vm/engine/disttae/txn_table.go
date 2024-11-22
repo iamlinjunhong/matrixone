@@ -460,14 +460,6 @@ func (tbl *txnTable) GetProcess() any {
 }
 
 func (tbl *txnTable) resetSnapshot() {
-	//TODO::Remove the debug info for issue-19867
-	if tbl.db.op.IsSnapOp() {
-		logutil.Infof("reset partition state: %p, tbl:%p, table name:%s, snapshot txn op:%s",
-			tbl._partState.Load(),
-			tbl,
-			tbl.tableName,
-			tbl.db.op.Txn().DebugString())
-	}
 	tbl._partState.Store(nil)
 }
 
@@ -572,15 +564,12 @@ func (tbl *txnTable) Ranges(
 	txnOffset int,
 	policy engine.DataCollectPolicy,
 ) (data engine.RelData, err error) {
-	var unCommittedObjs []objectio.ObjectStats
-	if policy == engine.Policy_CollectAllData {
-		unCommittedObjs, _ = tbl.collectUnCommittedDataObjs(txnOffset)
-	}
 	return tbl.doRanges(
 		ctx,
 		exprs,
 		preAllocSize,
-		unCommittedObjs,
+		policy,
+		txnOffset,
 	)
 }
 
@@ -588,13 +577,15 @@ func (tbl *txnTable) doRanges(
 	ctx context.Context,
 	exprs []*plan.Expr,
 	preAllocSize int,
-	uncommittedObjects []objectio.ObjectStats,
+	policy engine.DataCollectPolicy,
+	txnOffset int,
 ) (data engine.RelData, err error) {
 	sid := tbl.proc.Load().GetService()
 	start := time.Now()
 	seq := tbl.db.op.NextSequence()
 
 	var part *logtailreplay.PartitionState
+	var uncommittedObjects []objectio.ObjectStats
 	blocks := objectio.PreAllocBlockInfoSlice(1, preAllocSize)
 
 	trace.GetService(sid).AddTxnDurationAction(
@@ -683,18 +674,15 @@ func (tbl *txnTable) doRanges(
 		}
 	}()
 
-	// get the table's snapshot
-	if part, err = tbl.getPartitionState(ctx); err != nil {
-		return
+	if policy&engine.Policy_CollectUncommittedData != 0 {
+		uncommittedObjects, _ = tbl.collectUnCommittedDataObjs(txnOffset)
 	}
 
-	//TODO::Remove the debug info for issue-19867
-	if tbl.tableName == "mo_database" && tbl.db.op.IsSnapOp() {
-		logutil.Infof("doRanges:get partition state: %p, tbl:%p, table name:%s, snapshot txn op:%s",
-			part,
-			tbl,
-			tbl.tableName,
-			tbl.db.op.Txn().DebugString())
+	// get the table's snapshot
+	if policy&engine.Policy_CollectCommittedData != 0 {
+		if part, err = tbl.getPartitionState(ctx); err != nil {
+			return
+		}
 	}
 
 	if err = tbl.rangesOnePart(
@@ -1910,6 +1898,7 @@ func (tbl *txnTable) PKPersistedBetween(
 	from types.TS,
 	to types.TS,
 	keys *vector.Vector,
+	checkTombstone bool,
 ) (changed bool, err error) {
 
 	v2.TxnPKChangeCheckTotalCounter.Inc()
@@ -2069,8 +2058,20 @@ func (tbl *txnTable) PKPersistedBetween(
 			return true, nil
 		}
 	}
+	if checkTombstone {
+		return p.HasTombstoneChanged(from, to), nil
+	} else {
+		return false, nil
+	}
+}
 
-	return false, nil
+func (tbl *txnTable) PrimaryKeysMayBeUpserted(
+	ctx context.Context,
+	from types.TS,
+	to types.TS,
+	keysVector *vector.Vector,
+) (bool, error) {
+	return tbl.primaryKeysMayBeChanged(ctx, from, to, keysVector, false)
 }
 
 func (tbl *txnTable) PrimaryKeysMayBeModified(
@@ -2078,6 +2079,16 @@ func (tbl *txnTable) PrimaryKeysMayBeModified(
 	from types.TS,
 	to types.TS,
 	keysVector *vector.Vector,
+) (bool, error) {
+	return tbl.primaryKeysMayBeChanged(ctx, from, to, keysVector, true)
+}
+
+func (tbl *txnTable) primaryKeysMayBeChanged(
+	ctx context.Context,
+	from types.TS,
+	to types.TS,
+	keysVector *vector.Vector,
+	checkTombstone bool,
 ) (bool, error) {
 	if tbl.db.op.IsSnapOp() {
 		return false,
@@ -2108,19 +2119,12 @@ func (tbl *txnTable) PrimaryKeysMayBeModified(
 		return false, nil
 	}
 
-	// if tbl.tableName == catalog.MO_DATABASE ||
-	// 	tbl.tableName == catalog.MO_TABLES ||
-	// 	tbl.tableName == catalog.MO_COLUMNS {
-	// 	logutil.Warnf("mo table:%s always exist in memory", tbl.tableName)
-	// 	return true, nil
-	// }
-
 	//need check pk whether exist on S3 block.
 	return tbl.PKPersistedBetween(
 		snap,
 		from,
 		to,
-		keysVector)
+		keysVector, checkTombstone)
 }
 
 func (tbl *txnTable) MergeObjects(
