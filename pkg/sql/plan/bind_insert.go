@@ -176,8 +176,6 @@ func (builder *QueryBuilder) appendDedupAndMultiUpdateNodesForBindInsert(
 		}
 	}
 
-	partitionExprIdx := int32(len(selectNode.ProjectList) - 1)
-
 	objRef := dmlCtx.objRefs[0]
 	idxObjRefs := make([]*plan.ObjectRef, len(tableDef.Indexes))
 	idxTableDefs := make([]*plan.TableDef, len(tableDef.Indexes))
@@ -595,18 +593,9 @@ func (builder *QueryBuilder) appendDedupAndMultiUpdateNodesForBindInsert(
 
 	insertCols := make([]plan.ColRef, len(tableDef.Cols)-1)
 	updateCtx := &plan.UpdateCtx{
-		ObjRef:          objRef,
-		TableDef:        tableDef,
-		InsertCols:      insertCols,
-		OldPartitionIdx: -1,
-		NewPartitionIdx: -1,
-	}
-	if tableDef.Partition != nil {
-		partitionTableIDs, partitionTableNames := getPartitionInfos(builder.compCtx, objRef, tableDef)
-		updateCtx.NewPartitionIdx = partitionExprIdx
-		updateCtx.PartitionTableIds = partitionTableIDs
-		updateCtx.PartitionTableNames = partitionTableNames
-		dmlNode.BindingTags = append(dmlNode.BindingTags, selectTag)
+		ObjRef:     objRef,
+		TableDef:   tableDef,
+		InsertCols: insertCols,
 	}
 
 	for i, col := range tableDef.Cols {
