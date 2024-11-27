@@ -758,6 +758,7 @@ func Test111(t *testing.T) {
 				cn,
 				`
 				CREATE TABLE members (
+				id INT PRIMARY KEY,
     firstname VARCHAR(25) NOT NULL,
     lastname VARCHAR(25) NOT NULL,
     username VARCHAR(16) NOT NULL,
@@ -765,7 +766,7 @@ func Test111(t *testing.T) {
     joined DATE NOT NULL,
 	v int
 )
-PARTITION BY HASH(Year(joined))
+PARTITION BY KEY(id)
 PARTITIONS 6;
 				`,
 			)
