@@ -66,13 +66,7 @@ func (window *Window) Prepare(proc *process.Process) (err error) {
 }
 
 func (window *Window) Call(proc *process.Process) (vm.CallResult, error) {
-	if err, isCancel := vm.CancelCheck(proc); isCancel {
-		return vm.CancelResult, err
-	}
-
 	analyzer := window.OpAnalyzer
-	analyzer.Start()
-	defer analyzer.Stop()
 
 	var err error
 	ctr := &window.ctr
@@ -168,7 +162,6 @@ func (window *Window) Call(proc *process.Process) (vm.CallResult, error) {
 				result.Batch = ctr.makeResultBatch(ctr.bat, ctr.vec)
 			}
 			result.Status = vm.ExecNext
-			analyzer.Output(result.Batch)
 			return result, nil
 		case done:
 			result := vm.NewCallResult()

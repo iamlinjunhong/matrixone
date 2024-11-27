@@ -159,13 +159,7 @@ func (order *Order) Prepare(proc *process.Process) (err error) {
 }
 
 func (order *Order) Call(proc *process.Process) (vm.CallResult, error) {
-	if err, isCancel := vm.CancelCheck(proc); isCancel {
-		return vm.CancelResult, err
-	}
-
 	analyzer := order.OpAnalyzer
-	analyzer.Start()
-	defer analyzer.Stop()
 
 	ctr := &order.ctr
 	if ctr.rbat != nil {
@@ -202,7 +196,6 @@ func (order *Order) Call(proc *process.Process) (vm.CallResult, error) {
 				if err != nil {
 					return vm.CancelResult, err
 				}
-				analyzer.Output(input.Batch)
 				return input, nil
 			}
 		}
@@ -215,7 +208,6 @@ func (order *Order) Call(proc *process.Process) (vm.CallResult, error) {
 			return vm.CancelResult, err
 		}
 		ctr.state = vm.End
-		analyzer.Output(result.Batch)
 		return result, nil
 	}
 
