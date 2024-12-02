@@ -19,7 +19,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/matrixorigin/matrixone/pkg/common/runtime"
 	"github.com/matrixorigin/matrixone/pkg/container/types"
 	"github.com/matrixorigin/matrixone/pkg/sql/parsers/tree"
 	"github.com/matrixorigin/matrixone/pkg/sql/plan"
@@ -48,7 +47,7 @@ func TestCreateHash(t *testing.T) {
 				ctx context.Context,
 				txnOp client.TxnOperator,
 				s *service,
-				store *MemPartitionStorage,
+				store *memStorage,
 			) {
 				def := newTestTableDefine(1, columns, []types.T{v})
 				store.addUncommittedTable(def)
@@ -66,7 +65,6 @@ func TestCreateHash(t *testing.T) {
 			},
 		)
 	}
-
 }
 
 func runTestPartitionServiceTest(
@@ -74,7 +72,7 @@ func runTestPartitionServiceTest(
 		ctx context.Context,
 		txnOp client.TxnOperator,
 		s *service,
-		store *MemPartitionStorage,
+		store *memStorage,
 	),
 ) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -83,9 +81,9 @@ func runTestPartitionServiceTest(
 	txnOp, close := client.NewTestTxnOperator(ctx)
 	defer close()
 
-	store := NewMemPartitionStorage(runtime.ServiceRuntime("").Logger())
+	store := newMemPartitionStorage()
 	s := NewService("", store)
-	fn(ctx, txnOp, s.(*service), store.(*MemPartitionStorage))
+	fn(ctx, txnOp, s.(*service), store.(*memStorage))
 }
 
 func newTestTableDefine(

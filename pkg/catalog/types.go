@@ -71,6 +71,9 @@ const (
 	MOShardsMetadata = "mo_shards_metadata"
 	// MOShards shards detail.
 	MOShards = "mo_shards"
+
+	//
+	MOPartitionMetadata = "mo_partition_metadata"
 )
 
 var InternalColumns = map[string]int8{

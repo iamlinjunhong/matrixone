@@ -34,7 +34,7 @@ var (
 		partition_expression       varchar(2048)          not null,
 		partition_description      text                   not null,
 		partition_comment          text
-	)`, catalog.MO_CATALOG, catalog.MOShardsMetadata)
+	)`, catalog.MO_CATALOG, catalog.MOPartitionMetadata)
 
 	InitSQLs = []string{
 		PartitionTableMetadataSQL,
@@ -69,6 +69,12 @@ type PartitionStorage interface {
 		def *plan.TableDef,
 		metadata partition.PartitionMetadata,
 		partition partition.Partition,
+		txnOp client.TxnOperator,
+	) error
+
+	Delete(
+		ctx context.Context,
+		tableID uint64,
 		txnOp client.TxnOperator,
 	) error
 

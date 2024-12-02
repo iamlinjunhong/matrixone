@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/matrixorigin/matrixone/pkg/common/log"
 	"github.com/matrixorigin/matrixone/pkg/common/moerr"
 	"github.com/matrixorigin/matrixone/pkg/pb/partition"
 	"github.com/matrixorigin/matrixone/pkg/pb/plan"
@@ -27,7 +26,7 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/txn/storage/mem"
 )
 
-type MemPartitionStorage struct {
+type memStorage struct {
 	sync.RWMutex
 	id          uint64
 	committed   map[uint64]*partitionTable
@@ -35,10 +34,8 @@ type MemPartitionStorage struct {
 	kv          *mem.KV
 }
 
-func NewMemPartitionStorage(
-	logger *log.MOLogger,
-) PartitionStorage {
-	s := &MemPartitionStorage{
+func newMemPartitionStorage() PartitionStorage {
+	s := &memStorage{
 		id:          10000,
 		committed:   make(map[uint64]*partitionTable),
 		uncommitted: make(map[uint64]*partitionTable),
@@ -47,7 +44,7 @@ func NewMemPartitionStorage(
 	return s
 }
 
-func (s *MemPartitionStorage) GetTableDef(
+func (s *memStorage) GetTableDef(
 	ctx context.Context,
 	tableID uint64,
 	txnOp client.TxnOperator,
@@ -66,7 +63,7 @@ func (s *MemPartitionStorage) GetTableDef(
 	return nil, moerr.NewNoSuchTableNoCtx("", fmt.Sprintf("%d", tableID))
 }
 
-func (s *MemPartitionStorage) Create(
+func (s *memStorage) Create(
 	ctx context.Context,
 	def *plan.TableDef,
 	metadata partition.PartitionMetadata,
@@ -105,7 +102,15 @@ func (s *MemPartitionStorage) Create(
 	return nil
 }
 
-func (s *MemPartitionStorage) addUncommittedTable(
+func (s *memStorage) Delete(
+	ctx context.Context,
+	tableID uint64,
+	txnOp client.TxnOperator,
+) error {
+	return nil
+}
+
+func (s *memStorage) addUncommittedTable(
 	def *plan.TableDef,
 ) {
 	s.Lock()
