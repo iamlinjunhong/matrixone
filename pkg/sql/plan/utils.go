@@ -2723,3 +2723,13 @@ func onlyHasHiddenPrimaryKey(tableDef *TableDef) bool {
 	pk := tableDef.GetPkey()
 	return pk != nil && pk.GetPkeyColName() == catalog.FakePrimaryKeyColName
 }
+
+// do not lock table if lock no rows now.
+// if need to lock table, uncomment these codes
+// func getLockTableAtTheEnd(tableDef *TableDef) bool {
+// if tableDef.Pkey.PkeyColName == catalog.FakePrimaryKeyColName || //fake pk, skip
+// 	tableDef.Partition != nil { // unsupport partition table
+// 	return false
+// }
+// return !strings.HasPrefix(tableDef.Name, catalog.IndexTableNamePrefix)
+// }

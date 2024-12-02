@@ -234,7 +234,6 @@ func (deletion *Deletion) normalDelete(proc *process.Process) (vm.CallResult, er
 
 	var affectedRows uint64
 	delCtx := deletion.DeleteCtx
-
 	err = colexec.FilterRowIdForDel(proc, deletion.ctr.resBat, bat, delCtx.RowIdIdx,
 		delCtx.PrimaryKeyIdx)
 	if err != nil {
@@ -250,6 +249,7 @@ func (deletion *Deletion) normalDelete(proc *process.Process) (vm.CallResult, er
 		}
 		analyzer.AddDeletedRows(int64(deletion.ctr.resBat.RowCount()))
 		analyzer.AddS3RequestCount(crs)
+		analyzer.AddFileServiceCacheInfo(crs)
 		analyzer.AddDiskIO(crs)
 	}
 

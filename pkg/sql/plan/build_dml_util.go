@@ -4398,7 +4398,7 @@ func buildPreInsertFullTextIndex(stmt *tree.Insert, ctx CompilerContext, builder
 	return err
 }
 
-// To create rows of (rowid, docid) for DELETE
+// To create rows of (rowid, docid, __mo_fake_pk_col) for DELETE
 func buildDeleteRowsFullTextIndex(ctx CompilerContext, builder *QueryBuilder, bindCtx *BindContext, delCtx *dmlPlanCtx,
 	indexObjRef *ObjectRef, indexTableDef *TableDef, indexdef *plan.IndexDef, typMap map[string]plan.Type, posMap map[string]int) (int32, int, int, Type, error) {
 
@@ -4426,7 +4426,7 @@ func buildDeleteRowsFullTextIndex(ctx CompilerContext, builder *QueryBuilder, bi
 		}, bindCtx)
 
 		deleteIdx := getRowIdPos(indexTableDef)
-		retPkPos := 0 // doc_id
+		retPkPos := 3 // __mo_fake_pk_col
 		retPkTyp := indexTableDef.Cols[retPkPos].Typ
 
 		return lastNodeId, deleteIdx, retPkPos, retPkTyp, nil
@@ -4439,12 +4439,16 @@ func buildDeleteRowsFullTextIndex(ctx CompilerContext, builder *QueryBuilder, bi
 		orgPkColPos, orgPkType := getPkPos(delCtx.tableDef, false)
 
 		var rightRowIdPos int32 = -1
-		var rightPkPos int32 = 0 // doc_id
+		var rightDocidPos int32 = 0  // doc_id
+		var rightFakePkPos int32 = 3 // __mo_fake_pk_col_
 		scanNodeProject := make([]*Expr, len(indexTableDef.Cols))
 		for colIdx, colVal := range indexTableDef.Cols {
 
 			if colVal.Name == catalog.Row_ID {
 				rightRowIdPos = int32(colIdx)
+			}
+			if colVal.Name == catalog.FakePrimaryKeyColName {
+				rightFakePkPos = int32(colIdx)
 			}
 
 			scanNodeProject[colIdx] = &plan.Expr{
@@ -4467,11 +4471,11 @@ func buildDeleteRowsFullTextIndex(ctx CompilerContext, builder *QueryBuilder, bi
 		}, bindCtx)
 
 		var rightExpr = &plan.Expr{
-			Typ: indexTableDef.Cols[rightPkPos].Typ,
+			Typ: indexTableDef.Cols[rightDocidPos].Typ,
 			Expr: &plan.Expr_Col{
 				Col: &plan.ColRef{
 					RelPos: 1,
-					ColPos: rightPkPos,
+					ColPos: rightDocidPos,
 					Name:   "doc_id",
 				},
 			},
@@ -4504,15 +4508,25 @@ func buildDeleteRowsFullTextIndex(ctx CompilerContext, builder *QueryBuilder, bi
 				},
 			},
 		}, &plan.Expr{
-			Typ: indexTableDef.Cols[rightPkPos].Typ,
+			Typ: indexTableDef.Cols[rightDocidPos].Typ,
 			Expr: &plan.Expr_Col{
 				Col: &plan.ColRef{
 					RelPos: 1,
-					ColPos: rightPkPos,
+					ColPos: rightDocidPos,
 					Name:   "doc_id",
 				},
 			},
-		})
+		}, &plan.Expr{
+			Typ: indexTableDef.Cols[rightFakePkPos].Typ,
+			Expr: &plan.Expr_Col{
+				Col: &plan.ColRef{
+					RelPos: 1,
+					ColPos: rightFakePkPos,
+					Name:   catalog.FakePrimaryKeyColName,
+				},
+			},
+		},
+		)
 
 		lastNodeId = builder.appendNode(&plan.Node{
 			NodeType:    plan.Node_JOIN,
@@ -4523,8 +4537,8 @@ func buildDeleteRowsFullTextIndex(ctx CompilerContext, builder *QueryBuilder, bi
 		}, bindCtx)
 
 		deleteIdx := 0
-		retPkPos := deleteIdx + 1
-		retPkTyp := indexTableDef.Cols[rightPkPos].Typ
+		retPkPos := deleteIdx + 2
+		retPkTyp := indexTableDef.Cols[rightFakePkPos].Typ
 
 		return lastNodeId, deleteIdx, retPkPos, retPkTyp, nil
 	}
@@ -4573,7 +4587,7 @@ func buildPreDeleteFullTextIndex(ctx CompilerContext, builder *QueryBuilder, bin
 		return moerr.NewNoSuchTable(builder.GetContext(), delCtx.objRef.SchemaName, indexdef.IndexName)
 	}
 
-	// create (rowid, doc_id) for delete
+	// create (rowid, doc_id, __mo_fake_pk_col) for delete
 	lastNodeId, deleteIdx, pkPos, pkTyp, err := buildDeleteRowsFullTextIndex(ctx, builder, bindCtx, delCtx, indexObjRef, indexTableDef, indexdef, typMap, posMap)
 	if err != nil {
 		return err

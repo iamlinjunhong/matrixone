@@ -390,6 +390,7 @@ func (writer *s3Writer) sortAndSyncOneTable(
 			return
 		}
 		analyzer.AddS3RequestCount(crs)
+		analyzer.AddFileServiceCacheInfo(crs)
 		analyzer.AddDiskIO(crs)
 
 		return writer.fillInsertBlockInfo(proc, idx, partitionIdx, blockInfos, objStats, rowCount)
@@ -454,6 +455,7 @@ func (writer *s3Writer) sortAndSyncOneTable(
 		return
 	}
 	analyzer.AddS3RequestCount(crs)
+	analyzer.AddFileServiceCacheInfo(crs)
 	analyzer.AddDiskIO(crs)
 
 	if isDelete {

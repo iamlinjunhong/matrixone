@@ -152,7 +152,6 @@ func (insert *Insert) insert_s3(proc *process.Process, analyzer process.Analyzer
 
 	panic("bug")
 }
-
 func (insert *Insert) insert_table(proc *process.Process, analyzer process.Analyzer) (vm.CallResult, error) {
 	input, err := vm.ChildrenCall(insert.GetChildren(0), proc, analyzer)
 	if err != nil {
@@ -185,7 +184,9 @@ func (insert *Insert) insert_table(proc *process.Process, analyzer process.Analy
 	}
 	analyzer.AddWrittenRows(int64(insert.ctr.buf.RowCount()))
 	analyzer.AddS3RequestCount(crs)
+	analyzer.AddFileServiceCacheInfo(crs)
 	analyzer.AddDiskIO(crs)
+
 	if insert.InsertCtx.AddAffectedRows {
 		atomic.AddUint64(&insert.ctr.affectedRows, affectedRows)
 	}
@@ -203,6 +204,7 @@ func writeBatch(proc *process.Process, writer *colexec.S3Writer, bat *batch.Batc
 			return err
 		}
 		analyzer.AddS3RequestCount(crs)
+		analyzer.AddFileServiceCacheInfo(crs)
 		analyzer.AddDiskIO(crs)
 
 		err = writer.FillBlockInfoBat(blockInfos, stats, proc.GetMPool())
@@ -222,6 +224,7 @@ func flushTailBatch(proc *process.Process, writer *colexec.S3Writer, result *vm.
 		return err
 	}
 	analyzer.AddS3RequestCount(crs)
+	analyzer.AddFileServiceCacheInfo(crs)
 	analyzer.AddDiskIO(crs)
 
 	// if stats is not zero, then the blockInfos must not be nil

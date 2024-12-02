@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
 	"github.com/matrixorigin/matrixone/pkg/catalog"
 	"github.com/matrixorigin/matrixone/pkg/common/moerr"
 	"github.com/matrixorigin/matrixone/pkg/container/types"
@@ -2106,6 +2107,7 @@ func (builder *QueryBuilder) buildUnion(stmt *tree.UnionClause, astOrderBy tree.
 		ctx.aliasMap[v] = &aliasItem{
 			idx: int32(i),
 		}
+		ctx.aliasFrequency[v]++
 		builder.nameByColRef[[2]int32{ctx.projectTag, int32(i)}] = v
 	}
 	for i, expr := range firstSelectProjectNode.ProjectList {
@@ -2634,7 +2636,6 @@ func (builder *QueryBuilder) bindSelect(stmt *tree.Select, ctx *BindContext, isR
 				PrimaryColTyp:      pkTyp,
 				Block:              true,
 				RefreshTsIdxInBat:  -1, //unsupport now
-				LockTableAtTheEnd:  getLockTableAtTheEnd(tableDef),
 			}
 
 			lockNode = &Node{
@@ -2713,7 +2714,18 @@ func (builder *QueryBuilder) bindSelect(stmt *tree.Select, ctx *BindContext, isR
 					idx:     int32(i),
 					astExpr: selectList[i].Expr,
 				}
+				ctx.aliasFrequency[selectList[i].As.Compare()]++
 			}
+
+			field := SelectField{
+				ast: selectList[i].Expr,
+				pos: int32(i),
+			}
+
+			if selectList[i].As != nil && !selectList[i].As.Empty() {
+				field.aliasName = selectList[i].As.Compare()
+			}
+			ctx.projectByAst = append(ctx.projectByAst, field)
 		}
 
 		if astTimeWindow != nil {

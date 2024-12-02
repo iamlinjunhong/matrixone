@@ -151,6 +151,7 @@ func (update *MultiUpdate) insert_table(
 		}
 		analyzer.AddWrittenRows(int64(insertBatch.RowCount()))
 		analyzer.AddS3RequestCount(crs)
+		analyzer.AddFileServiceCacheInfo(crs)
 		analyzer.AddDiskIO(crs)
 	}
 	return
@@ -200,6 +201,7 @@ func (update *MultiUpdate) check_null_and_insert_table(
 		}
 		analyzer.AddWrittenRows(int64(insertBatch.RowCount()))
 		analyzer.AddS3RequestCount(crs)
+		analyzer.AddFileServiceCacheInfo(crs)
 		analyzer.AddDiskIO(crs)
 	}
 	return
