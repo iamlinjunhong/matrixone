@@ -36,11 +36,72 @@ func (s *storage) GetTableDef(
 	return rel.GetTableDef(ctx), nil
 }
 
+func (s *storage) GetMetadata(
+	ctx context.Context,
+	tableID uint64,
+	txnOp client.TxnOperator,
+) (partition.PartitionMetadata, bool, error) {
+	accountID, err := defines.GetAccountId(ctx)
+	if err != nil {
+		return partition.PartitionMetadata{}, false, err
+	}
+
+	res, err := s.exec.Exec(
+		ctx,
+		`select 
+			partition_method,
+			partition_id,
+			partition_ordinal_position,
+			partition_expression,
+			partition_description,
+			partition_comment,
+		from %s
+		where 
+		    table_id = %d
+		order by 
+		    partition_ordinal_position
+		`,
+		executor.Options{}.
+			WithTxn(txnOp).
+			WithDatabase(catalog.MO_CATALOG).
+			WithAccountID(accountID),
+	)
+	if err != nil {
+		return partition.PartitionMetadata{}, false, err
+	}
+	defer res.Close()
+
+	var metadata partition.PartitionMetadata
+	var found bool
+	res.ReadRows(
+		func(
+			rows int,
+			cols []*vector.Vector,
+		) bool {
+			found = true
+			for i := 0; i < rows; i++ {
+				method := executor.GetStringRows(cols[0])[i]
+				metadata.Method = partition.PartitionMethod(partition.PartitionMethod_value[method])
+				metadata.Description = executor.GetStringRows(cols[4])[i]
+
+				metadata.Partitions = append(
+					metadata.Partitions,
+					partition.Partition{
+						PartitionID: executor.GetFixedRows[uint64](cols[1])[i],
+						Position:    executor.GetFixedRows[uint32](cols[2])[i],
+						Expression:  executor.GetStringRows(cols[3])[i],
+					})
+			}
+			return true
+		},
+	)
+	return metadata, found, nil
+}
+
 func (s *storage) Create(
 	ctx context.Context,
 	def *plan.TableDef,
 	metadata partition.PartitionMetadata,
-	partition partition.Partition,
 	txnOp client.TxnOperator,
 ) error {
 	accountID, err := defines.GetAccountId(ctx)
@@ -51,32 +112,38 @@ func (s *storage) Create(
 	return s.exec.ExecTxn(
 		ctx,
 		func(txn executor.TxnExecutor) error {
-			partitionName, err := s.createPartitionTable(
-				def,
-				metadata,
-				partition,
-				txn,
-			)
-			if err != nil {
-				return err
-			}
+			for _, p := range metadata.Partitions {
+				err := s.createPartitionTable(
+					def,
+					metadata,
+					p,
+					txn,
+				)
+				if err != nil {
+					return err
+				}
 
-			partitionID, err := s.getTableIDByTableNameAndDatabaseName(
-				partitionName,
-				def.DbName,
-				txn,
-			)
-			if err != nil {
-				return err
-			}
-			partition.PartitionID = partitionID
+				partitionID, err := s.getTableIDByTableNameAndDatabaseName(
+					p.PartitionTableName,
+					def.DbName,
+					txn,
+				)
+				if err != nil {
+					return err
+				}
+				p.PartitionID = partitionID
 
-			return s.createPartitionMetadata(
-				def,
-				metadata,
-				partition,
-				txn,
-			)
+				err = s.createPartitionMetadata(
+					def,
+					metadata,
+					p,
+					txn,
+				)
+				if err != nil {
+					return err
+				}
+			}
+			return nil
 		},
 		executor.Options{}.
 			WithTxn(txnOp).
@@ -86,10 +153,37 @@ func (s *storage) Create(
 
 func (s *storage) Delete(
 	ctx context.Context,
-	tableID uint64,
+	metadata partition.PartitionMetadata,
 	txnOp client.TxnOperator,
 ) error {
-	return nil
+	db, _, _, err := s.eng.GetRelationById(
+		ctx,
+		txnOp,
+		metadata.ID,
+	)
+	if err != nil {
+		return err
+	}
+
+	accountID, err := defines.GetAccountId(ctx)
+	if err != nil {
+		return err
+	}
+
+	return s.exec.ExecTxn(
+		ctx,
+		func(txn executor.TxnExecutor) error {
+			txn.Use(db)
+			for _, p := range metadata.Partitions {
+
+			}
+
+			return nil
+		},
+		executor.Options{}.
+			WithTxn(txnOp).
+			WithAccountID(accountID),
+	)
 }
 
 func (s *storage) createPartitionTable(
@@ -97,10 +191,10 @@ func (s *storage) createPartitionTable(
 	metadata partition.PartitionMetadata,
 	partition partition.Partition,
 	txn executor.TxnExecutor,
-) (string, error) {
+) error {
 	txn.Use(def.DbName)
 
-	name, sql := getPartitionTableCreateSQL(
+	sql := getPartitionTableCreateSQL(
 		def,
 		metadata,
 		partition,
@@ -111,11 +205,11 @@ func (s *storage) createPartitionTable(
 		executor.StatementOption{},
 	)
 	if err != nil {
-		return "", err
+		return err
 	}
 	res.Close()
 
-	return name, nil
+	return nil
 }
 
 func (s *storage) getTableIDByTableNameAndDatabaseName(
@@ -177,8 +271,8 @@ func getPartitionTableCreateSQL(
 	def *plan.TableDef,
 	metadata partition.PartitionMetadata,
 	partition partition.Partition,
-) (string, string) {
-	return "TODO", "TODO"
+) string {
+	return "TODO"
 }
 
 func getInsertMetadataSQL(

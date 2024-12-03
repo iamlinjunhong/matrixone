@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"sync/atomic"
 
 	"github.com/matrixorigin/matrixone/pkg/common/moerr"
 	"github.com/matrixorigin/matrixone/pkg/pb/partition"
@@ -36,7 +37,7 @@ type memStorage struct {
 
 func newMemPartitionStorage() PartitionStorage {
 	s := &memStorage{
-		id:          10000,
+		id:          1000000,
 		committed:   make(map[uint64]*partitionTable),
 		uncommitted: make(map[uint64]*partitionTable),
 		kv:          mem.NewKV(),
@@ -63,25 +64,47 @@ func (s *memStorage) GetTableDef(
 	return nil, moerr.NewNoSuchTableNoCtx("", fmt.Sprintf("%d", tableID))
 }
 
+func (s *memStorage) GetMetadata(
+	ctx context.Context,
+	tableID uint64,
+	txnOp client.TxnOperator,
+) (partition.PartitionMetadata, bool, error) {
+	s.RLock()
+	defer s.RUnlock()
+
+	m, ok := s.committed[tableID]
+	if ok {
+		return m.metadata, true, nil
+	}
+
+	m, ok = s.uncommitted[tableID]
+	if ok {
+		return m.metadata, true, nil
+	}
+	return partition.PartitionMetadata{}, false, nil
+}
+
 func (s *memStorage) Create(
 	ctx context.Context,
 	def *plan.TableDef,
 	metadata partition.PartitionMetadata,
-	p partition.Partition,
 	txnOp client.TxnOperator,
 ) error {
 	s.Lock()
 	defer s.Unlock()
-	p.PartitionID = s.id
-	if v, ok := s.uncommitted[def.TblId]; !ok {
-		s.uncommitted[def.TblId] = &partitionTable{
-			metadata:   metadata,
-			def:        def,
-			partitions: []partition.Partition{p},
+
+	for _, p := range metadata.Partitions {
+		p.PartitionID = s.nextTableID()
+		if v, ok := s.uncommitted[def.TblId]; !ok {
+			s.uncommitted[def.TblId] = &partitionTable{
+				metadata:   metadata,
+				def:        def,
+				partitions: []partition.Partition{p},
+			}
+		} else {
+			v.metadata = metadata
+			v.partitions = append(v.partitions, p)
 		}
-	} else {
-		v.metadata = metadata
-		v.partitions = append(v.partitions, p)
 	}
 
 	txnOp.AppendEventCallback(
@@ -119,6 +142,10 @@ func (s *memStorage) addUncommittedTable(
 	s.uncommitted[def.TblId] = &partitionTable{
 		def: def,
 	}
+}
+
+func (s *memStorage) nextTableID() uint64 {
+	return atomic.AddUint64(&s.id, 1)
 }
 
 type partitionTable struct {

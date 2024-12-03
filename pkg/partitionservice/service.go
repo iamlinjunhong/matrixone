@@ -66,19 +66,12 @@ func (s *service) Create(
 		return err
 	}
 
-	for _, p := range metadata.Partitions {
-		if err := s.store.Create(
-			ctx,
-			def,
-			metadata,
-			p,
-			txnOp,
-		); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return s.store.Create(
+		ctx,
+		def,
+		metadata,
+		txnOp,
+	)
 }
 
 func (s *service) getMetadata(
@@ -139,10 +132,13 @@ func (s *service) getMetadataByHashType(
 	method.Expr.Format(ctx)
 
 	metadata := partition.PartitionMetadata{
-		ID:          def.TblId,
-		Columns:     validColumns,
+		TableID:   def.TblId,
+		TableName: def.Name,
+		Method:    partition.PartitionMethod_Hash,
+		// TODO: ???
+		Expression:  "",
 		Description: ctx.String(),
-		Method:      partition.PartitionMethod_Hash,
+		Columns:     validColumns,
 	}
 
 	for i := uint64(0); i < option.PartBy.Num; i++ {
@@ -151,9 +147,7 @@ func (s *service) getMetadataByHashType(
 			partition.Partition{
 				Name:     fmt.Sprintf("p%d", i),
 				Position: uint32(i),
-				// TODO: ???
-				Expression: "",
-				Comment:    "",
+				Comment:  "",
 			},
 		)
 	}

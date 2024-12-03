@@ -28,11 +28,20 @@ import (
 var (
 	PartitionTableMetadataSQL = fmt.Sprintf(`create table %s.%s(
 		table_id 		           bigint        unsigned not null,  
+		table_name                 varchar(500)  unsigned not null,
 		partition_method           varchar(13)            not null,  
-		partition_id               bigint        unsigned not null,
-		partition_ordinal_position int	         unsigned not null,
 		partition_expression       varchar(2048)          not null,
 		partition_description      text                   not null,
+		partition_count            int	         unsigned,
+		primary key(table_id)
+	)`, catalog.MO_CATALOG, catalog.MOPartitionMetadata)
+
+	PartitionTablesSQL = fmt.Sprintf(`create table %s.%s(
+		partition_id               bigint        unsigned not null,
+		partition_table_name       varchar(200)  not null,
+		primary_table_id 		   bigint        unsigned not null, 
+		partition_name             varchar(50)   not null,
+		partition_ordinal_position int	         unsigned not null,
 		partition_comment          text
 	)`, catalog.MO_CATALOG, catalog.MOPartitionMetadata)
 
@@ -64,17 +73,22 @@ type PartitionService interface {
 }
 
 type PartitionStorage interface {
+	GetMetadata(
+		ctx context.Context,
+		tableID uint64,
+		txnOp client.TxnOperator,
+	) (partition.PartitionMetadata, bool, error)
+
 	Create(
 		ctx context.Context,
 		def *plan.TableDef,
 		metadata partition.PartitionMetadata,
-		partition partition.Partition,
 		txnOp client.TxnOperator,
 	) error
 
 	Delete(
 		ctx context.Context,
-		tableID uint64,
+		metadata partition.PartitionMetadata,
 		txnOp client.TxnOperator,
 	) error
 

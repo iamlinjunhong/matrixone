@@ -57,11 +57,13 @@ func (PartitionMethod) EnumDescriptor() ([]byte, []int) {
 }
 
 type PartitionMetadata struct {
-	ID                   uint64          `protobuf:"varint,1,opt,name=ID,proto3" json:"ID,omitempty"`
-	Method               PartitionMethod `protobuf:"varint,2,opt,name=Method,proto3,enum=partition.PartitionMethod" json:"Method,omitempty"`
-	Description          string          `protobuf:"bytes,3,opt,name=Description,proto3" json:"Description,omitempty"`
-	Columns              []string        `protobuf:"bytes,4,rep,name=Columns,proto3" json:"Columns,omitempty"`
-	Partitions           []Partition     `protobuf:"bytes,5,rep,name=Partitions,proto3" json:"Partitions"`
+	TableID              uint64          `protobuf:"varint,1,opt,name=TableID,proto3" json:"TableID,omitempty"`
+	TableName            string          `protobuf:"bytes,2,opt,name=TableName,proto3" json:"TableName,omitempty"`
+	Method               PartitionMethod `protobuf:"varint,3,opt,name=Method,proto3,enum=partition.PartitionMethod" json:"Method,omitempty"`
+	Expression           string          `protobuf:"bytes,4,opt,name=Expression,proto3" json:"Expression,omitempty"`
+	Description          string          `protobuf:"bytes,5,opt,name=Description,proto3" json:"Description,omitempty"`
+	Columns              []string        `protobuf:"bytes,6,rep,name=Columns,proto3" json:"Columns,omitempty"`
+	Partitions           []Partition     `protobuf:"bytes,7,rep,name=Partitions,proto3" json:"Partitions"`
 	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
 	XXX_unrecognized     []byte          `json:"-"`
 	XXX_sizecache        int32           `json:"-"`
@@ -100,11 +102,18 @@ func (m *PartitionMetadata) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_PartitionMetadata proto.InternalMessageInfo
 
-func (m *PartitionMetadata) GetID() uint64 {
+func (m *PartitionMetadata) GetTableID() uint64 {
 	if m != nil {
-		return m.ID
+		return m.TableID
 	}
 	return 0
+}
+
+func (m *PartitionMetadata) GetTableName() string {
+	if m != nil {
+		return m.TableName
+	}
+	return ""
 }
 
 func (m *PartitionMetadata) GetMethod() PartitionMethod {
@@ -112,6 +121,13 @@ func (m *PartitionMetadata) GetMethod() PartitionMethod {
 		return m.Method
 	}
 	return PartitionMethod_Key
+}
+
+func (m *PartitionMetadata) GetExpression() string {
+	if m != nil {
+		return m.Expression
+	}
+	return ""
 }
 
 func (m *PartitionMetadata) GetDescription() string {
@@ -137,11 +153,11 @@ func (m *PartitionMetadata) GetPartitions() []Partition {
 
 type Partition struct {
 	PartitionID          uint64   `protobuf:"varint,1,opt,name=PartitionID,proto3" json:"PartitionID,omitempty"`
-	TableID              uint64   `protobuf:"varint,2,opt,name=TableID,proto3" json:"TableID,omitempty"`
-	Name                 string   `protobuf:"bytes,3,opt,name=Name,proto3" json:"Name,omitempty"`
-	Position             uint32   `protobuf:"varint,4,opt,name=Position,proto3" json:"Position,omitempty"`
-	Expression           string   `protobuf:"bytes,5,opt,name=Expression,proto3" json:"Expression,omitempty"`
-	Comment              string   `protobuf:"bytes,6,opt,name=Comment,proto3" json:"Comment,omitempty"`
+	PartitionTableName   string   `protobuf:"bytes,2,opt,name=PartitionTableName,proto3" json:"PartitionTableName,omitempty"`
+	PrimaryTableID       uint64   `protobuf:"varint,3,opt,name=PrimaryTableID,proto3" json:"PrimaryTableID,omitempty"`
+	Name                 string   `protobuf:"bytes,4,opt,name=Name,proto3" json:"Name,omitempty"`
+	Position             uint32   `protobuf:"varint,5,opt,name=Position,proto3" json:"Position,omitempty"`
+	Comment              string   `protobuf:"bytes,7,opt,name=Comment,proto3" json:"Comment,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -187,9 +203,16 @@ func (m *Partition) GetPartitionID() uint64 {
 	return 0
 }
 
-func (m *Partition) GetTableID() uint64 {
+func (m *Partition) GetPartitionTableName() string {
 	if m != nil {
-		return m.TableID
+		return m.PartitionTableName
+	}
+	return ""
+}
+
+func (m *Partition) GetPrimaryTableID() uint64 {
+	if m != nil {
+		return m.PrimaryTableID
 	}
 	return 0
 }
@@ -208,13 +231,6 @@ func (m *Partition) GetPosition() uint32 {
 	return 0
 }
 
-func (m *Partition) GetExpression() string {
-	if m != nil {
-		return m.Expression
-	}
-	return ""
-}
-
 func (m *Partition) GetComment() string {
 	if m != nil {
 		return m.Comment
@@ -231,31 +247,33 @@ func init() {
 func init() { proto.RegisterFile("partition.proto", fileDescriptor_12ead894473a209c) }
 
 var fileDescriptor_12ead894473a209c = []byte{
-	// 382 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x92, 0xc1, 0xae, 0x93, 0x40,
-	0x14, 0x86, 0x3b, 0x40, 0x7b, 0x2f, 0xe7, 0xc6, 0x16, 0x27, 0x2e, 0x26, 0x5d, 0x20, 0xe9, 0x8a,
-	0x98, 0x58, 0x12, 0x5c, 0xe9, 0xb2, 0x62, 0xd2, 0x46, 0x6b, 0x9a, 0x89, 0x2b, 0x77, 0x43, 0x3b,
-	0xc2, 0xc4, 0xc2, 0x10, 0x66, 0x9a, 0xd4, 0xb7, 0xf1, 0x15, 0x7c, 0x8b, 0xee, 0xec, 0x13, 0x18,
-	0xad, 0x2f, 0x62, 0x98, 0x16, 0x24, 0xc6, 0xdd, 0x7c, 0xff, 0x39, 0x3f, 0xfc, 0xe7, 0xe4, 0xc0,
-	0xa4, 0x62, 0xb5, 0x16, 0x5a, 0xc8, 0x72, 0x5e, 0xd5, 0x52, 0x4b, 0xec, 0x76, 0xc2, 0xf4, 0x79,
-	0x26, 0x74, 0x7e, 0x48, 0xe7, 0x5b, 0x59, 0x44, 0x99, 0xcc, 0x64, 0x64, 0x3a, 0xd2, 0xc3, 0x27,
-	0x43, 0x06, 0xcc, 0xeb, 0xea, 0x9c, 0x7d, 0x47, 0xf0, 0x78, 0xd3, 0x9a, 0xd7, 0x5c, 0xb3, 0x1d,
-	0xd3, 0x0c, 0x8f, 0xc1, 0x5a, 0x25, 0x04, 0x05, 0x28, 0x74, 0xa8, 0xb5, 0x4a, 0x70, 0x0c, 0xa3,
-	0x35, 0xd7, 0xb9, 0xdc, 0x11, 0x2b, 0x40, 0xe1, 0x38, 0x9e, 0xce, 0xff, 0x26, 0xe8, 0xbb, 0x73,
-	0xb9, 0xa3, 0xb7, 0x4e, 0x1c, 0xc0, 0x43, 0xc2, 0xd5, 0xb6, 0x16, 0x55, 0x53, 0x24, 0x76, 0x80,
-	0x42, 0x97, 0xf6, 0x25, 0x4c, 0xe0, 0xee, 0xb5, 0xdc, 0x1f, 0x8a, 0x52, 0x11, 0x27, 0xb0, 0x43,
-	0x97, 0xb6, 0x88, 0x5f, 0x01, 0x74, 0x9f, 0x55, 0x64, 0x18, 0xd8, 0xe1, 0x43, 0xfc, 0xe4, 0x7f,
-	0xff, 0x5c, 0x38, 0xa7, 0x1f, 0x4f, 0x07, 0xb4, 0xd7, 0x3d, 0xfb, 0x86, 0xc0, 0xed, 0xb0, 0x49,
-	0xd1, 0x41, 0x37, 0x52, 0x5f, 0x6a, 0x52, 0x7c, 0x60, 0xe9, 0x9e, 0xaf, 0x12, 0x33, 0x9c, 0x43,
-	0x5b, 0xc4, 0x18, 0x9c, 0xf7, 0xac, 0xe0, 0xb7, 0xe8, 0xe6, 0x8d, 0xa7, 0x70, 0xbf, 0x91, 0xca,
-	0x78, 0x89, 0x13, 0xa0, 0xf0, 0x11, 0xed, 0x18, 0xfb, 0x00, 0x6f, 0x8e, 0x55, 0xcd, 0x95, 0x6a,
-	0xaa, 0x43, 0xe3, 0xea, 0x29, 0xd7, 0x79, 0x8b, 0x82, 0x97, 0x9a, 0x8c, 0x4c, 0xb1, 0xc5, 0x67,
-	0x2f, 0x61, 0xf2, 0xcf, 0x1a, 0xf1, 0x1d, 0xd8, 0x6f, 0xf9, 0x17, 0x6f, 0x80, 0xef, 0xc1, 0x59,
-	0x32, 0x95, 0x7b, 0x08, 0xbb, 0x30, 0xa4, 0xac, 0xcc, 0xb8, 0x67, 0x35, 0xe2, 0x3b, 0xa1, 0xb4,
-	0x67, 0x2f, 0x96, 0xe7, 0x5f, 0x3e, 0x3a, 0x5d, 0x7c, 0x74, 0xbe, 0xf8, 0xe8, 0xe7, 0xc5, 0x1f,
-	0x7c, 0xfd, 0xed, 0xa3, 0x8f, 0x71, 0xef, 0x0a, 0x0a, 0xa6, 0x6b, 0x71, 0x94, 0xb5, 0xc8, 0x44,
-	0xd9, 0x42, 0xc9, 0xa3, 0xea, 0x73, 0x16, 0x55, 0x69, 0xd4, 0x2d, 0x35, 0x1d, 0x99, 0x8b, 0x78,
-	0xf1, 0x27, 0x00, 0x00, 0xff, 0xff, 0x49, 0x83, 0x38, 0x84, 0x5e, 0x02, 0x00, 0x00,
+	// 408 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x92, 0x41, 0x6b, 0xd4, 0x40,
+	0x14, 0xc7, 0x77, 0x36, 0xe9, 0x6e, 0xf3, 0x8a, 0x6d, 0x7c, 0x78, 0x18, 0x16, 0x89, 0xa1, 0x07,
+	0x09, 0x82, 0x09, 0xc4, 0x93, 0x1e, 0x6b, 0x85, 0x8a, 0x56, 0x96, 0xe0, 0xc9, 0xdb, 0xa4, 0x3b,
+	0x26, 0x83, 0x4d, 0x26, 0xcc, 0xcc, 0x42, 0xfb, 0x49, 0xbc, 0xfa, 0x71, 0x7a, 0xb3, 0x9f, 0x40,
+	0x74, 0xfd, 0x22, 0x92, 0x59, 0x33, 0x0d, 0xcb, 0xde, 0xde, 0xef, 0x9f, 0xf7, 0xde, 0xfc, 0xf9,
+	0xe7, 0xc1, 0x49, 0xc7, 0x94, 0x11, 0x46, 0xc8, 0x36, 0xed, 0x94, 0x34, 0x12, 0x03, 0x27, 0x2c,
+	0x5e, 0x56, 0xc2, 0xd4, 0xeb, 0x32, 0xbd, 0x92, 0x4d, 0x56, 0xc9, 0x4a, 0x66, 0xb6, 0xa3, 0x5c,
+	0x7f, 0xb5, 0x64, 0xc1, 0x56, 0xdb, 0xc9, 0xd3, 0xef, 0x53, 0x78, 0xbc, 0x1c, 0x86, 0x2f, 0xb9,
+	0x61, 0x2b, 0x66, 0x18, 0x52, 0x98, 0x7f, 0x66, 0xe5, 0x35, 0x7f, 0x7f, 0x4e, 0x49, 0x4c, 0x12,
+	0xbf, 0x18, 0x10, 0x9f, 0x42, 0x60, 0xcb, 0x4f, 0xac, 0xe1, 0x74, 0x1a, 0x93, 0x24, 0x28, 0x1e,
+	0x04, 0xcc, 0x61, 0x76, 0xc9, 0x4d, 0x2d, 0x57, 0xd4, 0x8b, 0x49, 0x72, 0x9c, 0x2f, 0xd2, 0x07,
+	0xa7, 0xe3, 0x57, 0x6a, 0xb9, 0x2a, 0xfe, 0x77, 0x62, 0x04, 0xf0, 0xee, 0xa6, 0x53, 0x5c, 0x6b,
+	0x21, 0x5b, 0xea, 0xdb, 0x95, 0x23, 0x05, 0x63, 0x38, 0x3a, 0xe7, 0xfa, 0x4a, 0x89, 0xae, 0x1f,
+	0xa6, 0x07, 0xb6, 0x61, 0x2c, 0xf5, 0x6e, 0xdf, 0xca, 0xeb, 0x75, 0xd3, 0x6a, 0x3a, 0x8b, 0xbd,
+	0x24, 0x28, 0x06, 0xc4, 0x37, 0x00, 0xee, 0x59, 0x4d, 0xe7, 0xb1, 0x97, 0x1c, 0xe5, 0x4f, 0xf6,
+	0x79, 0x3a, 0xf3, 0xef, 0x7e, 0x3d, 0x9b, 0x14, 0xa3, 0xee, 0xd3, 0x9f, 0x04, 0x02, 0x87, 0xbd,
+	0x0b, 0x07, 0x2e, 0x95, 0xb1, 0x84, 0x29, 0xa0, 0xc3, 0xdd, 0x88, 0xf6, 0x7c, 0xc1, 0xe7, 0x70,
+	0xbc, 0x54, 0xa2, 0x61, 0xea, 0x76, 0x88, 0xda, 0xb3, 0x4b, 0x77, 0x54, 0x44, 0xf0, 0xed, 0xa6,
+	0x6d, 0x32, 0xb6, 0xc6, 0x05, 0x1c, 0x2e, 0xa5, 0x16, 0x2e, 0x90, 0x47, 0x85, 0xe3, 0x6d, 0x1a,
+	0x4d, 0xc3, 0x5b, 0x43, 0xe7, 0x76, 0x64, 0xc0, 0x17, 0xaf, 0xe1, 0x64, 0xe7, 0x27, 0xe0, 0x1c,
+	0xbc, 0x0f, 0xfc, 0x36, 0x9c, 0xe0, 0x21, 0xf8, 0x17, 0x4c, 0xd7, 0x21, 0xc1, 0x00, 0x0e, 0x0a,
+	0xd6, 0x56, 0x3c, 0x9c, 0xf6, 0xe2, 0x47, 0xa1, 0x4d, 0xe8, 0x9d, 0x5d, 0xdc, 0xff, 0x89, 0xc8,
+	0xdd, 0x26, 0x22, 0xf7, 0x9b, 0x88, 0xfc, 0xde, 0x44, 0x93, 0x1f, 0x7f, 0x23, 0xf2, 0x25, 0x1f,
+	0xdd, 0x5a, 0xc3, 0x8c, 0x12, 0x37, 0x52, 0x89, 0x4a, 0xb4, 0x03, 0xb4, 0x3c, 0xeb, 0xbe, 0x55,
+	0x59, 0x57, 0x66, 0x2e, 0xf2, 0x72, 0x66, 0xef, 0xee, 0xd5, 0xbf, 0x00, 0x00, 0x00, 0xff, 0xff,
+	0x85, 0xdd, 0xb3, 0x52, 0xc4, 0x02, 0x00, 0x00,
 }
 
 func (m *PartitionMetadata) Marshal() (dAtA []byte, err error) {
@@ -293,7 +311,7 @@ func (m *PartitionMetadata) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 				i = encodeVarintPartition(dAtA, i, uint64(size))
 			}
 			i--
-			dAtA[i] = 0x2a
+			dAtA[i] = 0x3a
 		}
 	}
 	if len(m.Columns) > 0 {
@@ -302,7 +320,7 @@ func (m *PartitionMetadata) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			copy(dAtA[i:], m.Columns[iNdEx])
 			i = encodeVarintPartition(dAtA, i, uint64(len(m.Columns[iNdEx])))
 			i--
-			dAtA[i] = 0x22
+			dAtA[i] = 0x32
 		}
 	}
 	if len(m.Description) > 0 {
@@ -310,15 +328,29 @@ func (m *PartitionMetadata) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.Description)
 		i = encodeVarintPartition(dAtA, i, uint64(len(m.Description)))
 		i--
-		dAtA[i] = 0x1a
+		dAtA[i] = 0x2a
+	}
+	if len(m.Expression) > 0 {
+		i -= len(m.Expression)
+		copy(dAtA[i:], m.Expression)
+		i = encodeVarintPartition(dAtA, i, uint64(len(m.Expression)))
+		i--
+		dAtA[i] = 0x22
 	}
 	if m.Method != 0 {
 		i = encodeVarintPartition(dAtA, i, uint64(m.Method))
 		i--
-		dAtA[i] = 0x10
+		dAtA[i] = 0x18
 	}
-	if m.ID != 0 {
-		i = encodeVarintPartition(dAtA, i, uint64(m.ID))
+	if len(m.TableName) > 0 {
+		i -= len(m.TableName)
+		copy(dAtA[i:], m.TableName)
+		i = encodeVarintPartition(dAtA, i, uint64(len(m.TableName)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.TableID != 0 {
+		i = encodeVarintPartition(dAtA, i, uint64(m.TableID))
 		i--
 		dAtA[i] = 0x8
 	}
@@ -354,31 +386,31 @@ func (m *Partition) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.Comment)
 		i = encodeVarintPartition(dAtA, i, uint64(len(m.Comment)))
 		i--
-		dAtA[i] = 0x32
-	}
-	if len(m.Expression) > 0 {
-		i -= len(m.Expression)
-		copy(dAtA[i:], m.Expression)
-		i = encodeVarintPartition(dAtA, i, uint64(len(m.Expression)))
-		i--
-		dAtA[i] = 0x2a
+		dAtA[i] = 0x3a
 	}
 	if m.Position != 0 {
 		i = encodeVarintPartition(dAtA, i, uint64(m.Position))
 		i--
-		dAtA[i] = 0x20
+		dAtA[i] = 0x28
 	}
 	if len(m.Name) > 0 {
 		i -= len(m.Name)
 		copy(dAtA[i:], m.Name)
 		i = encodeVarintPartition(dAtA, i, uint64(len(m.Name)))
 		i--
-		dAtA[i] = 0x1a
+		dAtA[i] = 0x22
 	}
-	if m.TableID != 0 {
-		i = encodeVarintPartition(dAtA, i, uint64(m.TableID))
+	if m.PrimaryTableID != 0 {
+		i = encodeVarintPartition(dAtA, i, uint64(m.PrimaryTableID))
 		i--
-		dAtA[i] = 0x10
+		dAtA[i] = 0x18
+	}
+	if len(m.PartitionTableName) > 0 {
+		i -= len(m.PartitionTableName)
+		copy(dAtA[i:], m.PartitionTableName)
+		i = encodeVarintPartition(dAtA, i, uint64(len(m.PartitionTableName)))
+		i--
+		dAtA[i] = 0x12
 	}
 	if m.PartitionID != 0 {
 		i = encodeVarintPartition(dAtA, i, uint64(m.PartitionID))
@@ -405,11 +437,19 @@ func (m *PartitionMetadata) ProtoSize() (n int) {
 	}
 	var l int
 	_ = l
-	if m.ID != 0 {
-		n += 1 + sovPartition(uint64(m.ID))
+	if m.TableID != 0 {
+		n += 1 + sovPartition(uint64(m.TableID))
+	}
+	l = len(m.TableName)
+	if l > 0 {
+		n += 1 + l + sovPartition(uint64(l))
 	}
 	if m.Method != 0 {
 		n += 1 + sovPartition(uint64(m.Method))
+	}
+	l = len(m.Expression)
+	if l > 0 {
+		n += 1 + l + sovPartition(uint64(l))
 	}
 	l = len(m.Description)
 	if l > 0 {
@@ -442,8 +482,12 @@ func (m *Partition) ProtoSize() (n int) {
 	if m.PartitionID != 0 {
 		n += 1 + sovPartition(uint64(m.PartitionID))
 	}
-	if m.TableID != 0 {
-		n += 1 + sovPartition(uint64(m.TableID))
+	l = len(m.PartitionTableName)
+	if l > 0 {
+		n += 1 + l + sovPartition(uint64(l))
+	}
+	if m.PrimaryTableID != 0 {
+		n += 1 + sovPartition(uint64(m.PrimaryTableID))
 	}
 	l = len(m.Name)
 	if l > 0 {
@@ -451,10 +495,6 @@ func (m *Partition) ProtoSize() (n int) {
 	}
 	if m.Position != 0 {
 		n += 1 + sovPartition(uint64(m.Position))
-	}
-	l = len(m.Expression)
-	if l > 0 {
-		n += 1 + l + sovPartition(uint64(l))
 	}
 	l = len(m.Comment)
 	if l > 0 {
@@ -503,9 +543,9 @@ func (m *PartitionMetadata) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ID", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field TableID", wireType)
 			}
-			m.ID = 0
+			m.TableID = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowPartition
@@ -515,12 +555,44 @@ func (m *PartitionMetadata) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.ID |= uint64(b&0x7F) << shift
+				m.TableID |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
 		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TableName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPartition
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthPartition
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthPartition
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.TableName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Method", wireType)
 			}
@@ -539,7 +611,39 @@ func (m *PartitionMetadata) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 3:
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Expression", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPartition
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthPartition
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthPartition
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Expression = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
 			}
@@ -571,7 +675,7 @@ func (m *PartitionMetadata) Unmarshal(dAtA []byte) error {
 			}
 			m.Description = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 4:
+		case 6:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Columns", wireType)
 			}
@@ -603,7 +707,7 @@ func (m *PartitionMetadata) Unmarshal(dAtA []byte) error {
 			}
 			m.Columns = append(m.Columns, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
-		case 5:
+		case 7:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Partitions", wireType)
 			}
@@ -708,10 +812,10 @@ func (m *Partition) Unmarshal(dAtA []byte) error {
 				}
 			}
 		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TableID", wireType)
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PartitionTableName", wireType)
 			}
-			m.TableID = 0
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowPartition
@@ -721,12 +825,44 @@ func (m *Partition) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.TableID |= uint64(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthPartition
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthPartition
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PartitionTableName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PrimaryTableID", wireType)
+			}
+			m.PrimaryTableID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPartition
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.PrimaryTableID |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
 			}
@@ -758,7 +894,7 @@ func (m *Partition) Unmarshal(dAtA []byte) error {
 			}
 			m.Name = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 4:
+		case 5:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Position", wireType)
 			}
@@ -777,39 +913,7 @@ func (m *Partition) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 5:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Expression", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPartition
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthPartition
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthPartition
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Expression = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 6:
+		case 7:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Comment", wireType)
 			}
