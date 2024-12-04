@@ -19,7 +19,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"math"
 	"net"
 	"sort"
 	"strings"
@@ -1864,9 +1863,9 @@ func (c *Compile) compileTableScanDataSource(s *Scope) error {
 	var rel engine.Relation
 	var txnOp client.TxnOperator
 
-	n := s.DataSource.node
-	attrs := make([]string, len(n.TableDef.Cols))
-	for j, col := range n.TableDef.Cols {
+	node := s.DataSource.node
+	attrs := make([]string, len(node.TableDef.Cols))
+	for j, col := range node.TableDef.Cols {
 		attrs[j] = col.GetOriginCaseName()
 	}
 
@@ -1877,18 +1876,18 @@ func (c *Compile) compileTableScanDataSource(s *Scope) error {
 	if err != nil {
 		return err
 	}
-	if n.ScanSnapshot != nil && n.ScanSnapshot.TS != nil {
-		if !n.ScanSnapshot.TS.Equal(timestamp.Timestamp{LogicalTime: 0, PhysicalTime: 0}) &&
-			n.ScanSnapshot.TS.Less(c.proc.GetTxnOperator().Txn().SnapshotTS) {
+	if node.ScanSnapshot != nil && node.ScanSnapshot.TS != nil {
+		if !node.ScanSnapshot.TS.Equal(timestamp.Timestamp{LogicalTime: 0, PhysicalTime: 0}) &&
+			node.ScanSnapshot.TS.Less(c.proc.GetTxnOperator().Txn().SnapshotTS) {
 			if c.proc.GetCloneTxnOperator() != nil {
 				txnOp = c.proc.GetCloneTxnOperator()
 			} else {
-				txnOp = c.proc.GetTxnOperator().CloneSnapshotOp(*n.ScanSnapshot.TS)
+				txnOp = c.proc.GetTxnOperator().CloneSnapshotOp(*node.ScanSnapshot.TS)
 				c.proc.SetCloneTxnOperator(txnOp)
 			}
 
-			if n.ScanSnapshot.Tenant != nil {
-				ctx = context.WithValue(ctx, defines.TenantIDKey{}, n.ScanSnapshot.Tenant.TenantID)
+			if node.ScanSnapshot.Tenant != nil {
+				ctx = context.WithValue(ctx, defines.TenantIDKey{}, node.ScanSnapshot.Tenant.TenantID)
 			}
 		}
 	}
@@ -1902,20 +1901,20 @@ func (c *Compile) compileTableScanDataSource(s *Scope) error {
 		if err != nil {
 			return err
 		}
-		if util.TableIsClusterTable(n.TableDef.GetTableType()) {
+		if util.TableIsClusterTable(node.TableDef.GetTableType()) {
 			ctx = defines.AttachAccountId(ctx, catalog.System_Account)
 		}
-		if n.ObjRef.PubInfo != nil {
-			ctx = defines.AttachAccountId(ctx, uint32(n.ObjRef.PubInfo.TenantId))
+		if node.ObjRef.PubInfo != nil {
+			ctx = defines.AttachAccountId(ctx, uint32(node.ObjRef.PubInfo.TenantId))
 		}
-		if util.TableIsLoggingTable(n.ObjRef.SchemaName, n.ObjRef.ObjName) {
+		if util.TableIsLoggingTable(node.ObjRef.SchemaName, node.ObjRef.ObjName) {
 			ctx = defines.AttachAccountId(ctx, catalog.System_Account)
 		}
-		db, err = c.e.Database(ctx, n.ObjRef.SchemaName, txnOp)
+		db, err = c.e.Database(ctx, node.ObjRef.SchemaName, txnOp)
 		if err != nil {
 			panic(err)
 		}
-		rel, err = db.Relation(ctx, n.TableDef.Name, c.proc)
+		rel, err = db.Relation(ctx, node.TableDef.Name, c.proc)
 		if err != nil {
 			if txnOp.IsSnapOp() {
 				return err
@@ -1925,7 +1924,7 @@ func (c *Compile) compileTableScanDataSource(s *Scope) error {
 			if e != nil {
 				panic(e)
 			}
-			rel, e = db.Relation(c.proc.Ctx, engine.GetTempTableName(n.ObjRef.SchemaName, n.TableDef.Name), c.proc)
+			rel, e = db.Relation(c.proc.Ctx, engine.GetTempTableName(node.ObjRef.SchemaName, node.TableDef.Name), c.proc)
 			if e != nil {
 				panic(e)
 			}
@@ -1933,8 +1932,8 @@ func (c *Compile) compileTableScanDataSource(s *Scope) error {
 		tblDef = rel.GetTableDef(ctx)
 	}
 
-	if len(n.FilterList) != len(s.DataSource.FilterList) {
-		s.DataSource.FilterList = plan2.DeepCopyExprList(n.FilterList)
+	if len(node.FilterList) != len(s.DataSource.FilterList) {
+		s.DataSource.FilterList = plan2.DeepCopyExprList(node.FilterList)
 		for _, e := range s.DataSource.FilterList {
 			_, err := plan2.ReplaceFoldExpr(c.proc, e, &c.filterExprExes)
 			if err != nil {
@@ -1950,8 +1949,8 @@ func (c *Compile) compileTableScanDataSource(s *Scope) error {
 	}
 	s.DataSource.FilterExpr = colexec.RewriteFilterExprList(s.DataSource.FilterList)
 
-	if len(n.BlockFilterList) != len(s.DataSource.BlockFilterList) {
-		s.DataSource.BlockFilterList = plan2.DeepCopyExprList(n.BlockFilterList)
+	if len(node.BlockFilterList) != len(s.DataSource.BlockFilterList) {
+		s.DataSource.BlockFilterList = plan2.DeepCopyExprList(node.BlockFilterList)
 		for _, e := range s.DataSource.BlockFilterList {
 			_, err := plan2.ReplaceFoldExpr(c.proc, e, &c.filterExprExes)
 			if err != nil {
@@ -1964,11 +1963,12 @@ func (c *Compile) compileTableScanDataSource(s *Scope) error {
 	s.DataSource.Attributes = attrs
 	s.DataSource.TableDef = tblDef
 	s.DataSource.Rel = rel
-	s.DataSource.RelationName = n.TableDef.Name
-	s.DataSource.SchemaName = n.ObjRef.SchemaName
-	s.DataSource.AccountId = n.ObjRef.GetPubInfo()
-	s.DataSource.RuntimeFilterSpecs = n.RuntimeFilterProbeList
-	s.DataSource.OrderBy = n.OrderBy
+	s.DataSource.RelationName = node.TableDef.Name
+	s.DataSource.SchemaName = node.ObjRef.SchemaName
+	s.DataSource.AccountId = node.ObjRef.GetPubInfo()
+	s.DataSource.RuntimeFilterSpecs = node.RuntimeFilterProbeList
+	s.DataSource.OrderBy = node.OrderBy
+
 	return nil
 }
 
@@ -3851,14 +3851,11 @@ func (c *Compile) generateCPUNumber(cpunum, blocks int) int {
 	return cpunum
 }
 
-func (c *Compile) determinExpandRanges(n *plan.Node) bool {
-	return len(c.cnList) > 1 && !n.Stats.ForceOneCN && c.execType == plan2.ExecTypeAP_MULTICN && n.Stats.BlockNum > int32(plan2.BlockThresholdForOneCN(c.ncpu))
-}
-
 func collectTombstones(
 	c *Compile,
 	node *plan.Node,
 	rel engine.Relation,
+	policy engine.TombstoneCollectPolicy,
 ) (engine.Tombstoner, error) {
 	var err error
 	//var relData engine.RelData
@@ -3896,7 +3893,7 @@ func collectTombstones(
 		ctx = defines.AttachAccountId(ctx, catalog.System_Account)
 	}
 
-	tombstone, err = rel.CollectTombstones(ctx, c.TxnOffset, engine.Policy_CollectAllTombstones)
+	tombstone, err = rel.CollectTombstones(ctx, c.TxnOffset, policy)
 	if err != nil {
 		return nil, err
 	}
@@ -3905,32 +3902,48 @@ func collectTombstones(
 }
 
 func (c *Compile) expandRanges(
-	node *plan.Node, rel engine.Relation, db engine.Database, ctx context.Context,
-	blockFilterList []*plan.Expr, crs *perfcounter.CounterSet, onRemoteCN bool) (engine.RelData, error) {
+	n *plan.Node, rel engine.Relation, db engine.Database, ctx context.Context,
+	blockFilterList []*plan.Expr, policy engine.DataCollectPolicy, rsp *engine.RangesShuffleParam) (engine.RelData, error) {
 
-	var policy engine.DataCollectPolicy = engine.Policy_CollectAllData
-	if onRemoteCN {
-		policy = engine.Policy_CollectCommittedData
-	}
-
-	preAllocSize := 2
-	if !c.IsTpQuery() {
-		if len(blockFilterList) > 0 {
-			preAllocSize = 64
-		} else {
-			preAllocSize = int(node.Stats.BlockNum)
+	preAllocBlocks := 2
+	if policy&engine.Policy_CollectCommittedData != 0 {
+		if !c.IsTpQuery() {
+			if len(blockFilterList) > 0 {
+				preAllocBlocks = 64
+			} else {
+				preAllocBlocks = int(n.Stats.BlockNum)
+				if rsp != nil {
+					preAllocBlocks = preAllocBlocks / int(rsp.CNCNT)
+				}
+			}
 		}
 	}
 
-	newCtx := perfcounter.AttachS3RequestKey(ctx, crs)
-	relData, err := rel.Ranges(newCtx, blockFilterList, preAllocSize, c.TxnOffset, policy)
+	counterSet := new(perfcounter.CounterSet)
+	newCtx := perfcounter.AttachS3RequestKey(ctx, counterSet)
+	rangesParam := engine.RangesParam{
+		BlockFilters:   blockFilterList,
+		PreAllocBlocks: preAllocBlocks,
+		TxnOffset:      c.TxnOffset,
+		Policy:         policy,
+		Rsp:            rsp,
+	}
+	relData, err := rel.Ranges(newCtx, rangesParam)
 	if err != nil {
 		return nil, err
 	}
-	//tombstones, err := rel.CollectTombstones(ctx, c.TxnOffset)
+
+	stats := statistic.StatsInfoFromContext(ctx)
+	stats.AddScopePrepareS3Request(statistic.S3Request{
+		List:      counterSet.FileService.S3.List.Load(),
+		Head:      counterSet.FileService.S3.Head.Load(),
+		Put:       counterSet.FileService.S3.Put.Load(),
+		Get:       counterSet.FileService.S3.Get.Load(),
+		Delete:    counterSet.FileService.S3.Delete.Load(),
+		DeleteMul: counterSet.FileService.S3.DeleteMulti.Load(),
+	})
 
 	return relData, nil
-
 }
 
 func (c *Compile) handleDbRelContext(node *plan.Node, onRemoteCN bool) (engine.Relation, engine.Database, context.Context, error) {
@@ -4007,10 +4020,7 @@ func (c *Compile) handleDbRelContext(node *plan.Node, onRemoteCN bool) (engine.R
 }
 
 func (c *Compile) generateNodes(n *plan.Node) (engine.Nodes, error) {
-	var relData engine.RelData
-	var nodes engine.Nodes
-
-	rel, db, ctx, err := c.handleDbRelContext(n, false)
+	_, _, _, err := c.handleDbRelContext(n, false)
 	if err != nil {
 		return nil, err
 	}
@@ -4026,69 +4036,32 @@ func (c *Compile) generateNodes(n *plan.Node) (engine.Nodes, error) {
 		forceSingle = true
 	}
 
-	if c.determinExpandRanges(n) {
-		if c.isPrepare {
-			return nil, cantCompileForPrepareErr
-		}
-
-		//@todo need remove expandRanges from Compile.
-		// all expandRanges should be called by Run
-		var newFilterExpr []*plan.Expr
-		if len(n.BlockFilterList) > 0 {
-			newFilterExpr = plan2.DeepCopyExprList(n.BlockFilterList)
-			for _, e := range newFilterExpr {
-				_, err := plan2.ReplaceFoldExpr(c.proc, e, &c.filterExprExes)
-				if err != nil {
-					return nil, err
-				}
-			}
-			for _, e := range newFilterExpr {
-				err = plan2.EvalFoldExpr(c.proc, e, &c.filterExprExes)
-				if err != nil {
-					return nil, err
-				}
-			}
-		}
-
-		counterset := new(perfcounter.CounterSet)
-		relData, err = c.expandRanges(n, rel, db, ctx, newFilterExpr, counterset, false)
-		if err != nil {
-			return nil, err
-		}
-
-		stats := statistic.StatsInfoFromContext(ctx)
-		stats.CompileExpandRangesS3Request(statistic.S3Request{
-			List:      counterset.FileService.S3.List.Load(),
-			Head:      counterset.FileService.S3.Head.Load(),
-			Put:       counterset.FileService.S3.Put.Load(),
-			Get:       counterset.FileService.S3.Get.Load(),
-			Delete:    counterset.FileService.S3.Delete.Load(),
-			DeleteMul: counterset.FileService.S3.DeleteMulti.Load(),
-		})
-	} else {
-		// add current CN
+	var nodes engine.Nodes
+	// scan on current CN
+	if len(c.cnList) == 1 || n.Stats.ForceOneCN || forceSingle || n.Stats.BlockNum <= int32(plan2.BlockThresholdForOneCN) {
 		mcpu := c.generateCPUNumber(c.ncpu, int(n.Stats.BlockNum))
 		if forceSingle {
 			mcpu = 1
 		}
 		nodes = append(nodes, engine.Node{
-			Addr:             c.addr,
-			Mcpu:             mcpu,
-			CNCNT:            1,
-			NeedExpandRanges: true,
+			Addr:  c.addr,
+			Mcpu:  mcpu,
+			CNCNT: 1,
 		})
 		return nodes, nil
 	}
 
-	// for an ordered scan, put all payloads in current CN
-	// or sometimes force on one CN
-	// if not disttae engine, just put all payloads in current CN
-	if len(c.cnList) == 1 || relData.DataCnt() < plan2.BlockThresholdForOneCN(c.ncpu) || n.Stats.ForceOneCN || forceSingle {
-		return putBlocksInCurrentCN(c, relData, forceSingle), nil
+	// scan on multi CN
+	for i := range c.cnList {
+		nodes = append(nodes, engine.Node{
+			Id:    c.cnList[i].Id,
+			Addr:  c.cnList[i].Addr,
+			Mcpu:  c.cnList[i].Mcpu,
+			CNCNT: int32(len(c.cnList)),
+			CNIDX: int32(i),
+		})
 	}
-	// only support disttae engine for now
-	nodes, err = shuffleBlocksToMultiCN(c, rel, relData, n)
-	return nodes, err
+	return nodes, nil
 }
 
 func checkAggOptimize(n *plan.Node) ([]any, []types.T, map[int]int) {
@@ -4421,201 +4394,6 @@ func (c *Compile) evalAggOptimize(n *plan.Node, blk *objectio.BlockInfo, partial
 		}
 	}
 	return nil
-}
-
-func removeEmtpyNodes(
-	c *Compile,
-	n *plan.Node,
-	rel engine.Relation,
-	relData engine.RelData,
-	nodes engine.Nodes) (engine.Nodes, error) {
-	minCnt := math.MaxInt32
-	maxCnt := 0
-	// remove empty node from nodes
-	var newnodes engine.Nodes
-	for i := range nodes {
-		if nodes[i].Data.DataCnt() > maxCnt {
-			maxCnt = nodes[i].Data.DataCnt()
-		}
-		if nodes[i].Data.DataCnt() < minCnt {
-			minCnt = nodes[i].Data.DataCnt()
-		}
-		if nodes[i].Data.DataCnt() > 0 {
-			if nodes[i].Addr != c.addr {
-				tombstone, err := collectTombstones(c, n, rel)
-				if err != nil {
-					return nil, err
-				}
-				nodes[i].Data.AttachTombstones(tombstone)
-			}
-			newnodes = append(newnodes, nodes[i])
-		}
-	}
-	if minCnt*2 < maxCnt {
-		logstring := fmt.Sprintf("read table %v ,workload %v blocks among %v nodes not balanced, max %v, min %v,",
-			n.TableDef.Name,
-			relData.DataCnt(),
-			len(newnodes),
-			maxCnt,
-			minCnt)
-		logstring = logstring + " cnlist: "
-		for i := range c.cnList {
-			logstring = logstring + c.cnList[i].Addr + " "
-		}
-		c.proc.Warn(c.proc.Ctx, logstring)
-	}
-	return newnodes, nil
-}
-
-func shuffleBlocksToMultiCN(c *Compile, rel engine.Relation, relData engine.RelData, n *plan.Node) (engine.Nodes, error) {
-	var nodes engine.Nodes
-	// add current CN
-	nodes = append(nodes, engine.Node{
-		Addr: c.addr,
-		Mcpu: c.generateCPUNumber(c.ncpu, relData.DataCnt()),
-	})
-	// add memory table block
-	nodes[0].Data = relData.BuildEmptyRelData(relData.DataCnt() / len(c.cnList))
-	nodes[0].Data.AppendBlockInfo(&objectio.EmptyBlockInfo)
-
-	// add the rest of CNs in list
-	for i := range c.cnList {
-		if c.cnList[i].Addr != c.addr {
-			nodes = append(nodes, engine.Node{
-				Id:   c.cnList[i].Id,
-				Addr: c.cnList[i].Addr,
-				Mcpu: c.generateCPUNumber(c.cnList[i].Mcpu, relData.DataCnt()),
-				Data: relData.BuildEmptyRelData(relData.DataCnt() / len(c.cnList)),
-			})
-		}
-	}
-
-	if force, tids, cnt := engine.GetForceShuffleReader(); force {
-		for _, tid := range tids {
-			if tid == n.TableDef.TblId {
-				shuffleBlocksByMoCtl(relData, cnt, nodes)
-				return removeEmtpyNodes(c, n, rel, relData, nodes)
-			}
-		}
-	}
-
-	sort.Slice(nodes, func(i, j int) bool { return nodes[i].Addr < nodes[j].Addr })
-
-	if n.Stats.HashmapStats != nil && n.Stats.HashmapStats.Shuffle && n.Stats.HashmapStats.ShuffleType == plan.ShuffleType_Range {
-		err := shuffleBlocksByRange(c, relData, n, nodes)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		shuffleBlocksByHash(c, relData, nodes)
-	}
-
-	return removeEmtpyNodes(c, n, rel, relData, nodes)
-}
-
-func shuffleBlocksByHash(c *Compile, relData engine.RelData, nodes engine.Nodes) {
-	engine.ForRangeBlockInfo(1, relData.DataCnt(), relData,
-		func(blk *objectio.BlockInfo) (bool, error) {
-			location := blk.MetaLocation()
-			objID := location.ObjectId()
-
-			index := plan2.SimpleCharHashToRange(objID[:], uint64(len(c.cnList)))
-			nodes[index].Data.AppendBlockInfo(blk)
-			return true, nil
-		})
-}
-
-// Just for test
-func shuffleBlocksByMoCtl(relData engine.RelData, cnt int, nodes engine.Nodes) error {
-	if cnt > relData.DataCnt()-1 {
-		return moerr.NewInternalErrorNoCtxf(
-			"Invalid Parameter, distribute count:%d, block count:%d",
-			cnt,
-			relData.DataCnt()-1)
-	}
-
-	if len(nodes) < 2 {
-		return moerr.NewInternalErrorNoCtx("Invalid count of nodes")
-	}
-
-	engine.ForRangeBlockInfo(
-		1,
-		cnt,
-		relData,
-		func(blk *objectio.BlockInfo) (bool, error) {
-			nodes[1].Data.AppendBlockInfo(blk)
-			return true, nil
-		})
-
-	return nil
-}
-
-func shuffleBlocksByRange(c *Compile, relData engine.RelData, n *plan.Node, nodes engine.Nodes) error {
-	var objDataMeta objectio.ObjectDataMeta
-	var objMeta objectio.ObjectMeta
-
-	var shuffleRangeUint64 []uint64
-	var shuffleRangeInt64 []int64
-	var init bool
-	var index uint64
-
-	engine.ForRangeBlockInfo(1, relData.DataCnt(), relData,
-		func(blk *objectio.BlockInfo) (bool, error) {
-			location := blk.MetaLocation()
-			fs, err := fileservice.Get[fileservice.FileService](c.proc.Base.FileService, defines.SharedFileServiceName)
-			if err != nil {
-				return false, err
-			}
-			if !objectio.IsSameObjectLocVsMeta(location, objDataMeta) {
-				if objMeta, err = objectio.FastLoadObjectMeta(c.proc.Ctx, &location, false, fs); err != nil {
-					return false, err
-				}
-				objDataMeta = objMeta.MustDataMeta()
-			}
-			blkMeta := objDataMeta.GetBlockMeta(uint32(location.ID()))
-			zm := blkMeta.MustGetColumn(uint16(n.Stats.HashmapStats.ShuffleColIdx)).ZoneMap()
-			if !zm.IsInited() {
-				// a block with all null will send to first CN
-				nodes[0].Data.AppendBlockInfo(blk)
-				return false, nil
-			}
-			if !init {
-				init = true
-				switch zm.GetType() {
-				case types.T_int64, types.T_int32, types.T_int16:
-					shuffleRangeInt64 = plan2.ShuffleRangeReEvalSigned(n.Stats.HashmapStats.Ranges, len(c.cnList), n.Stats.HashmapStats.Nullcnt, int64(n.Stats.TableCnt))
-				case types.T_uint64, types.T_uint32, types.T_uint16, types.T_varchar, types.T_char, types.T_text, types.T_bit, types.T_datalink:
-					shuffleRangeUint64 = plan2.ShuffleRangeReEvalUnsigned(n.Stats.HashmapStats.Ranges, len(c.cnList), n.Stats.HashmapStats.Nullcnt, int64(n.Stats.TableCnt))
-				}
-			}
-			if shuffleRangeUint64 != nil {
-				index = plan2.GetRangeShuffleIndexForZMUnsignedSlice(shuffleRangeUint64, zm)
-			} else if shuffleRangeInt64 != nil {
-				index = plan2.GetRangeShuffleIndexForZMSignedSlice(shuffleRangeInt64, zm)
-			} else {
-				index = plan2.GetRangeShuffleIndexForZM(n.Stats.HashmapStats.ShuffleColMin, n.Stats.HashmapStats.ShuffleColMax, zm, uint64(len(c.cnList)))
-			}
-			nodes[index].Data.AppendBlockInfo(blk)
-			return true, nil
-		})
-
-	return nil
-}
-
-func putBlocksInCurrentCN(c *Compile, relData engine.RelData, forceSingle bool) engine.Nodes {
-	var nodes engine.Nodes
-	// add current CN
-	mcpu := c.generateCPUNumber(c.ncpu, relData.DataCnt())
-	if forceSingle {
-		mcpu = 1
-	}
-	nodes = append(nodes, engine.Node{
-		Addr:  c.addr,
-		Mcpu:  mcpu,
-		CNCNT: 1,
-	})
-	nodes[0].Data = relData
-	return nodes
 }
 
 func dupType(typ *plan.Type) types.Type {

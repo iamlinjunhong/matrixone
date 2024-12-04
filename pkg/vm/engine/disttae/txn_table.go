@@ -557,36 +557,21 @@ func (tbl *txnTable) CollectTombstones(
 //   - ctx: Context used to control the lifecycle of the request.
 //   - exprs: A slice of expressions used to filter data.
 //   - txnOffset: Transaction offset used to specify the starting position for reading data.
-func (tbl *txnTable) Ranges(
-	ctx context.Context,
-	exprs []*plan.Expr,
-	preAllocSize int,
-	txnOffset int,
-	policy engine.DataCollectPolicy,
-) (data engine.RelData, err error) {
-	return tbl.doRanges(
-		ctx,
-		exprs,
-		preAllocSize,
-		policy,
-		txnOffset,
-	)
+func (tbl *txnTable) Ranges(ctx context.Context, rangesParam engine.RangesParam) (data engine.RelData, err error) {
+	return tbl.doRanges(ctx, rangesParam)
 }
 
-func (tbl *txnTable) doRanges(
-	ctx context.Context,
-	exprs []*plan.Expr,
-	preAllocSize int,
-	policy engine.DataCollectPolicy,
-	txnOffset int,
-) (data engine.RelData, err error) {
+func (tbl *txnTable) doRanges(ctx context.Context, rangesParam engine.RangesParam) (data engine.RelData, err error) {
 	sid := tbl.proc.Load().GetService()
 	start := time.Now()
 	seq := tbl.db.op.NextSequence()
 
 	var part *logtailreplay.PartitionState
 	var uncommittedObjects []objectio.ObjectStats
-	blocks := objectio.PreAllocBlockInfoSlice(1, preAllocSize)
+	blocks := objectio.PreAllocBlockInfoSlice(rangesParam.PreAllocBlocks)
+	if rangesParam.Policy&engine.Policy_CollectUncommittedData != 0 {
+		blocks.AppendBlockInfo(&objectio.EmptyBlockInfo)
+	}
 
 	trace.GetService(sid).AddTxnDurationAction(
 		tbl.db.op,
@@ -631,7 +616,7 @@ func (tbl *txnTable) doRanges(
 			logutil.Info(
 				"TXN-FILTER-RANGE-LOG",
 				zap.String("name", tbl.tableDef.Name),
-				zap.String("exprs", plan2.FormatExprs(exprs)),
+				zap.String("exprs", plan2.FormatExprs(rangesParam.BlockFilters)),
 				zap.Int("ranges-len", blocks.Len()),
 				zap.Uint64("tbl-id", tbl.tableId),
 				zap.String("txn", tbl.db.op.Txn().DebugString()),
@@ -642,7 +627,7 @@ func (tbl *txnTable) doRanges(
 			logutil.Info(
 				"INJECT-TRACE-RANGES",
 				zap.String("name", tbl.tableDef.Name),
-				zap.String("exprs", plan2.FormatExprs(exprs)),
+				zap.String("exprs", plan2.FormatExprs(rangesParam.BlockFilters)),
 				zap.Uint64("tbl-id", tbl.tableId),
 				zap.String("txn", tbl.db.op.Txn().DebugString()),
 				zap.String("blocks", blocks.String()),
@@ -674,12 +659,12 @@ func (tbl *txnTable) doRanges(
 		}
 	}()
 
-	if policy&engine.Policy_CollectUncommittedData != 0 {
-		uncommittedObjects, _ = tbl.collectUnCommittedDataObjs(txnOffset)
+	if rangesParam.Policy&engine.Policy_CollectUncommittedData != 0 {
+		uncommittedObjects, _ = tbl.collectUnCommittedDataObjs(rangesParam.TxnOffset)
 	}
 
 	// get the table's snapshot
-	if policy&engine.Policy_CollectCommittedData != 0 {
+	if rangesParam.Policy&engine.Policy_CollectCommittedData != 0 {
 		if part, err = tbl.getPartitionState(ctx); err != nil {
 			return
 		}
@@ -689,7 +674,7 @@ func (tbl *txnTable) doRanges(
 		ctx,
 		part,
 		tbl.GetTableDef(ctx),
-		exprs,
+		rangesParam,
 		&blocks,
 		tbl.proc.Load(),
 		uncommittedObjects,
@@ -727,7 +712,7 @@ func (tbl *txnTable) rangesOnePart(
 	ctx context.Context,
 	state *logtailreplay.PartitionState, // snapshot state of this transaction
 	tableDef *plan.TableDef, // table definition (schema)
-	exprs []*plan.Expr, // filter expression
+	rangesParam engine.RangesParam,
 	outBlocks *objectio.BlockInfoSlice, // output marshaled block list after filtering
 	proc *process.Process, // process of this transaction
 	uncommittedObjects []objectio.ObjectStats,
@@ -738,7 +723,7 @@ func (tbl *txnTable) rangesOnePart(
 		ctx,
 		tbl.db.op.SnapshotTS(),
 		tbl.tableDef,
-		exprs,
+		rangesParam,
 		state,
 		nil,
 		uncommittedObjects,
@@ -755,13 +740,13 @@ func (tbl *txnTable) rangesOnePart(
 		logutil.Info(
 			"SLOW-RANGES:",
 			zap.String("table", tbl.tableDef.Name),
-			zap.String("exprs", plan2.FormatExprs(exprs)),
+			zap.String("exprs", plan2.FormatExprs(rangesParam.BlockFilters)),
 		)
 	}
 
-	hasFoldExpr := plan2.HasFoldExprForList(exprs)
+	hasFoldExpr := plan2.HasFoldExprForList(rangesParam.BlockFilters)
 	if hasFoldExpr {
-		exprs = nil
+		rangesParam.BlockFilters = nil
 	}
 
 	var (
@@ -783,7 +768,7 @@ func (tbl *txnTable) rangesOnePart(
 	}()
 
 	// check if expr is monotonic, if not, we can skip evaluating expr for each block
-	for _, expr := range exprs {
+	for _, expr := range rangesParam.BlockFilters {
 		auxIdCnt += plan2.AssignAuxIdForExpr(expr, auxIdCnt)
 	}
 
@@ -791,7 +776,7 @@ func (tbl *txnTable) rangesOnePart(
 	if auxIdCnt > 0 {
 		zms = make([]objectio.ZoneMap, auxIdCnt)
 		vecs = make([]*vector.Vector, auxIdCnt)
-		plan2.GetColumnMapByExprs(exprs, tableDef, columnMap)
+		plan2.GetColumnMapByExprs(rangesParam.BlockFilters, tableDef, columnMap)
 	}
 
 	errCtx := errutil.ContextWithNoReport(ctx, true)
@@ -799,6 +784,10 @@ func (tbl *txnTable) rangesOnePart(
 	if err = ForeachSnapshotObjects(
 		tbl.db.op.SnapshotTS(),
 		func(obj logtailreplay.ObjectInfo, isCommitted bool) (err2 error) {
+			//if need to shuffle objects
+			if plan2.ShouldSkipObjByShuffle(rangesParam.Rsp, &obj.ObjectStats) {
+				return
+			}
 			var meta objectio.ObjectDataMeta
 			skipObj = false
 
@@ -813,9 +802,10 @@ func (tbl *txnTable) rangesOnePart(
 				}
 
 				meta = objMeta.MustDataMeta()
+
 				// here we only eval expr on the object meta if it has more than one blocks
 				if meta.BlockCount() > 2 {
-					for _, expr := range exprs {
+					for _, expr := range rangesParam.BlockFilters {
 						if !colexec.EvaluateFilterByZoneMap(
 							errCtx, proc, expr, meta, columnMap, zms, vecs,
 						) {
@@ -845,7 +835,7 @@ func (tbl *txnTable) rangesOnePart(
 
 				if auxIdCnt > 0 {
 					// eval filter expr on the block
-					for _, expr := range exprs {
+					for _, expr := range rangesParam.BlockFilters {
 						if !colexec.EvaluateFilterByZoneMap(errCtx, proc, expr, blkMeta, columnMap, zms, vecs) {
 							skipBlk = true
 							break
@@ -1226,6 +1216,8 @@ func (tbl *txnTable) isCreatedInTxn(ctx context.Context) (bool, error) {
 		if err := tbl.db.op.UpdateSnapshot(ctx, cacheTS); err != nil {
 			return false, err
 		}
+		// When logtail reconnect, this error may be thrown to client if
+		// disableRetry is true for some SQL requests.
 		return false, moerr.NewTxnNeedRetry(ctx)
 	}
 
