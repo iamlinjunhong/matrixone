@@ -73,7 +73,7 @@ const (
 	MOShards = "mo_shards"
 
 	MOPartitionMetadata = "mo_partition_metadata"
-	MOPartitions        = "mo_partitions"
+	MOPartitionTables   = "mo_partition_tables"
 )
 
 var InternalColumns = map[string]int8{

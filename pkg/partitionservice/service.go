@@ -132,9 +132,10 @@ func (s *service) getMetadataByHashType(
 	method.Expr.Format(ctx)
 
 	metadata := partition.PartitionMetadata{
-		TableID:   def.TblId,
-		TableName: def.Name,
-		Method:    partition.PartitionMethod_Hash,
+		TableID:      def.TblId,
+		TableName:    def.Name,
+		DatabaseName: def.DbName,
+		Method:       partition.PartitionMethod_Hash,
 		// TODO: ???
 		Expression:  "",
 		Description: ctx.String(),

@@ -20,6 +20,16 @@ type storage struct {
 	eng  engine.Engine
 }
 
+func NewStorage(
+	exec executor.SQLExecutor,
+	eng engine.Engine,
+) PartitionStorage {
+	return &storage{
+		exec: exec,
+		eng:  eng,
+	}
+}
+
 func (s *storage) GetTableDef(
 	ctx context.Context,
 	tableID uint64,
@@ -46,56 +56,119 @@ func (s *storage) GetMetadata(
 		return partition.PartitionMetadata{}, false, err
 	}
 
-	res, err := s.exec.Exec(
+	var metadata partition.PartitionMetadata
+	var found bool
+	err = s.exec.ExecTxn(
 		ctx,
-		`select 
-			partition_method,
-			partition_id,
-			partition_ordinal_position,
-			partition_expression,
-			partition_description,
-			partition_comment,
-		from %s
-		where 
-		    table_id = %d
-		order by 
-		    partition_ordinal_position
-		`,
+		func(txn executor.TxnExecutor) error {
+			txn.Use(catalog.MO_CATALOG)
+			res, err := txn.Exec(
+				fmt.Sprintf(
+					`
+						select 		          
+							table_name                 
+							partition_method           
+							partition_expression       
+							partition_description      
+							partition_count         
+						from %s
+					 	where 
+							table_id = %d
+					`,
+					catalog.MOPartitionMetadata,
+					tableID,
+				),
+				executor.StatementOption{},
+			)
+			if err != nil {
+				return err
+			}
+
+			n := uint32(0)
+			res.ReadRows(
+				func(
+					rows int,
+					cols []*vector.Vector,
+				) bool {
+					found = true
+					for i := 0; i < rows; i++ {
+						metadata.TableID = tableID
+						metadata.TableName = executor.GetStringRows(cols[0])[i]
+						metadata.Method = partition.PartitionMethod(
+							partition.PartitionMethod_value[executor.GetStringRows(cols[1])[i]],
+						)
+						metadata.Expression = executor.GetStringRows(cols[2])[i]
+						metadata.Description = executor.GetStringRows(cols[3])[i]
+						n = executor.GetFixedRows[uint32](cols[4])[i]
+					}
+					return true
+				},
+			)
+			res.Close()
+
+			if !found {
+				return nil
+			}
+
+			res, err = txn.Exec(
+				`
+					select 
+						partition_id              ,
+						partition_table_name      ,
+						partition_name            ,
+						partition_ordinal_position,
+						partition_comment         
+					from %s
+					where 
+						primary_table_id = %d
+					order by 
+						partition_ordinal_position
+				`,
+				executor.StatementOption{},
+			)
+			if err != nil {
+				return err
+			}
+
+			res.ReadRows(
+				func(
+					rows int,
+					cols []*vector.Vector,
+				) bool {
+					found = true
+					for i := 0; i < rows; i++ {
+						metadata.Partitions = append(
+							metadata.Partitions,
+							partition.Partition{
+								PartitionID:        executor.GetFixedRows[uint64](cols[0])[i],
+								PartitionTableName: executor.GetStringRows(cols[1])[i],
+								Name:               executor.GetStringRows(cols[2])[i],
+								Position:           executor.GetFixedRows[uint32](cols[3])[i],
+								Comment:            executor.GetStringRows(cols[4])[i],
+							},
+						)
+					}
+					return true
+				},
+			)
+			res.Close()
+
+			if n != uint32(len(metadata.Partitions)) {
+				panic(
+					fmt.Sprintf("partition count not match, expect %d, got %d",
+						n,
+						len(metadata.Partitions)),
+				)
+			}
+
+			return nil
+		},
 		executor.Options{}.
 			WithTxn(txnOp).
 			WithDatabase(catalog.MO_CATALOG).
 			WithAccountID(accountID),
 	)
-	if err != nil {
-		return partition.PartitionMetadata{}, false, err
-	}
-	defer res.Close()
-
-	var metadata partition.PartitionMetadata
-	var found bool
-	res.ReadRows(
-		func(
-			rows int,
-			cols []*vector.Vector,
-		) bool {
-			found = true
-			for i := 0; i < rows; i++ {
-				method := executor.GetStringRows(cols[0])[i]
-				metadata.Method = partition.PartitionMethod(partition.PartitionMethod_value[method])
-				metadata.Description = executor.GetStringRows(cols[4])[i]
-
-				metadata.Partitions = append(
-					metadata.Partitions,
-					partition.Partition{
-						PartitionID: executor.GetFixedRows[uint64](cols[1])[i],
-						Position:    executor.GetFixedRows[uint32](cols[2])[i],
-						Expression:  executor.GetStringRows(cols[3])[i],
-					})
-			}
-			return true
-		},
-	)
-	return metadata, found, nil
+	return metadata, found, err
 }
 
 func (s *storage) Create(
@@ -112,28 +185,16 @@ func (s *storage) Create(
 	return s.exec.ExecTxn(
 		ctx,
 		func(txn executor.TxnExecutor) error {
+			err = s.createPartitionMetadata(
+				metadata,
+				txn,
+			)
+			if err != nil {
+				return err
+			}
+
 			for _, p := range metadata.Partitions {
 				err := s.createPartitionTable(
-					def,
-					metadata,
-					p,
-					txn,
-				)
-				if err != nil {
-					return err
-				}
-
-				partitionID, err := s.getTableIDByTableNameAndDatabaseName(
-					p.PartitionTableName,
-					def.DbName,
-					txn,
-				)
-				if err != nil {
-					return err
-				}
-				p.PartitionID = partitionID
-
-				err = s.createPartitionMetadata(
 					def,
 					metadata,
 					p,
@@ -156,15 +217,6 @@ func (s *storage) Delete(
 	metadata partition.PartitionMetadata,
 	txnOp client.TxnOperator,
 ) error {
-	db, _, _, err := s.eng.GetRelationById(
-		ctx,
-		txnOp,
-		metadata.ID,
-	)
-	if err != nil {
-		return err
-	}
-
 	accountID, err := defines.GetAccountId(ctx)
 	if err != nil {
 		return err
@@ -173,11 +225,47 @@ func (s *storage) Delete(
 	return s.exec.ExecTxn(
 		ctx,
 		func(txn executor.TxnExecutor) error {
-			txn.Use(db)
-			for _, p := range metadata.Partitions {
-
+			txn.Use(catalog.MO_CATALOG)
+			res, err := txn.Exec(
+				fmt.Sprintf(
+					"delete from %s where table_id = %d",
+					catalog.MOPartitionMetadata,
+					metadata.TableID,
+				),
+				executor.StatementOption{},
+			)
+			if err != nil {
+				return err
 			}
+			res.Close()
 
+			res, err = txn.Exec(
+				fmt.Sprintf(
+					"delete from %s where primary_table_id = %d",
+					catalog.MOPartitionTables,
+					metadata.TableID,
+				),
+				executor.StatementOption{},
+			)
+			if err != nil {
+				return err
+			}
+			res.Close()
+
+			txn.Use(metadata.DatabaseName)
+			for _, p := range metadata.Partitions {
+				res, err = txn.Exec(
+					fmt.Sprintf(
+						"drop table %s",
+						p.PartitionTableName,
+					),
+					executor.StatementOption{},
+				)
+				if err != nil {
+					return err
+				}
+				res.Close()
+			}
 			return nil
 		},
 		executor.Options{}.
@@ -192,24 +280,81 @@ func (s *storage) createPartitionTable(
 	partition partition.Partition,
 	txn executor.TxnExecutor,
 ) error {
-	txn.Use(def.DbName)
+	// create partition table using primary table's schema
+	createPartitionTable := func() error {
+		txn.Use(def.DbName)
+		sql := getPartitionTableCreateSQL(
+			def,
+			metadata,
+			partition,
+		)
+		res, err := txn.Exec(
+			sql,
+			executor.StatementOption{},
+		)
+		if err != nil {
+			return err
+		}
+		res.Close()
 
-	sql := getPartitionTableCreateSQL(
-		def,
-		metadata,
-		partition,
-	)
+		partitionID, err := s.getTableIDByTableNameAndDatabaseName(
+			partition.PartitionTableName,
+			def.DbName,
+			txn,
+		)
+		if err != nil {
+			return err
+		}
+		partition.PartitionID = partitionID
+		return nil
+	}
 
-	res, err := txn.Exec(
-		sql,
-		executor.StatementOption{},
-	)
-	if err != nil {
+	// add partition metadata to mo_catalog.mo_partitions
+	addPartitionMetadata := func() error {
+		txn.Use(catalog.MO_CATALOG)
+		res, err := txn.Exec(
+			fmt.Sprintf(
+				`insert into %s.%s 
+				(
+					partition_id, 
+					partition_table_name, 
+					primary_table_id, 
+					partition_name, 
+					partition_ordinal_position, 
+					partition_comment
+				)
+				values
+				(
+					%d,
+					'%s', 
+					%d, 
+					'%s', 
+					%d, 
+					'%s',
+				)`,
+				catalog.MO_CATALOG,
+				catalog.MOPartitionTables,
+				partition.PartitionID,
+				partition.PartitionTableName,
+				metadata.TableID,
+				partition.Name,
+				partition.Position,
+				partition.Comment,
+			),
+			executor.StatementOption{},
+		)
+		if err != nil {
+			return err
+		}
+
+		res.Close()
+		return nil
+	}
+
+	if err := createPartitionTable(); err != nil {
 		return err
 	}
-	res.Close()
-
-	return nil
+	return addPartitionMetadata()
 }
 
 func (s *storage) getTableIDByTableNameAndDatabaseName(
@@ -242,17 +387,13 @@ func (s *storage) getTableIDByTableNameAndDatabaseName(
 }
 
 func (s *storage) createPartitionMetadata(
-	def *plan.TableDef,
 	metadata partition.PartitionMetadata,
-	partition partition.Partition,
 	txn executor.TxnExecutor,
 ) error {
 	txn.Use(catalog.MO_CATALOG)
 
 	sql := getInsertMetadataSQL(
-		def,
 		metadata,
-		partition,
 	)
 
 	res, err := txn.Exec(
@@ -276,26 +417,37 @@ func getPartitionTableCreateSQL(
 }
 
 func getInsertMetadataSQL(
-	def *plan.TableDef,
 	metadata partition.PartitionMetadata,
-	partition partition.Partition,
 ) string {
-	// table_id 		           bigint        unsigned not null,
-	// partition_method           varchar(13)            not null,
-	// partition_id               bigint        unsigned not null,
-	// partition_ordinal_position int	         unsigned not null,
-	// partition_expression       varchar(2048)          not null,
-	// partition_description      text                   not null,
-	// partition_comment          text
-	return fmt.Sprintf("insert into %s.%s values(%d, '%s', %d, %d, '%s', '%s', '%s')",
+	return fmt.Sprintf(`
+		insert into %s.%s 
+			(
+				table_id,
+				table_name,
+				database_name,
+				partition_method,
+				partition_expression,
+				partition_description,
+				partition_count
+			)
+		values
+			(
+				%d, 
+				'%s', 
+				'%s',
+				'%s', 
+				'%s', 
+				'%s',
+				 %d
+			)`,
 		catalog.MO_CATALOG,
 		catalog.MOPartitionMetadata,
-		def.TblId,
+		metadata.TableID,
+		metadata.TableName,
+		metadata.DatabaseName,
 		metadata.Method.String(),
-		partition.PartitionID,
-		partition.Position,
-		partition.Expression,
+		metadata.Expression,
 		metadata.Description,
-		"",
+		len(metadata.Partitions),
 	)
 }

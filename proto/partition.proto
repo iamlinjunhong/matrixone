@@ -31,13 +31,14 @@ enum PartitionMethod {
 }
 
 message PartitionMetadata {
-    uint64             TableID     = 1;
-    string             TableName   = 2;
-    PartitionMethod    Method      = 3;
-    string             Expression  = 4;
-    string             Description = 5;   
-    repeated string    Columns     = 6;
-    repeated Partition Partitions  = 7 [(gogoproto.nullable) = false];
+    uint64             TableID      = 1;
+    string             TableName    = 2;
+    string             DatabaseName = 3;
+    PartitionMethod    Method       = 4;
+    string             Expression   = 5;
+    string             Description  = 6;   
+    repeated string    Columns      = 7;
+    repeated Partition Partitions   = 8 [(gogoproto.nullable) = false];
 }
 
 message Partition {

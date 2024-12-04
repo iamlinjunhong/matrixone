@@ -29,6 +29,7 @@ var (
 	PartitionTableMetadataSQL = fmt.Sprintf(`create table %s.%s(
 		table_id 		           bigint        unsigned not null,  
 		table_name                 varchar(500)  unsigned not null,
+		database_name			   varchar(500)  unsigned not null,
 		partition_method           varchar(13)            not null,  
 		partition_expression       varchar(2048)          not null,
 		partition_description      text                   not null,
@@ -43,23 +44,12 @@ var (
 		partition_name             varchar(50)   not null,
 		partition_ordinal_position int	         unsigned not null,
 		partition_comment          text
-	)`, catalog.MO_CATALOG, catalog.MOPartitionMetadata)
+	)`, catalog.MO_CATALOG, catalog.MOPartitionTables)
 
 	InitSQLs = []string{
 		PartitionTableMetadataSQL,
 	}
 )
-
-type PartitionMethod string
-
-type Partition struct {
-	// PartitionID we implement the partitioned table using a real physical table corresponding to
-	// each partition given to the partitioned table. The ID of the partitioned table is the id of
-	// the physical table.
-	PartitionID uint64
-	// PartitionMethod is the method of partition. (HASH, RANGE, LIST etc.)
-	PartitionMethod PartitionMethod
-}
 
 // PartitionService is used to maintaining the metadata of the partition table.
 type PartitionService interface {

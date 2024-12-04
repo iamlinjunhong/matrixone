@@ -127,9 +127,22 @@ func (s *memStorage) Create(
 
 func (s *memStorage) Delete(
 	ctx context.Context,
-	tableID uint64,
+	metadata partition.PartitionMetadata,
 	txnOp client.TxnOperator,
 ) error {
+	table := metadata.TableID
+	txnOp.AppendEventCallback(
+		client.ClosedEvent,
+		func(txn client.TxnEvent) {
+			s.Lock()
+			defer s.Unlock()
+
+			delete(s.uncommitted, table)
+			if txn.Committed() {
+				delete(s.committed, table)
+			}
+		},
+	)
 	return nil
 }
 
