@@ -28,6 +28,7 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/matrixorigin/matrixone/pkg/defines"
 	"github.com/matrixorigin/matrixone/pkg/incrservice"
+	"github.com/matrixorigin/matrixone/pkg/partitionservice"
 	"github.com/matrixorigin/matrixone/pkg/pb/api"
 	"github.com/matrixorigin/matrixone/pkg/pb/lock"
 	"github.com/matrixorigin/matrixone/pkg/pb/plan"
@@ -1350,6 +1351,13 @@ func (s *Scope) CreateTable(c *Compile) error {
 			return err
 		}
 	}
+
+	partitionservice.GetService(c.proc.GetService()).Create(
+		c.proc.Ctx,
+		qry.GetTableDef().TblId,
+
+		c.proc.GetTxnOperator(),
+	)
 
 	return shardservice.GetService(c.proc.GetService()).Create(
 		c.proc.Ctx,

@@ -19,12 +19,15 @@ import (
 	"fmt"
 	"sync"
 	"sync/atomic"
+	"testing"
 
 	"github.com/matrixorigin/matrixone/pkg/common/moerr"
 	"github.com/matrixorigin/matrixone/pkg/pb/partition"
 	"github.com/matrixorigin/matrixone/pkg/pb/plan"
+	"github.com/matrixorigin/matrixone/pkg/sql/parsers/tree"
 	"github.com/matrixorigin/matrixone/pkg/txn/client"
 	"github.com/matrixorigin/matrixone/pkg/txn/storage/mem"
+	"github.com/stretchr/testify/require"
 )
 
 type memStorage struct {
@@ -87,6 +90,7 @@ func (s *memStorage) GetMetadata(
 func (s *memStorage) Create(
 	ctx context.Context,
 	def *plan.TableDef,
+	stmt *tree.CreateTable,
 	metadata partition.PartitionMetadata,
 	txnOp client.TxnOperator,
 ) error {
@@ -165,4 +169,18 @@ type partitionTable struct {
 	metadata   partition.PartitionMetadata
 	def        *plan.TableDef
 	partitions []partition.Partition
+}
+
+func TestGetPartitionTableCreateSQL(t *testing.T) {
+	str := getPartitionTableCreateSQL(
+		&plan.TableDef{Name: "test"},
+		getCreateTableStatement(
+			t,
+			"create table t(a int) partition by hash(a) partitions 5",
+		),
+		partition.Partition{
+			Name: "p1",
+		},
+	)
+	require.Equal(t, "create table test_p1 (a int)", str)
 }

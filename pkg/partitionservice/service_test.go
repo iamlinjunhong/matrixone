@@ -16,14 +16,18 @@ package partitionservice
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/matrixorigin/matrixone/pkg/container/types"
+	"github.com/matrixorigin/matrixone/pkg/sql/parsers"
+	"github.com/matrixorigin/matrixone/pkg/sql/parsers/dialect"
 	"github.com/matrixorigin/matrixone/pkg/sql/parsers/tree"
 	"github.com/matrixorigin/matrixone/pkg/sql/plan"
 	"github.com/matrixorigin/matrixone/pkg/txn/client"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreateHash(t *testing.T) {
@@ -52,8 +56,8 @@ func TestCreateHash(t *testing.T) {
 				def := newTestTableDefine(1, columns, []types.T{v})
 				store.addUncommittedTable(def)
 
-				option := newTestHashOption(columns[0], num)
-				assert.NoError(t, s.Create(ctx, tableID, option, txnOp))
+				stmt := newTestHashOption(t, columns[0], num)
+				assert.NoError(t, s.Create(ctx, tableID, stmt, txnOp))
 
 				v, ok := store.uncommitted[tableID]
 				assert.True(t, ok)
@@ -108,15 +112,31 @@ func newTestTableDefine(
 }
 
 func newTestHashOption(
+	t *testing.T,
 	column string,
 	num uint64,
-) *tree.PartitionOption {
-	return &tree.PartitionOption{
-		PartBy: &tree.PartitionBy{
-			PType: &tree.HashType{
-				Expr: tree.NewUnresolvedColName(column),
-			},
-			Num: num,
-		},
-	}
+) *tree.CreateTable {
+	return getCreateTableStatement(
+		t,
+		fmt.Sprintf(
+			"create table t(%s int) partition by hash(%s) partitions %d",
+			column,
+			column,
+			num,
+		),
+	)
+}
+
+func getCreateTableStatement(
+	t *testing.T,
+	sql string,
+) *tree.CreateTable {
+	stmt, err := parsers.ParseOne(
+		context.TODO(),
+		dialect.MYSQL,
+		sql,
+		1,
+	)
+	require.NoError(t, err)
+	return stmt.(*tree.CreateTable)
 }

@@ -1224,6 +1224,7 @@ message CreateTable {
 	repeated ForeignKeyInfo fksReferToMe = 13;
 
 	int64 retention_deadline = 14;
+	string RawSQL = 15;
 }
 
 message AlterTableDrop {

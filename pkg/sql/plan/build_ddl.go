@@ -738,19 +738,13 @@ func buildCreateTable(stmt *tree.CreateTable, ctx CompilerContext) (*Plan, error
 		return nil, moerr.NewInternalError(ctx.GetContext(), "rewrite for create table like failed")
 	}
 
-	if stmt.PartitionOption != nil {
-		ctx := tree.NewFmtCtx(dialect.MYSQL, tree.WithQuoteString(true))
-		stmt.PartitionOption.PartBy.PType.(*tree.HashType).Expr.Format(ctx)
-		v := ctx.String()
-		fmt.Println(v)
-	}
-
 	createTable := &plan.CreateTable{
 		IfNotExists: stmt.IfNotExists,
 		Temporary:   stmt.Temporary,
 		TableDef: &TableDef{
 			Name: string(stmt.Table.ObjectName),
 		},
+		RawSQL: tree.String(stmt, dialect.MYSQL),
 	}
 
 	// get database name

@@ -36,6 +36,8 @@ const (
 	TxnTraceService = "txn-trace-service"
 	// ShardService shard service
 	ShardService = "shard-service"
+	// PartitionService partition service
+	PartitionService = "partition-service"
 	// ProcessCodecService process codec service
 	ProcessCodecService = "process-codec-service"
 

@@ -25,8 +25,6 @@ import (
 
 	"github.com/fagongzi/goetty/v2"
 	"github.com/google/uuid"
-	"go.uber.org/zap"
-
 	"github.com/matrixorigin/matrixone/pkg/bootstrap"
 	"github.com/matrixorigin/matrixone/pkg/catalog"
 	"github.com/matrixorigin/matrixone/pkg/clusterservice"
@@ -45,6 +43,7 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/lockservice"
 	"github.com/matrixorigin/matrixone/pkg/logservice"
 	"github.com/matrixorigin/matrixone/pkg/logutil"
+	"github.com/matrixorigin/matrixone/pkg/partitionservice"
 	"github.com/matrixorigin/matrixone/pkg/pb/metadata"
 	"github.com/matrixorigin/matrixone/pkg/pb/pipeline"
 	"github.com/matrixorigin/matrixone/pkg/pb/txn"
@@ -68,6 +67,7 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/disttae"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/tae/blockio"
 	"github.com/matrixorigin/matrixone/pkg/vm/process"
+	"go.uber.org/zap"
 )
 
 func NewService(
@@ -799,6 +799,22 @@ func (s *service) initShardService() {
 	runtime.ServiceRuntime(s.cfg.UUID).SetGlobalVariables(
 		runtime.ShardService,
 		s.shardService,
+	)
+}
+
+func (s *service) initPartitionService() {
+	store := partitionservice.NewStorage(
+		s.cfg.UUID,
+		s.sqlExecutor,
+		s.storeEngine,
+	)
+	s.partitionService = partitionservice.NewService(
+		s.cfg.UUID,
+		store,
+	)
+	runtime.ServiceRuntime(s.cfg.UUID).SetGlobalVariables(
+		runtime.PartitionService,
+		s.partitionService,
 	)
 }
 

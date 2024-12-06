@@ -10,21 +10,26 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/defines"
 	"github.com/matrixorigin/matrixone/pkg/pb/partition"
 	"github.com/matrixorigin/matrixone/pkg/pb/plan"
+	"github.com/matrixorigin/matrixone/pkg/sql/parsers/dialect"
+	"github.com/matrixorigin/matrixone/pkg/sql/parsers/tree"
 	"github.com/matrixorigin/matrixone/pkg/txn/client"
 	"github.com/matrixorigin/matrixone/pkg/util/executor"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine"
 )
 
 type storage struct {
+	sid  string
 	exec executor.SQLExecutor
 	eng  engine.Engine
 }
 
 func NewStorage(
+	sid string,
 	exec executor.SQLExecutor,
 	eng engine.Engine,
 ) PartitionStorage {
 	return &storage{
+		sid:  sid,
 		exec: exec,
 		eng:  eng,
 	}
@@ -174,6 +179,7 @@ func (s *storage) GetMetadata(
 func (s *storage) Create(
 	ctx context.Context,
 	def *plan.TableDef,
+	stmt *tree.CreateTable,
 	metadata partition.PartitionMetadata,
 	txnOp client.TxnOperator,
 ) error {
@@ -196,6 +202,7 @@ func (s *storage) Create(
 			for _, p := range metadata.Partitions {
 				err := s.createPartitionTable(
 					def,
+					stmt,
 					metadata,
 					p,
 					txn,
@@ -276,6 +283,7 @@ func (s *storage) Delete(
 
 func (s *storage) createPartitionTable(
 	def *plan.TableDef,
+	stmt *tree.CreateTable,
 	metadata partition.PartitionMetadata,
 	partition partition.Partition,
 	txn executor.TxnExecutor,
@@ -285,7 +293,7 @@ func (s *storage) createPartitionTable(
 		txn.Use(def.DbName)
 		sql := getPartitionTableCreateSQL(
 			def,
-			metadata,
+			stmt,
 			partition,
 		)
 		res, err := txn.Exec(
@@ -410,10 +418,28 @@ func (s *storage) createPartitionMetadata(
 
 func getPartitionTableCreateSQL(
 	def *plan.TableDef,
-	metadata partition.PartitionMetadata,
+	stmt *tree.CreateTable,
 	partition partition.Partition,
 ) string {
-	return "TODO"
+	v := stmt.PartitionOption
+	table := stmt.Table
+	stmt.PartitionOption = nil
+	defer func() {
+		stmt.PartitionOption = v
+		stmt.Table = table
+	}()
+
+	stmt.Table = *tree.NewTableName(
+		tree.Identifier(
+			fmt.Sprintf("%s_%s",
+				def.Name,
+				partition.Name,
+			),
+		),
+		table.ObjectNamePrefix,
+		table.AtTsExpr,
+	)
+	return tree.String(stmt, dialect.MYSQL)
 }
 
 func getInsertMetadataSQL(

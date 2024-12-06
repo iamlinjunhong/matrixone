@@ -19,6 +19,7 @@ import (
 	"fmt"
 
 	"github.com/matrixorigin/matrixone/pkg/catalog"
+	"github.com/matrixorigin/matrixone/pkg/common/runtime"
 	"github.com/matrixorigin/matrixone/pkg/pb/partition"
 	"github.com/matrixorigin/matrixone/pkg/pb/plan"
 	"github.com/matrixorigin/matrixone/pkg/sql/parsers/tree"
@@ -27,14 +28,13 @@ import (
 
 var (
 	PartitionTableMetadataSQL = fmt.Sprintf(`create table %s.%s(
-		table_id 		           bigint        unsigned not null,  
-		table_name                 varchar(500)  unsigned not null,
-		database_name			   varchar(500)  unsigned not null,
-		partition_method           varchar(13)            not null,  
-		partition_expression       varchar(2048)          not null,
-		partition_description      text                   not null,
-		partition_count            int	         unsigned,
-		primary key(table_id)
+		table_id 		           bigint        unsigned primary key not null,  
+		table_name                 varchar(500)                       not null,
+		database_name			   varchar(500)                       not null,
+		partition_method           varchar(13)                        not null,  
+		partition_expression       varchar(2048)                      not null,
+		partition_description      text                               not null,
+		partition_count            int	         unsigned
 	)`, catalog.MO_CATALOG, catalog.MOPartitionMetadata)
 
 	PartitionTablesSQL = fmt.Sprintf(`create table %s.%s(
@@ -47,6 +47,7 @@ var (
 	)`, catalog.MO_CATALOG, catalog.MOPartitionTables)
 
 	InitSQLs = []string{
+		PartitionTablesSQL,
 		PartitionTableMetadataSQL,
 	}
 )
@@ -57,7 +58,7 @@ type PartitionService interface {
 	Create(
 		ctx context.Context,
 		tableID uint64,
-		option *tree.PartitionOption,
+		stmt *tree.CreateTable,
 		txnOp client.TxnOperator,
 	) error
 }
@@ -72,6 +73,7 @@ type PartitionStorage interface {
 	Create(
 		ctx context.Context,
 		def *plan.TableDef,
+		stmt *tree.CreateTable,
 		metadata partition.PartitionMetadata,
 		txnOp client.TxnOperator,
 	) error
@@ -87,4 +89,14 @@ type PartitionStorage interface {
 		tableID uint64,
 		txnOp client.TxnOperator,
 	) (*plan.TableDef, error)
+}
+
+func GetService(
+	sid string,
+) PartitionService {
+	v, ok := runtime.ServiceRuntime(sid).GetGlobalVariables(runtime.PartitionService)
+	if !ok {
+		panic("BUG: partition service is not initialized")
+	}
+	return v.(PartitionService)
 }

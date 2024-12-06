@@ -46,7 +46,7 @@ func NewService(
 func (s *service) Create(
 	ctx context.Context,
 	tableID uint64,
-	option *tree.PartitionOption,
+	stmt *tree.CreateTable,
 	txnOp client.TxnOperator,
 ) error {
 	def, err := s.store.GetTableDef(
@@ -60,7 +60,7 @@ func (s *service) Create(
 
 	metadata, err := s.getMetadata(
 		def,
-		option,
+		stmt.PartitionOption,
 	)
 	if err != nil {
 		return err
@@ -69,6 +69,7 @@ func (s *service) Create(
 	return s.store.Create(
 		ctx,
 		def,
+		stmt,
 		metadata,
 		txnOp,
 	)
