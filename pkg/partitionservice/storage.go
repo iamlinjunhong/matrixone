@@ -3,7 +3,6 @@ package partitionservice
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/matrixorigin/matrixone/pkg/catalog"
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
@@ -61,6 +60,14 @@ func (s *storage) GetMetadata(
 		return partition.PartitionMetadata{}, false, err
 	}
 
+	opts := executor.Options{}.
+		WithTxn(txnOp).
+		WithDatabase(catalog.MO_CATALOG).
+		WithAccountID(accountID)
+	if txnOp != nil {
+		opts = opts.WithDisableIncrStatement()
+	}
+
 	var metadata partition.PartitionMetadata
 	var found bool
 	err = s.exec.ExecTxn(
@@ -71,10 +78,10 @@ func (s *storage) GetMetadata(
 				fmt.Sprintf(
 					`
 						select 		          
-							table_name                 
-							partition_method           
-							partition_expression       
-							partition_description      
+							table_name,                 
+							partition_method,           
+							partition_expression,       
+							partition_description,      
 							partition_count         
 						from %s
 					 	where 
@@ -116,7 +123,8 @@ func (s *storage) GetMetadata(
 			}
 
 			res, err = txn.Exec(
-				`
+				fmt.Sprintf(
+					`
 					select 
 						partition_id              ,
 						partition_table_name      ,
@@ -129,6 +137,9 @@ func (s *storage) GetMetadata(
 					order by 
 						partition_ordinal_position
 				`,
+					catalog.MOPartitionTables,
+					tableID,
+				),
 				executor.StatementOption{},
 			)
 			if err != nil {
@@ -168,10 +179,7 @@ func (s *storage) GetMetadata(
 
 			return nil
 		},
-		executor.Options{}.
-			WithTxn(txnOp).
-			WithDatabase(catalog.MO_CATALOG).
-			WithAccountID(accountID),
+		opts,
 	)
 	return metadata, found, err
 }
@@ -186,6 +194,13 @@ func (s *storage) Create(
 	accountID, err := defines.GetAccountId(ctx)
 	if err != nil {
 		return err
+	}
+
+	opts := executor.Options{}.
+		WithTxn(txnOp).
+		WithAccountID(accountID)
+	if txnOp != nil {
+		opts = opts.WithDisableIncrStatement()
 	}
 
 	return s.exec.ExecTxn(
@@ -213,9 +228,7 @@ func (s *storage) Create(
 			}
 			return nil
 		},
-		executor.Options{}.
-			WithTxn(txnOp).
-			WithAccountID(accountID),
+		opts,
 	)
 }
 
@@ -227,6 +240,13 @@ func (s *storage) Delete(
 	accountID, err := defines.GetAccountId(ctx)
 	if err != nil {
 		return err
+	}
+
+	opts := executor.Options{}.
+		WithTxn(txnOp).
+		WithAccountID(accountID)
+	if txnOp != nil {
+		opts = opts.WithDisableIncrStatement()
 	}
 
 	return s.exec.ExecTxn(
@@ -275,9 +295,7 @@ func (s *storage) Delete(
 			}
 			return nil
 		},
-		executor.Options{}.
-			WithTxn(txnOp).
-			WithAccountID(accountID),
+		opts,
 	)
 }
 
@@ -292,7 +310,6 @@ func (s *storage) createPartitionTable(
 	createPartitionTable := func() error {
 		txn.Use(def.DbName)
 		sql := getPartitionTableCreateSQL(
-			def,
 			stmt,
 			partition,
 		)
@@ -320,35 +337,37 @@ func (s *storage) createPartitionTable(
 	// add partition metadata to mo_catalog.mo_partitions
 	addPartitionMetadata := func() error {
 		txn.Use(catalog.MO_CATALOG)
+		sql := fmt.Sprintf(
+			`insert into %s.%s 
+			(
+				partition_id, 
+				partition_table_name, 
+				primary_table_id, 
+				partition_name, 
+				partition_ordinal_position, 
+				partition_comment
+			)
+			values
+			(
+				%d,
+				'%s', 
+				%d, 
+				'%s', 
+				%d, 
+				'%s'
+			)`,
+			catalog.MO_CATALOG,
+			catalog.MOPartitionTables,
+			partition.PartitionID,
+			partition.PartitionTableName,
+			metadata.TableID,
+			partition.Name,
+			partition.Position,
+			partition.Comment,
+		)
+
 		res, err := txn.Exec(
-			fmt.Sprintf(
-				`insert into %s.%s 
-				(
-					partition_id, 
-					partition_table_name, 
-					primary_table_id, 
-					partition_name, 
-					partition_ordinal_position, 
-					partition_comment
-				)
-				values
-				(
-					%d,
-					'%s', 
-					%d, 
-					'%s', 
-					%d, 
-					'%s',
-				)`,
-				catalog.MO_CATALOG,
-				catalog.MOPartitionTables,
-				partition.PartitionID,
-				partition.PartitionTableName,
-				metadata.TableID,
-				partition.Name,
-				partition.Position,
-				partition.Comment,
-			),
+			sql,
 			executor.StatementOption{},
 		)
 		if err != nil {
@@ -372,11 +391,12 @@ func (s *storage) getTableIDByTableNameAndDatabaseName(
 ) (uint64, error) {
 	txn.Use(catalog.MO_CATALOG)
 
+	sql := fmt.Sprintf("select rel_id from mo_catalog.mo_tables where relname = '%s' and reldatabase = '%s'",
+		tableName,
+		databaseName,
+	)
 	res, err := txn.Exec(
-		fmt.Sprintf("select rel_id from mo_catalog.mo_tables where relname = '%s' and reldatabase = '%s'",
-			strings.ToLower(tableName),
-			strings.ToLower(databaseName),
-		),
+		sql,
 		executor.StatementOption{},
 	)
 	if err != nil {
@@ -417,7 +437,6 @@ func (s *storage) createPartitionMetadata(
 }
 
 func getPartitionTableCreateSQL(
-	def *plan.TableDef,
 	stmt *tree.CreateTable,
 	partition partition.Partition,
 ) string {
@@ -430,12 +449,7 @@ func getPartitionTableCreateSQL(
 	}()
 
 	stmt.Table = *tree.NewTableName(
-		tree.Identifier(
-			fmt.Sprintf("%s_%s",
-				def.Name,
-				partition.Name,
-			),
-		),
+		tree.Identifier(partition.PartitionTableName),
 		table.ObjectNamePrefix,
 		table.AtTsExpr,
 	)

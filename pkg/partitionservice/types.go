@@ -61,6 +61,8 @@ type PartitionService interface {
 		stmt *tree.CreateTable,
 		txnOp client.TxnOperator,
 	) error
+
+	GetStorage() PartitionStorage
 }
 
 type PartitionStorage interface {

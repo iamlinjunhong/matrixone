@@ -144,16 +144,22 @@ func (s *service) getMetadataByHashType(
 	}
 
 	for i := uint64(0); i < option.PartBy.Num; i++ {
+		name := fmt.Sprintf("p%d", i)
 		metadata.Partitions = append(
 			metadata.Partitions,
 			partition.Partition{
-				Name:     fmt.Sprintf("p%d", i),
-				Position: uint32(i),
-				Comment:  "",
+				Name:               name,
+				PartitionTableName: fmt.Sprintf("%s_%s", def.Name, name),
+				Position:           uint32(i),
+				Comment:            "",
 			},
 		)
 	}
 	return metadata, nil
+}
+
+func (s *service) GetStorage() PartitionStorage {
+	return s.store
 }
 
 func validColumns(

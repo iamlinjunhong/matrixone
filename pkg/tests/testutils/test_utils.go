@@ -23,6 +23,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/matrixorigin/matrixone/pkg/catalog"
 	"github.com/matrixorigin/matrixone/pkg/cnservice"
 	"github.com/matrixorigin/matrixone/pkg/common/moerr"
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
@@ -275,4 +276,33 @@ func WaitClusterAppliedTo(
 			return true
 		},
 	)
+}
+
+func MustGetTableID(
+	t *testing.T,
+	db string,
+	table string,
+	txn executor.TxnExecutor,
+) uint64 {
+	txn.Use(catalog.MO_CATALOG)
+	res, err := txn.Exec(
+		fmt.Sprintf("select rel_id from mo_catalog.mo_tables where relname = '%s' and reldatabase = '%s'",
+			strings.ToLower(table),
+			strings.ToLower(db),
+		),
+		executor.StatementOption{},
+	)
+	require.NoError(t, err)
+	defer res.Close()
+
+	id := uint64(0)
+	res.ReadRows(
+		func(rows int, cols []*vector.Vector) bool {
+			id = executor.GetFixedRows[uint64](cols[0])[0]
+			return false
+		},
+	)
+
+	require.NotEqual(t, uint64(0), id)
+	return id
 }

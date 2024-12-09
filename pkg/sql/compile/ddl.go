@@ -34,6 +34,8 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/pb/plan"
 	"github.com/matrixorigin/matrixone/pkg/shardservice"
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec/lockop"
+	"github.com/matrixorigin/matrixone/pkg/sql/parsers"
+	"github.com/matrixorigin/matrixone/pkg/sql/parsers/dialect"
 	"github.com/matrixorigin/matrixone/pkg/sql/parsers/tree"
 	plan2 "github.com/matrixorigin/matrixone/pkg/sql/plan"
 	"github.com/matrixorigin/matrixone/pkg/sql/plan/function"
@@ -1352,12 +1354,27 @@ func (s *Scope) CreateTable(c *Compile) error {
 		}
 	}
 
-	partitionservice.GetService(c.proc.GetService()).Create(
-		c.proc.Ctx,
-		qry.GetTableDef().TblId,
+	if qry.IsPartition {
+		stmt, err := parsers.ParseOne(
+			c.proc.Ctx,
+			dialect.MYSQL,
+			qry.RawSQL,
+			c.getLower(),
+		)
+		if err != nil {
+			return nil
+		}
 
-		c.proc.GetTxnOperator(),
-	)
+		err = partitionservice.GetService(c.proc.GetService()).Create(
+			c.proc.Ctx,
+			qry.GetTableDef().TblId,
+			stmt.(*tree.CreateTable),
+			c.proc.GetTxnOperator(),
+		)
+		if err != nil {
+			return err
+		}
+	}
 
 	return shardservice.GetService(c.proc.GetService()).Create(
 		c.proc.Ctx,

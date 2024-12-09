@@ -173,13 +173,13 @@ type partitionTable struct {
 
 func TestGetPartitionTableCreateSQL(t *testing.T) {
 	str := getPartitionTableCreateSQL(
-		&plan.TableDef{Name: "test"},
 		getCreateTableStatement(
 			t,
 			"create table t(a int) partition by hash(a) partitions 5",
 		),
 		partition.Partition{
-			Name: "p1",
+			Name:               "p1",
+			PartitionTableName: "test_p1",
 		},
 	)
 	require.Equal(t, "create table test_p1 (a int)", str)

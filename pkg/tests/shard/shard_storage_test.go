@@ -16,14 +16,11 @@ package shard
 
 import (
 	"context"
-	"fmt"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/matrixorigin/matrixone/pkg/catalog"
 	"github.com/matrixorigin/matrixone/pkg/cnservice"
-	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/matrixorigin/matrixone/pkg/defines"
 	"github.com/matrixorigin/matrixone/pkg/embed"
 	"github.com/matrixorigin/matrixone/pkg/pb/shard"
@@ -128,34 +125,6 @@ func mustCreateShardStorage(
 	)
 }
 
-func mustGetTableID(
-	t *testing.T,
-	db string,
-	table string,
-	txn executor.TxnExecutor,
-) uint64 {
-	res, err := txn.Exec(
-		fmt.Sprintf("select rel_id from mo_catalog.mo_tables where relname = '%s' and reldatabase = '%s'",
-			strings.ToLower(table),
-			strings.ToLower(db),
-		),
-		executor.StatementOption{},
-	)
-	require.NoError(t, err)
-	defer res.Close()
-
-	id := uint64(0)
-	res.ReadRows(
-		func(rows int, cols []*vector.Vector) bool {
-			id = executor.GetFixedRows[uint64](cols[0])[0]
-			return false
-		},
-	)
-
-	require.NotEqual(t, uint64(0), id)
-	return id
-}
-
 func mustGetTableIDByCN(
 	t *testing.T,
 	db string,
@@ -170,7 +139,7 @@ func mustGetTableIDByCN(
 	err := exec.ExecTxn(
 		ctx,
 		func(txn executor.TxnExecutor) error {
-			tableID = mustGetTableID(t, db, table, txn)
+			tableID = testutils.MustGetTableID(t, db, table, txn)
 			return nil
 		},
 		executor.Options{}.
@@ -210,7 +179,7 @@ func mustCreatePartitionTable(
 			}
 			res.Close()
 
-			tableID = mustGetTableID(t, db, table, txn)
+			tableID = testutils.MustGetTableID(t, db, table, txn)
 			ok, err := store.Create(
 				ctx,
 				tableID,
