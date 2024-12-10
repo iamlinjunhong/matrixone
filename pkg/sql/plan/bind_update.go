@@ -67,7 +67,8 @@ func (builder *QueryBuilder) bindUpdate(stmt *tree.Update, bindCtx *BindContext)
 			}
 
 			for _, colName := range idxDef.Parts {
-				pkAndUkCols[colName] = true
+				realColName := catalog.ResolveAlias(colName)
+				pkAndUkCols[realColName] = true
 			}
 		}
 
@@ -230,7 +231,8 @@ func (builder *QueryBuilder) bindUpdate(stmt *tree.Update, bindCtx *BindContext)
 			}
 
 			for _, colName := range idxDef.Parts {
-				if _, ok := updateColName2Idx[alias+"."+colName]; ok {
+				realColName := catalog.ResolveAlias(colName)
+				if _, ok := updateColName2Idx[alias+"."+realColName]; ok {
 					idxNeedUpdate[i][j] = true
 					break
 				}
@@ -421,8 +423,9 @@ func (builder *QueryBuilder) bindUpdate(stmt *tree.Update, bindCtx *BindContext)
 			args := make([]*plan.Expr, len(idxDef.Parts))
 
 			for k, colName := range idxDef.Parts {
-				colPos := int32(colName2Idx[alias+"."+colName])
-				if updateIdx, ok := updateColName2Idx[alias+"."+colName]; ok {
+				realColName := catalog.ResolveAlias(colName)
+				colPos := int32(colName2Idx[alias+"."+realColName])
+				if updateIdx, ok := updateColName2Idx[alias+"."+realColName]; ok {
 					colPos = int32(updateIdx)
 				}
 				args[k] = &plan.Expr{
