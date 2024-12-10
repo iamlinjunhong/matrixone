@@ -2523,7 +2523,15 @@ func (s *Scope) DropTable(c *Compile) error {
 	if moerr.IsMoErrCode(err, moerr.ErrNoSuchTable) {
 		return nil
 	}
-	return err
+	if err != nil {
+		return nil
+	}
+
+	return partitionservice.GetService(c.proc.GetService()).Delete(
+		c.proc.Ctx,
+		tblId,
+		c.proc.GetTxnOperator(),
+	)
 }
 
 func planDefsToExeDefs(tableDef *plan.TableDef) ([]engine.TableDef, error) {

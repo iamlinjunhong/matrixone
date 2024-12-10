@@ -62,6 +62,12 @@ type PartitionService interface {
 		txnOp client.TxnOperator,
 	) error
 
+	Delete(
+		ctx context.Context,
+		tableID uint64,
+		txnOp client.TxnOperator,
+	) error
+
 	GetStorage() PartitionStorage
 }
 

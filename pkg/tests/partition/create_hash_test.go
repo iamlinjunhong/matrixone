@@ -30,7 +30,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreateHashBased(t *testing.T) {
+func TestCreateAndDeleteHashBased(t *testing.T) {
 	runPartitionClusterTest(
 		func(c embed.Cluster) {
 			cn, err := c.GetCNService(0)
@@ -54,6 +54,35 @@ func TestCreateHashBased(t *testing.T) {
 				cn,
 			)
 			require.Equal(t, 2, len(metadata.Partitions))
+			require.Equal(t, partition.PartitionMethod_Hash, metadata.Method)
+
+			var tables []string
+			for idx, p := range metadata.Partitions {
+				tables = append(tables, p.PartitionTableName)
+				require.NotEqual(t, uint64(0), p.PartitionID)
+				require.Equal(t, metadata.TableID, p.PrimaryTableID)
+				require.Equal(t, uint32(idx), p.Position)
+				require.Equal(t, fmt.Sprintf("%s_%s", metadata.TableName, p.Name), p.PartitionTableName)
+			}
+
+			testutils.ExecSQL(
+				t,
+				db,
+				cn,
+				fmt.Sprintf("drop table %s", t.Name()),
+			)
+			metadata = getMetadata(
+				t,
+				0,
+				db,
+				t.Name(),
+				cn,
+			)
+			require.Equal(t, partition.PartitionMetadata{}, metadata)
+
+			for _, name := range tables {
+				require.False(t, testutils.TableExists(t, db, name, cn))
+			}
 		},
 	)
 }
@@ -77,12 +106,15 @@ func getMetadata(
 	err := exec.ExecTxn(
 		ctx,
 		func(txn executor.TxnExecutor) error {
-			id := testutils.MustGetTableID(
+			id := testutils.GetTableID(
 				t,
 				db,
 				table,
 				txn,
 			)
+			if id == 0 {
+				return nil
+			}
 
 			metadata, ok, err := store.GetMetadata(
 				ctx,

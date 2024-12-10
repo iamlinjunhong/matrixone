@@ -158,6 +158,30 @@ func (s *service) getMetadataByHashType(
 	return metadata, nil
 }
 
+func (s *service) Delete(
+	ctx context.Context,
+	tableID uint64,
+	txnOp client.TxnOperator,
+) error {
+	metadata, ok, err := s.store.GetMetadata(
+		ctx,
+		tableID,
+		txnOp,
+	)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nil
+	}
+
+	return s.store.Delete(
+		ctx,
+		metadata,
+		txnOp,
+	)
+}
+
 func (s *service) GetStorage() PartitionStorage {
 	return s.store
 }

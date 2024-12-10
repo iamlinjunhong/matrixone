@@ -284,6 +284,17 @@ func MustGetTableID(
 	table string,
 	txn executor.TxnExecutor,
 ) uint64 {
+	id := GetTableID(t, db, table, txn)
+	require.NotEqual(t, uint64(0), id)
+	return id
+}
+
+func GetTableID(
+	t *testing.T,
+	db string,
+	table string,
+	txn executor.TxnExecutor,
+) uint64 {
 	txn.Use(catalog.MO_CATALOG)
 	res, err := txn.Exec(
 		fmt.Sprintf("select rel_id from mo_catalog.mo_tables where relname = '%s' and reldatabase = '%s'",
@@ -303,6 +314,5 @@ func MustGetTableID(
 		},
 	)
 
-	require.NotEqual(t, uint64(0), id)
 	return id
 }

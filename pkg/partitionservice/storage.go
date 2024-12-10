@@ -78,7 +78,8 @@ func (s *storage) GetMetadata(
 				fmt.Sprintf(
 					`
 						select 		          
-							table_name,                 
+							table_name,    
+							database_name,             
 							partition_method,           
 							partition_expression,       
 							partition_description,      
@@ -102,16 +103,21 @@ func (s *storage) GetMetadata(
 					rows int,
 					cols []*vector.Vector,
 				) bool {
+					if rows > 1 {
+						panic(fmt.Sprintf("BUG: read %d partition metadata rows, expect 1", rows))
+					}
+
 					found = true
 					for i := 0; i < rows; i++ {
 						metadata.TableID = tableID
 						metadata.TableName = executor.GetStringRows(cols[0])[i]
+						metadata.DatabaseName = executor.GetStringRows(cols[1])[i]
 						metadata.Method = partition.PartitionMethod(
-							partition.PartitionMethod_value[executor.GetStringRows(cols[1])[i]],
+							partition.PartitionMethod_value[executor.GetStringRows(cols[2])[i]],
 						)
-						metadata.Expression = executor.GetStringRows(cols[2])[i]
-						metadata.Description = executor.GetStringRows(cols[3])[i]
-						n = executor.GetFixedRows[uint32](cols[4])[i]
+						metadata.Expression = executor.GetStringRows(cols[3])[i]
+						metadata.Description = executor.GetStringRows(cols[4])[i]
+						n = executor.GetFixedRows[uint32](cols[5])[i]
 					}
 					return true
 				},
@@ -157,6 +163,7 @@ func (s *storage) GetMetadata(
 							metadata.Partitions,
 							partition.Partition{
 								PartitionID:        executor.GetFixedRows[uint64](cols[0])[i],
+								PrimaryTableID:     tableID,
 								PartitionTableName: executor.GetStringRows(cols[1])[i],
 								Name:               executor.GetStringRows(cols[2])[i],
 								Position:           executor.GetFixedRows[uint32](cols[3])[i],
