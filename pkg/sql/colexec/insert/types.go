@@ -35,17 +35,16 @@ var _ vm.Operator = new(Insert)
 // )
 
 type container struct {
-	state              vm.CtrState
-	s3Writer           *colexec.S3Writer
-	partitionS3Writers []*colexec.S3Writer // The array is aligned with the partition number array
-	buf                *batch.Batch
-	affectedRows       uint64
-
-	source           engine.Relation
-	partitionSources []engine.Relation // Align array index with the partition number
+	state        vm.CtrState
+	s3Writer     *colexec.S3Writer
+	buf          *batch.Batch
+	affectedRows uint64
+	source       engine.Relation
 }
 
 type Insert struct {
+	delegated bool
+	input     vm.CallResult
 	ctr       container
 	ToWriteS3 bool // mark if this insert's target is S3 or not.
 	InsertCtx *InsertCtx
@@ -99,12 +98,6 @@ func (insert *Insert) Reset(proc *process.Process, pipelineFailed bool, err erro
 		insert.ctr.s3Writer.Free(proc.Mp())
 		insert.ctr.s3Writer = nil
 	}
-	if insert.ctr.partitionS3Writers != nil {
-		for _, writer := range insert.ctr.partitionS3Writers {
-			writer.Free(proc.Mp())
-		}
-		insert.ctr.partitionS3Writers = nil
-	}
 	insert.ctr.state = vm.Build
 
 	if insert.ctr.buf != nil {
@@ -118,14 +111,6 @@ func (insert *Insert) Free(proc *process.Process, pipelineFailed bool, err error
 	if insert.ctr.s3Writer != nil {
 		insert.ctr.s3Writer.Free(proc.Mp())
 		insert.ctr.s3Writer = nil
-	}
-
-	// Free the partition table S3writer object resources
-	if insert.ctr.partitionS3Writers != nil {
-		for _, writer := range insert.ctr.partitionS3Writers {
-			writer.Free(proc.Mp())
-		}
-		insert.ctr.partitionS3Writers = nil
 	}
 
 	if insert.ctr.buf != nil {

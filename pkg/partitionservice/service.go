@@ -18,8 +18,10 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/matrixorigin/matrixone/pkg/common/moerr"
+	"github.com/matrixorigin/matrixone/pkg/container/batch"
 	"github.com/matrixorigin/matrixone/pkg/container/types"
 	"github.com/matrixorigin/matrixone/pkg/pb/partition"
 	"github.com/matrixorigin/matrixone/pkg/pb/plan"
@@ -31,6 +33,11 @@ import (
 type service struct {
 	sid   string
 	store PartitionStorage
+
+	mu struct {
+		sync.RWMutex
+		tables map[uint64]partition.PartitionMetadata
+	}
 }
 
 func NewService(
@@ -180,6 +187,55 @@ func (s *service) Delete(
 		metadata,
 		txnOp,
 	)
+}
+
+func (s *service) Prune(
+	ctx context.Context,
+	tableID uint64,
+	bat *batch.Batch,
+	txnOp client.TxnOperator,
+) (PruneResult, error) {
+	metadata, err := s.readMetadata(
+		ctx,
+		tableID,
+		txnOp,
+	)
+	if err != nil || metadata.IsEmpty() {
+		return PruneResult{}, err
+	}
+
+	// TODO: prune partitions
+	return PruneResult{}, nil
+}
+
+func (s *service) readMetadata(
+	ctx context.Context,
+	tableID uint64,
+	txnOp client.TxnOperator,
+) (partition.PartitionMetadata, error) {
+	s.mu.RLock()
+	metadata, ok := s.mu.tables[tableID]
+	s.mu.RUnlock()
+	if ok {
+		return metadata, nil
+	}
+
+	metadata, ok, err := s.store.GetMetadata(
+		ctx,
+		tableID,
+		txnOp,
+	)
+	if err != nil {
+		return partition.PartitionMetadata{}, err
+	}
+	if !ok {
+		return partition.PartitionMetadata{}, nil
+	}
+
+	s.mu.Lock()
+	s.mu.tables[tableID] = metadata
+	s.mu.Unlock()
+	return metadata, nil
 }
 
 func (s *service) GetStorage() PartitionStorage {

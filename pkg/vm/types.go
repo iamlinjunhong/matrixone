@@ -66,6 +66,7 @@ const (
 
 	Deletion
 	Insert
+	PartitionInsert
 	External
 	Source
 	MultiUpdate
