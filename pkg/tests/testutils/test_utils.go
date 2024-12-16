@@ -114,6 +114,22 @@ func ExecSQL(
 	cn embed.ServiceOperator,
 	sql ...string,
 ) timestamp.Timestamp {
+	return ExecSQLWithReadResult(
+		t,
+		db,
+		cn,
+		nil,
+		sql...,
+	)
+}
+
+func ExecSQLWithReadResult(
+	t *testing.T,
+	db string,
+	cn embed.ServiceOperator,
+	reader func(int, string, executor.Result),
+	sql ...string,
+) timestamp.Timestamp {
 	exec := cn.RawService().(cnservice.Service).GetSQLExecutor()
 	ctx, cancel := context.WithTimeoutCause(
 		defines.AttachAccountId(context.Background(), 0),
@@ -127,10 +143,13 @@ func ExecSQL(
 		ctx,
 		func(txn executor.TxnExecutor) error {
 			txnOp = txn.Txn()
-			for _, s := range sql {
+			for idx, s := range sql {
 				res, err := txn.Exec(s, executor.StatementOption{})
 				if err != nil {
 					return err
+				}
+				if reader != nil {
+					reader(idx, s, res)
 				}
 				res.Close()
 			}

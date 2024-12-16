@@ -157,6 +157,7 @@ func init() {
 		Partition:               "Partition",
 		Deletion:                "Deletion",
 		Insert:                  "Insert",
+		PartitionInsert:         "PartitionInsert",
 		External:                "External",
 		Source:                  "Source",
 		Minus:                   "Minus",
@@ -297,6 +298,8 @@ func (op OpType) String() string {
 		return "Deletion"
 	case Insert:
 		return "Insert"
+	case PartitionInsert:
+		return "PartitionInsert"
 	case MultiUpdate:
 		return "MultiUpdate"
 	case External:

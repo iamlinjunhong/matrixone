@@ -18,8 +18,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/matrixorigin/matrixone/pkg/sql/colexec/shuffleV2"
-
 	"github.com/google/uuid"
 	"github.com/matrixorigin/matrixone/pkg/catalog"
 	"github.com/matrixorigin/matrixone/pkg/common/bitmap"
@@ -28,6 +26,7 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/container/types"
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/matrixorigin/matrixone/pkg/defines"
+	"github.com/matrixorigin/matrixone/pkg/partitionservice"
 	"github.com/matrixorigin/matrixone/pkg/pb/pipeline"
 	"github.com/matrixorigin/matrixone/pkg/pb/plan"
 	"github.com/matrixorigin/matrixone/pkg/pb/timestamp"
@@ -81,6 +80,7 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec/sample"
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec/semi"
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec/shuffle"
+	"github.com/matrixorigin/matrixone/pkg/sql/colexec/shuffleV2"
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec/shufflebuild"
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec/single"
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec/source"
@@ -493,6 +493,11 @@ func dupOperator(sourceOp vm.Operator, index int, maxParallel int) vm.Operator {
 		op.ToWriteS3 = t.ToWriteS3
 		op.SetInfo(&info)
 		return op
+	case vm.PartitionInsert:
+		t := sourceOp.(*insert.PartitionInsert)
+		op := insert.NewPartitionInsertFrom(t)
+		op.SetInfo(&info)
+		return op
 	case vm.PreInsert:
 		t := sourceOp.(*preinsert.PreInsert)
 		op := preinsert.NewArgument()
@@ -811,7 +816,12 @@ func constructMultiUpdate(n *plan.Node, eg engine.Engine) *multi_update.MultiUpd
 	return arg
 }
 
-func constructInsert(n *plan.Node, eg engine.Engine) *insert.Insert {
+func constructInsert(
+	proc *process.Process,
+	n *plan.Node,
+	eg engine.Engine,
+	toS3 bool,
+) (vm.Operator, error) {
 	oldCtx := n.InsertCtx
 	var attrs []string
 	for _, col := range oldCtx.TableDef.Cols {
@@ -828,7 +838,23 @@ func constructInsert(n *plan.Node, eg engine.Engine) *insert.Insert {
 	}
 	arg := insert.NewArgument()
 	arg.InsertCtx = newCtx
-	return arg
+	arg.ToWriteS3 = toS3
+
+	ps := partitionservice.GetService(eg.GetService())
+	ok, err := ps.Is(
+		proc.Ctx,
+		oldCtx.TableDef.TblId,
+		proc.GetTxnOperator(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if !ok {
+		return arg, nil
+	}
+
+	return insert.NewPartitionInsert(arg, oldCtx.TableDef.TblId), nil
 }
 
 func constructProjection(n *plan.Node) *projection.Projection {

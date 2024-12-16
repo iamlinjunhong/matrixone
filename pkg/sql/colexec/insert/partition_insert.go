@@ -32,6 +32,25 @@ type PartitionInsert struct {
 	tableID uint64
 }
 
+func NewPartitionInsert(
+	raw *Insert,
+	tableID uint64,
+) vm.Operator {
+	return &PartitionInsert{
+		raw:     raw,
+		tableID: tableID,
+	}
+}
+
+func NewPartitionInsertFrom(
+	ps *PartitionInsert,
+) vm.Operator {
+	raw := NewArgument()
+	raw.InsertCtx = ps.raw.InsertCtx
+	raw.ToWriteS3 = ps.raw.ToWriteS3
+	return NewPartitionInsert(raw, ps.tableID)
+}
+
 func (op *PartitionInsert) String(buf *bytes.Buffer) {
 	buf.WriteString(opName)
 	buf.WriteString(": partition_insert")
@@ -41,13 +60,16 @@ func (op *PartitionInsert) OpType() vm.OpType {
 	return vm.PartitionInsert
 }
 
-func (op *PartitionInsert) GetOperatorBase() *vm.OperatorBase {
-	return &op.OperatorBase
-}
-
 func (op *PartitionInsert) Prepare(
 	proc *process.Process,
 ) error {
+	if op.OpAnalyzer == nil {
+		op.OpAnalyzer = process.NewAnalyzer(op.GetIdx(), op.IsFirst, op.IsLast, "partition_insert")
+	} else {
+		op.OpAnalyzer.Reset()
+	}
+
+	op.raw.OperatorBase = op.OperatorBase
 	return op.raw.Prepare(proc)
 }
 
@@ -121,4 +143,36 @@ func (op *PartitionInsert) Call(
 		return vm.CallResult{}, err
 	}
 	return input, nil
+}
+
+func (op *PartitionInsert) ExecProjection(
+	proc *process.Process,
+	input *batch.Batch,
+) (*batch.Batch, error) {
+	return input, nil
+}
+
+func (op *PartitionInsert) Free(
+	proc *process.Process,
+	pipelineFailed bool,
+	err error,
+) {
+	op.raw.Free(proc, pipelineFailed, err)
+	*op = PartitionInsert{}
+}
+
+func (op *PartitionInsert) Release() {
+	op.raw.Release()
+}
+
+func (op *PartitionInsert) Reset(
+	proc *process.Process,
+	pipelineFailed bool,
+	err error,
+) {
+	op.raw.Reset(proc, pipelineFailed, err)
+}
+
+func (op *PartitionInsert) GetOperatorBase() *vm.OperatorBase {
+	return &op.OperatorBase
 }

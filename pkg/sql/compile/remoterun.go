@@ -890,6 +890,8 @@ func convertToVmOperator(opr *pipeline.Instruction, ctx *scopeContext, eng engin
 			TableDef:        t.TableDef,
 		}
 		op = arg
+	case vm.PartitionInsert:
+		// TODO(fagongzi): parititon
 	case vm.PreInsert:
 		t := opr.GetPreInsert()
 		arg := preinsert.NewArgument()

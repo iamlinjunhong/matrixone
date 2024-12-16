@@ -55,6 +55,12 @@ var (
 
 // PartitionService is used to maintaining the metadata of the partition table.
 type PartitionService interface {
+	Is(
+		ctx context.Context,
+		tableID uint64,
+		txnOp client.TxnOperator,
+	) (bool, error)
+
 	// Create creates metadata of the partition table.
 	Create(
 		ctx context.Context,
@@ -135,5 +141,5 @@ func (res PruneResult) Close() {
 }
 
 func (res PruneResult) Empty() bool {
-	return false
+	return len(res.partitions) == 0
 }

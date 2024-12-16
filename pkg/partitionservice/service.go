@@ -44,10 +44,12 @@ func NewService(
 	sid string,
 	store PartitionStorage,
 ) PartitionService {
-	return &service{
+	s := &service{
 		sid:   sid,
 		store: store,
 	}
+	s.mu.tables = make(map[uint64]partition.PartitionMetadata)
+	return s
 }
 
 func (s *service) Create(
@@ -204,8 +206,23 @@ func (s *service) Prune(
 		return PruneResult{}, err
 	}
 
-	// TODO: prune partitions
-	return PruneResult{}, nil
+	// TODO(fagongzi): partition
+	return PruneResult{
+		batches:    []*batch.Batch{bat, bat},
+		partitions: []partition.Partition{metadata.Partitions[0], metadata.Partitions[1]},
+	}, nil
+}
+
+func (s *service) Is(
+	ctx context.Context,
+	tableID uint64,
+	txnOp client.TxnOperator,
+) (bool, error) {
+	metadata, err := s.readMetadata(ctx, tableID, txnOp)
+	if err != nil {
+		return false, err
+	}
+	return !metadata.IsEmpty(), nil
 }
 
 func (s *service) readMetadata(

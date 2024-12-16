@@ -3179,8 +3179,12 @@ func (c *Compile) compileInsert(ns []*plan.Node, n *plan.Node, ss []*Scope) ([]*
 		currentFirstFlag := c.anal.isFirst
 		// Not write S3
 		for i := range ss {
-			insertArg := constructInsert(n, c.e)
-			insertArg.SetAnalyzeControl(c.anal.curNodeIdx, currentFirstFlag)
+			insertArg, err := constructInsert(c.proc, n, c.e, false)
+			if err != nil {
+				return nil, err
+			}
+
+			insertArg.GetOperatorBase().SetAnalyzeControl(c.anal.curNodeIdx, currentFirstFlag)
 			ss[i].setRootOperator(insertArg)
 		}
 		c.anal.isFirst = false
@@ -3227,9 +3231,12 @@ func (c *Compile) compileInsert(ns []*plan.Node, n *plan.Node, ss []*Scope) ([]*
 		}
 		dataScope.IsEnd = true
 		for i := range scopes {
-			insertArg := constructInsert(n, c.e)
-			insertArg.ToWriteS3 = true
-			insertArg.SetAnalyzeControl(c.anal.curNodeIdx, currentFirstFlag)
+			insertArg, err := constructInsert(c.proc, n, c.e, true)
+			if err != nil {
+				return nil, err
+			}
+
+			insertArg.GetOperatorBase().SetAnalyzeControl(c.anal.curNodeIdx, currentFirstFlag)
 			scopes[i].setRootOperator(insertArg)
 		}
 		currentFirstFlag = false
@@ -3247,9 +3254,12 @@ func (c *Compile) compileInsert(ns []*plan.Node, n *plan.Node, ss []*Scope) ([]*
 	currentFirstFlag := c.anal.isFirst
 	c.anal.isFirst = false
 	for i := range ss {
-		insertArg := constructInsert(n, c.e)
-		insertArg.ToWriteS3 = true
-		insertArg.SetAnalyzeControl(c.anal.curNodeIdx, currentFirstFlag)
+		insertArg, err := constructInsert(c.proc, n, c.e, true)
+		if err != nil {
+			return nil, err
+		}
+
+		insertArg.GetOperatorBase().SetAnalyzeControl(c.anal.curNodeIdx, currentFirstFlag)
 		ss[i].setRootOperator(insertArg)
 	}
 	currentFirstFlag = false

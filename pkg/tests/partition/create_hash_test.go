@@ -43,7 +43,7 @@ func TestCreateAndDeleteHashBased(t *testing.T) {
 				t,
 				db,
 				cn,
-				fmt.Sprintf("create table %s (c int) partition by hash(c) partitions 2", t.Name()),
+				fmt.Sprintf("create table %s (c int, b vecf32(2)) partition by hash(c) partitions 2", t.Name()),
 			)
 
 			metadata := getMetadata(
@@ -65,6 +65,14 @@ func TestCreateAndDeleteHashBased(t *testing.T) {
 				require.Equal(t, fmt.Sprintf("%s_%s", metadata.TableName, p.Name), p.PartitionTableName)
 			}
 
+			// TODO(fagongzi): partition
+			testutils.ExecSQL(
+				t,
+				db,
+				cn,
+				fmt.Sprintf("insert into %s values(1, '[1.1, 2.2]')", t.Name()),
+			)
+
 			testutils.ExecSQL(
 				t,
 				db,
@@ -83,6 +91,7 @@ func TestCreateAndDeleteHashBased(t *testing.T) {
 			for _, name := range tables {
 				require.False(t, testutils.TableExists(t, db, name, cn))
 			}
+
 		},
 	)
 }

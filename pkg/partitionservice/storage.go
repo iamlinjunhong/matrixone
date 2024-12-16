@@ -17,6 +17,7 @@ package partitionservice
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/matrixorigin/matrixone/pkg/catalog"
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
@@ -108,6 +109,11 @@ func (s *storage) GetMetadata(
 				executor.StatementOption{},
 			)
 			if err != nil {
+				if strings.Contains(err.Error(), "does not exist") &&
+					strings.Contains(err.Error(), catalog.MOPartitionMetadata) {
+					return nil
+				}
+
 				return err
 			}
 
