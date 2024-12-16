@@ -65,7 +65,7 @@ func (s *Scope) CreateDatabase(c *Compile) error {
 		return moerr.NewDBAlreadyExists(ctx, dbName)
 	}
 
-	if err := lockMoDatabase(c, dbName); err != nil {
+	if err := lockMoDatabase(c, dbName, lock.LockMode_Exclusive); err != nil {
 		return err
 	}
 
@@ -121,7 +121,7 @@ func (s *Scope) DropDatabase(c *Compile) error {
 		return moerr.NewErrDropNonExistsDB(c.proc.Ctx, dbName)
 	}
 
-	if err = lockMoDatabase(c, dbName); err != nil {
+	if err = lockMoDatabase(c, dbName, lock.LockMode_Exclusive); err != nil {
 		return err
 	}
 
@@ -288,6 +288,9 @@ func (s *Scope) AlterView(c *Compile) error {
 	dbName := c.db
 	tblName := qry.GetTableDef().GetName()
 
+	if err := lockMoDatabase(c, dbName, lock.LockMode_Shared); err != nil {
+		return err
+	}
 	dbSource, err := c.e.Database(c.proc.Ctx, dbName, c.proc.GetTxnOperator())
 	if err != nil {
 		if qry.GetIfExists() {
@@ -299,7 +302,7 @@ func (s *Scope) AlterView(c *Compile) error {
 		if qry.GetIfExists() {
 			return nil
 		}
-		return err
+		return moerr.NewBadDB(c.proc.Ctx, dbName)
 	}
 
 	if err := lockMoTable(c, dbName, tblName, lock.LockMode_Exclusive); err != nil {
@@ -371,9 +374,12 @@ func (s *Scope) AlterTableInplace(c *Compile) error {
 
 	tblName := qry.GetTableDef().GetName()
 
+	if err := lockMoDatabase(c, dbName, lock.LockMode_Shared); err != nil {
+		return err
+	}
 	dbSource, err := c.e.Database(c.proc.Ctx, dbName, c.proc.GetTxnOperator())
 	if err != nil {
-		return err
+		return moerr.NewBadDB(c.proc.Ctx, dbName)
 	}
 	databaseId := dbSource.GetDatabaseId(c.proc.Ctx)
 
@@ -882,12 +888,16 @@ func (s *Scope) CreateTable(c *Compile) error {
 	}
 	tblName := qry.GetTableDef().GetName()
 
+	if err := lockMoDatabase(c, dbName, lock.LockMode_Shared); err != nil {
+		return err
+	}
+
 	dbSource, err := c.e.Database(c.proc.Ctx, dbName, c.proc.GetTxnOperator())
 	if err != nil {
 		if dbName == "" {
 			return moerr.NewNoDB(c.proc.Ctx)
 		}
-		return err
+		return moerr.NewBadDB(c.proc.Ctx, dbName)
 	}
 
 	exists, err := dbSource.RelationExists(c.proc.Ctx, tblName, nil)
@@ -1420,12 +1430,15 @@ func (s *Scope) CreateView(c *Compile) error {
 	if qry.GetDatabase() != "" {
 		dbName = qry.GetDatabase()
 	}
+	if err := lockMoDatabase(c, dbName, lock.LockMode_Shared); err != nil {
+		return err
+	}
 	dbSource, err := c.e.Database(c.proc.Ctx, dbName, c.proc.GetTxnOperator())
 	if err != nil {
 		if dbName == "" {
 			return moerr.NewNoDB(c.proc.Ctx)
 		}
-		return err
+		return moerr.NewBadDB(c.proc.Ctx, dbName)
 	}
 
 	viewName := qry.GetTableDef().GetName()
@@ -1619,6 +1632,9 @@ func (s *Scope) CreateIndex(c *Compile) error {
 		dbName := c.db
 		if qry.GetDatabase() != "" {
 			dbName = qry.GetDatabase()
+		}
+		if err := lockMoDatabase(c, dbName, lock.LockMode_Shared); err != nil {
+			return moerr.NewBadDB(c.proc.Ctx, dbName)
 		}
 		tblName := qry.GetTableDef().GetName()
 		if err := lockMoTable(c, dbName, tblName, lock.LockMode_Exclusive); err != nil {
@@ -1848,9 +1864,12 @@ func (s *Scope) DropIndex(c *Compile) error {
 	defer s.ScopeAnalyzer.Stop()
 
 	qry := s.Plan.GetDdl().GetDropIndex()
+	if err := lockMoDatabase(c, qry.Database, lock.LockMode_Shared); err != nil {
+		return err
+	}
 	d, err := c.e.Database(c.proc.Ctx, qry.Database, c.proc.GetTxnOperator())
 	if err != nil {
-		return err
+		return moerr.NewBadDB(c.proc.Ctx, qry.Database)
 	}
 	r, err := d.Relation(c.proc.Ctx, qry.Table, nil)
 	if err != nil {
@@ -2095,9 +2114,12 @@ func (s *Scope) TruncateTable(c *Compile) error {
 	keepAutoIncrement := false
 	affectedRows := uint64(0)
 
+	if err := lockMoDatabase(c, dbName, lock.LockMode_Shared); err != nil {
+		return err
+	}
 	dbSource, err = c.e.Database(c.proc.Ctx, dbName, c.proc.GetTxnOperator())
 	if err != nil {
-		return err
+		return moerr.NewBadDB(c.proc.Ctx, dbName)
 	}
 
 	if rel, err = dbSource.Relation(c.proc.Ctx, tblName, nil); err != nil {
@@ -2317,13 +2339,17 @@ func (s *Scope) DropTable(c *Compile) error {
 	var err error
 	var isTemp bool
 
+	if err := lockMoDatabase(c, dbName, lock.LockMode_Shared); err != nil {
+		return err
+	}
+
 	tblId := qry.GetTableId()
 	dbSource, err = c.e.Database(c.proc.Ctx, dbName, c.proc.GetTxnOperator())
 	if err != nil {
 		if qry.GetIfExists() {
 			return nil
 		}
-		return err
+		return moerr.NewBadDB(c.proc.Ctx, dbName)
 	}
 
 	if rel, err = dbSource.Relation(c.proc.Ctx, tblName, nil); err != nil {
@@ -2653,7 +2679,6 @@ func (s *Scope) CreateSequence(c *Compile) error {
 		dbName = qry.GetDatabase()
 	}
 	tblName := qry.GetTableDef().GetName()
-
 	dbSource, err := c.e.Database(c.proc.Ctx, dbName, c.proc.GetTxnOperator())
 	if err != nil {
 		if dbName == "" {
@@ -2725,7 +2750,6 @@ func (s *Scope) AlterSequence(c *Compile) error {
 		dbName = qry.GetDatabase()
 	}
 	tblName := qry.GetTableDef().GetName()
-
 	dbSource, err := c.e.Database(c.proc.Ctx, dbName, c.proc.GetTxnOperator())
 	if err != nil {
 		if dbName == "" {
@@ -3566,17 +3590,18 @@ func getLockVector(proc *process.Process, accountId uint32, names []string) (*ve
 	return vec, nil
 }
 
-func lockMoDatabase(c *Compile, dbName string) error {
+func lockMoDatabase(c *Compile, dbName string, lockMode lock.LockMode) error {
 	dbRel, err := getRelFromMoCatalog(c, catalog.MO_DATABASE)
 	if err != nil {
 		return err
 	}
-	vec, err := getLockVector(c.proc, c.proc.GetSessionInfo().AccountId, []string{dbName})
+	accountID := c.proc.GetSessionInfo().AccountId
+	vec, err := getLockVector(c.proc, accountID, []string{dbName})
 	if err != nil {
 		return err
 	}
 	defer vec.Free(c.proc.Mp())
-	if err := lockRows(c.e, c.proc, dbRel, vec, lock.LockMode_Exclusive, lock.Sharding_ByRow, c.proc.GetSessionInfo().AccountId); err != nil {
+	if err := lockRows(c.e, c.proc, dbRel, vec, lockMode, lock.Sharding_None, accountID); err != nil {
 		return err
 	}
 	return nil
@@ -3591,13 +3616,14 @@ func lockMoTable(
 	if err != nil {
 		return err
 	}
-	vec, err := getLockVector(c.proc, c.proc.GetSessionInfo().AccountId, []string{dbName, tblName})
+	accountID := c.proc.GetSessionInfo().AccountId
+	vec, err := getLockVector(c.proc, accountID, []string{dbName, tblName})
 	if err != nil {
 		return err
 	}
 	defer vec.Free(c.proc.Mp())
 
-	if err := lockRows(c.e, c.proc, dbRel, vec, lockMode, lock.Sharding_ByRow, c.proc.GetSessionInfo().AccountId); err != nil {
+	if err := lockRows(c.e, c.proc, dbRel, vec, lockMode, lock.Sharding_None, accountID); err != nil {
 		return err
 	}
 	return nil
