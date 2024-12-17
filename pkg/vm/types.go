@@ -67,6 +67,7 @@ const (
 	Deletion
 	Insert
 	PartitionInsert
+	PartitionDelete
 	External
 	Source
 	MultiUpdate
@@ -159,6 +160,7 @@ func init() {
 		Deletion:                "Deletion",
 		Insert:                  "Insert",
 		PartitionInsert:         "PartitionInsert",
+		PartitionDelete:         "PartitionDelete",
 		External:                "External",
 		Source:                  "Source",
 		Minus:                   "Minus",
@@ -301,6 +303,8 @@ func (op OpType) String() string {
 		return "Insert"
 	case PartitionInsert:
 		return "PartitionInsert"
+	case PartitionDelete:
+		return "PartitionDelete"
 	case MultiUpdate:
 		return "MultiUpdate"
 	case PartitionMultiUpdate:
