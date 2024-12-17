@@ -3321,14 +3321,21 @@ func (c *Compile) compilePreInsertSK(n *plan.Node, ss []*Scope) []*Scope {
 }
 
 func (c *Compile) compileDelete(n *plan.Node, ss []*Scope) ([]*Scope, error) {
-	var arg *deletion.Deletion
 	currentFirstFlag := c.anal.isFirst
-	arg, err := constructDeletion(n, c.e)
+	op, err := constructDeletion(n, c.e, c.proc)
 	if err != nil {
 		return nil, err
 	}
-	arg.SetAnalyzeControl(c.anal.curNodeIdx, currentFirstFlag)
+
+	op.GetOperatorBase().SetAnalyzeControl(c.anal.curNodeIdx, currentFirstFlag)
 	c.anal.isFirst = false
+
+	var arg *deletion.Deletion
+	if _, ok := op.(*deletion.Deletion); ok {
+		arg = op.(*deletion.Deletion)
+	} else {
+		arg = op.(*deletion.PartitionDelete).GetDelete()
+	}
 
 	if n.Stats.GetOutcnt()*float64(SingleLineSizeEstimate) > float64(DistributedThreshold) && !arg.DeleteCtx.CanTruncate {
 		rs := c.newDeleteMergeScope(arg, ss, n)
@@ -3355,7 +3362,7 @@ func (c *Compile) compileDelete(n *plan.Node, ss []*Scope) ([]*Scope, error) {
 			rs = c.newMergeScope(ss)
 		}
 
-		rs.setRootOperator(arg)
+		rs.setRootOperator(op)
 		ss = []*Scope{rs}
 		return ss, nil
 	}

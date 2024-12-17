@@ -63,6 +63,7 @@ var debugInstructionNames = map[vm.OpType]string{
 	vm.Deletion:                "delete",
 	vm.Insert:                  "insert",
 	vm.PartitionInsert:         "partition insert",
+	vm.PartitionDelete:         "partition delete",
 	vm.PreInsert:               "pre insert",
 	vm.PreInsertUnique:         "pre insert uk",
 	vm.PreInsertSecondaryIndex: "pre insert 2nd",

@@ -77,6 +77,13 @@ func TestCreateAndDeleteHashBased(t *testing.T) {
 				t,
 				db,
 				cn,
+				fmt.Sprintf("delete from %s where b is not null", t.Name()),
+			)
+
+			testutils.ExecSQL(
+				t,
+				db,
+				cn,
 				fmt.Sprintf("drop table %s", t.Name()),
 			)
 			metadata = getMetadata(
