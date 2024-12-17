@@ -70,6 +70,7 @@ const (
 	External
 	Source
 	MultiUpdate
+	PartitionMultiUpdate
 
 	Minus
 	Intersect
@@ -302,6 +303,8 @@ func (op OpType) String() string {
 		return "PartitionInsert"
 	case MultiUpdate:
 		return "MultiUpdate"
+	case PartitionMultiUpdate:
+		return "PartitionMultiUpdate"
 	case External:
 		return "External"
 	case Source:

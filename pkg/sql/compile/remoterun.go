@@ -1349,7 +1349,8 @@ func convertToVmOperator(opr *pipeline.Instruction, ctx *scopeContext, eng engin
 		}
 
 		op = arg
-
+	case vm.PartitionMultiUpdate:
+		// TODO(fagongzi): parititon
 	case vm.PostDml:
 		t := opr.GetPostDml()
 		arg := postdml.NewArgument()

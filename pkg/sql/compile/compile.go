@@ -3271,9 +3271,12 @@ func (c *Compile) compileMultiUpdate(_ []*plan.Node, n *plan.Node, ss []*Scope) 
 		}
 
 		for i := range ss {
-			multiUpdateArg := constructMultiUpdate(n, c.e)
-			multiUpdateArg.Action = multi_update.UpdateWriteS3
-			multiUpdateArg.SetAnalyzeControl(c.anal.curNodeIdx, currentFirstFlag)
+			multiUpdateArg, err := constructMultiUpdate(n, c.e, c.proc, multi_update.UpdateWriteS3)
+			if err != nil {
+				return nil, err
+			}
+
+			multiUpdateArg.GetOperatorBase().SetAnalyzeControl(c.anal.curNodeIdx, currentFirstFlag)
 			ss[i].setRootOperator(multiUpdateArg)
 		}
 
@@ -3282,15 +3285,21 @@ func (c *Compile) compileMultiUpdate(_ []*plan.Node, n *plan.Node, ss []*Scope) 
 			rs = c.newMergeScope(ss)
 		}
 
-		multiUpdateArg := constructMultiUpdate(n, c.e)
-		multiUpdateArg.Action = multi_update.UpdateFlushS3Info
+		multiUpdateArg, err := constructMultiUpdate(n, c.e, c.proc, multi_update.UpdateFlushS3Info)
+		if err != nil {
+			return nil, err
+		}
+
 		rs.setRootOperator(multiUpdateArg)
 		ss = []*Scope{rs}
 	} else {
 		for i := range ss {
-			multiUpdateArg := constructMultiUpdate(n, c.e)
-			multiUpdateArg.Action = multi_update.UpdateWriteTable
-			multiUpdateArg.SetAnalyzeControl(c.anal.curNodeIdx, currentFirstFlag)
+			multiUpdateArg, err := constructMultiUpdate(n, c.e, c.proc, multi_update.UpdateWriteTable)
+			if err != nil {
+				return nil, err
+			}
+
+			multiUpdateArg.GetOperatorBase().SetAnalyzeControl(c.anal.curNodeIdx, currentFirstFlag)
 			ss[i].setRootOperator(multiUpdateArg)
 		}
 	}

@@ -574,6 +574,11 @@ func dupOperator(sourceOp vm.Operator, index int, maxParallel int) vm.Operator {
 		op.SegmentMap = t.SegmentMap
 		op.SetInfo(&info)
 		return op
+	case vm.PartitionMultiUpdate:
+		t := sourceOp.(*multi_update.PartitionMultiUpdate)
+		op := multi_update.NewPartitionMultiUpdateFrom(t)
+		op.SetInfo(&info)
+		return op
 	case vm.DedupJoin:
 		t := sourceOp.(*dedupjoin.DedupJoin)
 		op := dedupjoin.NewArgument()
@@ -788,7 +793,12 @@ func constructLockOp(n *plan.Node, eng engine.Engine) (*lockop.LockOp, error) {
 	return arg, nil
 }
 
-func constructMultiUpdate(n *plan.Node, eg engine.Engine) *multi_update.MultiUpdate {
+func constructMultiUpdate(
+	n *plan.Node,
+	eg engine.Engine,
+	proc *process.Process,
+	action multi_update.UpdateAction,
+) (vm.Operator, error) {
 	arg := multi_update.NewArgument()
 	arg.Engine = eg
 	arg.SegmentMap = colexec.Get().GetCnSegmentMap()
@@ -812,8 +822,26 @@ func constructMultiUpdate(n *plan.Node, eg engine.Engine) *multi_update.MultiUpd
 			DeleteCols: deleteCols,
 		}
 	}
+	arg.Action = action
 
-	return arg
+	ps := partitionservice.GetService(eg.GetService())
+	ok, err := ps.Is(
+		proc.Ctx,
+		n.UpdateCtxList[0].TableDef.TblId,
+		proc.GetTxnOperator(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if !ok {
+		return arg, nil
+	}
+
+	return multi_update.NewPartitionMultiUpdate(
+		arg,
+		n.UpdateCtxList[0].TableDef.TblId,
+	), nil
 }
 
 func constructInsert(

@@ -28,6 +28,7 @@ import (
 )
 
 var _ vm.Operator = new(Insert)
+var _ vm.Operator = new(PartitionInsert)
 
 // const (
 // 	Process = iota
@@ -103,6 +104,9 @@ func (insert *Insert) Reset(proc *process.Process, pipelineFailed bool, err erro
 	if insert.ctr.buf != nil {
 		insert.ctr.buf.CleanOnlyData()
 	}
+
+	insert.delegated = false
+	insert.input = vm.CallResult{}
 }
 
 // The Argument for insert data directly to s3 can not be free when this function called as some datastructure still needed.

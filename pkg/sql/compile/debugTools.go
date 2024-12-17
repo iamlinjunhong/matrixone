@@ -90,6 +90,7 @@ var debugInstructionNames = map[vm.OpType]string{
 	vm.DedupJoin:               "dedup join",
 	vm.Apply:                   "apply",
 	vm.MultiUpdate:             "multi update",
+	vm.PartitionMultiUpdate:    "partition multi update",
 	vm.PostDml:                 "postdml",
 }
 
