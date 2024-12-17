@@ -498,6 +498,11 @@ func dupOperator(sourceOp vm.Operator, index int, maxParallel int) vm.Operator {
 		op := insert.NewPartitionInsertFrom(t)
 		op.SetInfo(&info)
 		return op
+	case vm.PartitionDelete:
+		t := sourceOp.(*deletion.PartitionDelete)
+		op := deletion.NewPartitionDeleteFrom(t)
+		op.SetInfo(&info)
+		return op
 	case vm.PreInsert:
 		t := sourceOp.(*preinsert.PreInsert)
 		op := preinsert.NewArgument()
@@ -615,7 +620,7 @@ func constructRestrict(n *plan.Node, filterExpr *plan.Expr) *filter.Filter {
 	return op
 }
 
-func constructDeletion(n *plan.Node, eg engine.Engine) (*deletion.Deletion, error) {
+func constructDeletion(n *plan.Node, eg engine.Engine, proc *process.Process) (vm.Operator, error) {
 	oldCtx := n.DeleteCtx
 	delCtx := &deletion.DeleteCtx{
 		Ref:             oldCtx.Ref,
@@ -628,7 +633,22 @@ func constructDeletion(n *plan.Node, eg engine.Engine) (*deletion.Deletion, erro
 
 	op := deletion.NewArgument()
 	op.DeleteCtx = delCtx
-	return op, nil
+
+	ps := partitionservice.GetService(eg.GetService())
+	ok, err := ps.Is(
+		proc.Ctx,
+		oldCtx.TableDef.TblId,
+		proc.GetTxnOperator(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if !ok {
+		return op, nil
+	}
+
+	return deletion.NewPartitionDelete(op, oldCtx.TableDef.TblId), nil
 }
 
 func constructOnduplicateKey(n *plan.Node, _ engine.Engine) *onduplicatekey.OnDuplicatekey {
