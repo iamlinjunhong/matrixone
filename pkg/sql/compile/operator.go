@@ -576,7 +576,6 @@ func dupOperator(sourceOp vm.Operator, index int, maxParallel int) vm.Operator {
 		op.Action = t.Action
 		op.IsOnduplicateKeyUpdate = t.IsOnduplicateKeyUpdate
 		op.Engine = t.Engine
-		op.SegmentMap = t.SegmentMap
 		op.SetInfo(&info)
 		return op
 	case vm.PartitionMultiUpdate:
@@ -821,7 +820,6 @@ func constructMultiUpdate(
 ) (vm.Operator, error) {
 	arg := multi_update.NewArgument()
 	arg.Engine = eg
-	arg.SegmentMap = colexec.Get().GetCnSegmentMap()
 
 	arg.MultiUpdateCtx = make([]*multi_update.MultiUpdateCtx, len(n.UpdateCtxList))
 	for i, updateCtx := range n.UpdateCtxList {

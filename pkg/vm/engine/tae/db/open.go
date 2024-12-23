@@ -202,18 +202,26 @@ func Open(
 		db.Catalog,
 		logtail.NewDirtyCollector(db.LogtailMgr, db.Opts.Clock, db.Catalog, new(catalog.LoopProcessor)),
 		db.Wal,
-		checkpoint.WithFlushInterval(opts.CheckpointCfg.FlushInterval),
-		checkpoint.WithCollectInterval(opts.CheckpointCfg.ScanInterval),
 		checkpoint.WithMinCount(int(opts.CheckpointCfg.MinCount)),
 		checkpoint.WithCheckpointBlockRows(opts.CheckpointCfg.BlockRows),
 		checkpoint.WithCheckpointSize(opts.CheckpointCfg.Size),
 		checkpoint.WithMinIncrementalInterval(opts.CheckpointCfg.IncrementalInterval),
 		checkpoint.WithGlobalMinCount(int(opts.CheckpointCfg.GlobalMinCount)),
 		checkpoint.WithGlobalVersionInterval(opts.CheckpointCfg.GlobalVersionInterval),
-		checkpoint.WithReserveWALEntryCount(opts.CheckpointCfg.ReservedWALEntryCount))
+		checkpoint.WithReserveWALEntryCount(opts.CheckpointCfg.ReservedWALEntryCount),
+	)
+	db.BGFlusher = checkpoint.NewFlusher(
+		db.Runtime,
+		db.BGCheckpointRunner,
+		db.Catalog,
+		db.BGCheckpointRunner.GetDirtyCollector(),
+		checkpoint.WithFlusherInterval(opts.CheckpointCfg.FlushInterval),
+		checkpoint.WithFlusherCronPeriod(opts.CheckpointCfg.ScanInterval),
+	)
 
 	now := time.Now()
 	ckpReplayer := db.BGCheckpointRunner.Replay(dataFactory)
+	defer ckpReplayer.Close()
 	if err = ckpReplayer.ReadCkpFiles(); err != nil {
 		panic(err)
 	}
@@ -267,6 +275,7 @@ func Open(
 	scanner.RegisterOp(db.MergeScheduler)
 	db.Wal.Start()
 	db.BGCheckpointRunner.Start()
+	db.BGFlusher.Start()
 
 	db.BGScanner = w.NewHeartBeater(
 		opts.CheckpointCfg.ScanInterval,
@@ -279,7 +288,10 @@ func Open(
 	// sjw TODO: cleaner need to support replay and write mode
 	cleaner := gc2.NewCheckpointCleaner(
 		opts.Ctx,
-		opts.SID, fs, db.BGCheckpointRunner,
+		opts.SID,
+		fs,
+		db.Wal,
+		db.BGCheckpointRunner,
 		gc2.WithCanGCCacheSize(opts.GCCfg.CacheSize),
 		gc2.WithMaxMergeCheckpointCount(opts.GCCfg.GCMergeCount),
 		gc2.WithEstimateRows(opts.GCCfg.GCestimateRows),

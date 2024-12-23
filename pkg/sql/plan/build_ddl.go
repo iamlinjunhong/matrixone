@@ -1499,6 +1499,7 @@ func getRefAction(typ tree.ReferenceOptionType) plan.ForeignKeyDef_RefAction {
 	}
 }
 
+// buildFullTextIndexTable create a secondary table with schema (doc_id, word, pos) cluster by (word)
 func buildFullTextIndexTable(createTable *plan.CreateTable, indexInfos []*tree.FullTextIndex, colMap map[string]*ColDef, pkeyName string, ctx CompilerContext) error {
 	if pkeyName == "" || pkeyName == catalog.FakePrimaryKeyColName {
 		return moerr.NewInternalErrorNoCtx("primary key cannot be empty for fulltext index")
@@ -1648,6 +1649,10 @@ func buildFullTextIndexTable(createTable *plan.CreateTable, indexInfos []*tree.F
 		tableDef.Pkey = &PrimaryKeyDef{
 			Names:       []string{keyName},
 			PkeyColName: keyName,
+		}
+
+		tableDef.ClusterBy = &ClusterByDef{
+			Name: "word",
 		}
 
 		properties := []*plan.Property{

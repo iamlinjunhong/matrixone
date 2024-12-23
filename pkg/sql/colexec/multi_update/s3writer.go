@@ -104,7 +104,6 @@ func newS3Writer(update *MultiUpdate) (*s3Writer, error) {
 	tableCount := len(update.MultiUpdateCtx)
 	writer := &s3Writer{
 		cacheBatchs:    batch.NewCompactBatchs(),
-		segmentMap:     update.SegmentMap,
 		updateCtxInfos: update.ctr.updateCtxInfos,
 		seqnums:        make([][]uint16, 0, tableCount),
 		sortIdxs:       make([]int, 0, tableCount),
@@ -188,9 +187,6 @@ func (writer *s3Writer) prepareDeleteBatchs(
 
 	for _, bat := range src {
 		rowIDVec := bat.GetVector(RowIDIdx)
-		if rowIDVec.IsConstNull() {
-			continue
-		}
 		nulls := rowIDVec.GetNulls()
 		if nulls.Count() == bat.RowCount() {
 			continue
@@ -306,7 +302,7 @@ func (writer *s3Writer) sortAndSync(proc *process.Process, analyzer process.Anal
 				if isClusterBy {
 					sortIdx = -1
 				}
-				bats, err = cloneSomeVecFromCompactBatchs(proc, writer.cacheBatchs, updateCtx.InsertCols, insertAttrs, sortIdx)
+				bats, err = cloneSomeVecFromCompactBatchs(proc, writer.cacheBatchs, updateCtx.NewPartitionIdx, 0, updateCtx.InsertCols, insertAttrs, sortIdx)
 				needSortBatch = true
 				needCleanBatch = true
 			} else {
