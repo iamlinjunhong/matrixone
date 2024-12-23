@@ -1,0 +1,322 @@
+// Copyright 2021-2024 Matrix Origin
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package disttae
+
+import (
+	"context"
+
+	"github.com/matrixorigin/matrixone/pkg/common/mpool"
+	"github.com/matrixorigin/matrixone/pkg/container/batch"
+	"github.com/matrixorigin/matrixone/pkg/container/types"
+	"github.com/matrixorigin/matrixone/pkg/container/vector"
+	"github.com/matrixorigin/matrixone/pkg/objectio"
+	"github.com/matrixorigin/matrixone/pkg/pb/api"
+	"github.com/matrixorigin/matrixone/pkg/pb/plan"
+	"github.com/matrixorigin/matrixone/pkg/vm/engine"
+)
+
+type partitionTxnTable struct {
+	primary    *txnTable
+	partitions []engine.Relation
+}
+
+func (t *partitionTxnTable) Ranges(
+	ctx context.Context,
+	param engine.RangesParam,
+) (engine.RelData, error) {
+	return nil, nil
+}
+
+func (t *partitionTxnTable) BuildReaders(
+	ctx context.Context,
+	proc any,
+	expr *plan.Expr,
+	relData engine.RelData,
+	num int,
+	txnOffset int,
+	orderBy bool,
+	policy engine.TombstoneApplyPolicy,
+	filterHint engine.FilterHint,
+) ([]engine.Reader, error) {
+	return nil, nil
+}
+
+func (t *partitionTxnTable) BuildShardingReaders(
+	ctx context.Context,
+	proc any,
+	expr *plan.Expr,
+	relData engine.RelData,
+	num int,
+	txnOffset int,
+	orderBy bool,
+	policy engine.TombstoneApplyPolicy,
+) ([]engine.Reader, error) {
+	return nil, nil
+}
+
+func (t *partitionTxnTable) CollectTombstones(
+	ctx context.Context,
+	txnOffset int,
+	policy engine.TombstoneCollectPolicy,
+) (engine.Tombstoner, error) {
+	var tombstone engine.Tombstoner
+	for _, p := range t.partitions {
+		t, err := p.CollectTombstones(ctx, txnOffset, policy)
+		if err != nil {
+			return nil, err
+		}
+		if tombstone == nil {
+			tombstone = t
+			continue
+		}
+		if err := tombstone.Merge(t); err != nil {
+			return nil, err
+		}
+	}
+	return tombstone, nil
+}
+
+func (t *partitionTxnTable) CollectChanges(
+	ctx context.Context,
+	from, to types.TS,
+	mp *mpool.MPool,
+) (engine.ChangesHandle, error) {
+	return nil, nil
+}
+
+func (t *partitionTxnTable) ApproxObjectsNum(ctx context.Context) int {
+	num := 0
+	for _, p := range t.partitions {
+		num += p.ApproxObjectsNum(ctx)
+	}
+	return num
+}
+
+func (t *partitionTxnTable) MergeObjects(
+	ctx context.Context,
+	objstats []objectio.ObjectStats,
+	targetObjSize uint32,
+) (*api.MergeCommitEntry, error) {
+	panic("not implemented")
+}
+
+func (t *partitionTxnTable) GetNonAppendableObjectStats(ctx context.Context) ([]objectio.ObjectStats, error) {
+	var stats []objectio.ObjectStats
+	for _, p := range t.partitions {
+		values, err := p.GetNonAppendableObjectStats(ctx)
+		if err != nil {
+			return nil, err
+		}
+		stats = append(stats, values...)
+	}
+	return stats, nil
+}
+
+func (t *partitionTxnTable) UpdateConstraint(context.Context, *engine.ConstraintDef) error {
+	panic("not implemented")
+}
+
+func (t *partitionTxnTable) AlterTable(context.Context, *engine.ConstraintDef, []*api.AlterTableReq) error {
+	panic("not implemented")
+}
+
+func (t *partitionTxnTable) TableRenameInTxn(ctx context.Context, constraint [][]byte) error {
+	panic("not implemented")
+}
+
+func (t *partitionTxnTable) MaxAndMinValues(ctx context.Context) ([][2]any, []uint8, error) {
+	panic("not implemented")
+}
+
+func (t *partitionTxnTable) TableDefs(ctx context.Context) ([]engine.TableDef, error) {
+	return t.primary.TableDefs(ctx)
+}
+
+func (t *partitionTxnTable) GetTableDef(ctx context.Context) *plan.TableDef {
+	return t.primary.GetTableDef(ctx)
+}
+
+func (t *partitionTxnTable) CopyTableDef(ctx context.Context) *plan.TableDef {
+	return t.primary.CopyTableDef(ctx)
+}
+
+func (t *partitionTxnTable) GetPrimaryKeys(ctx context.Context) ([]*engine.Attribute, error) {
+	return t.primary.GetPrimaryKeys(ctx)
+}
+
+func (t *partitionTxnTable) GetHideKeys(ctx context.Context) ([]*engine.Attribute, error) {
+	return t.primary.GetHideKeys(ctx)
+}
+
+func (t *partitionTxnTable) AddTableDef(context.Context, engine.TableDef) error {
+	return nil
+}
+
+func (t *partitionTxnTable) DelTableDef(context.Context, engine.TableDef) error {
+	return nil
+}
+
+func (t *partitionTxnTable) GetTableID(ctx context.Context) uint64 {
+	return t.primary.GetTableID(ctx)
+}
+
+func (t *partitionTxnTable) GetTableName() string {
+	return t.primary.GetTableName()
+}
+
+func (t *partitionTxnTable) GetDBID(ctx context.Context) uint64 {
+	return t.primary.GetDBID(ctx)
+}
+
+func (t *partitionTxnTable) TableColumns(ctx context.Context) ([]*engine.Attribute, error) {
+	return t.primary.TableColumns(ctx)
+}
+
+func (t *partitionTxnTable) GetEngineType() engine.EngineType {
+	return t.primary.GetEngineType()
+}
+
+func (t *partitionTxnTable) GetProcess() any {
+	return t.primary.GetProcess()
+}
+
+func (t *partitionTxnTable) GetColumMetadataScanInfo(
+	ctx context.Context,
+	name string,
+) ([]*plan.MetadataScanInfo, error) {
+	return nil, nil
+}
+
+func (t *partitionTxnTable) PrimaryKeysMayBeModified(
+	ctx context.Context,
+	from types.TS,
+	to types.TS,
+	keyVector *vector.Vector,
+) (bool, error) {
+	panic("BUG: cannot modify primary keys in partition primary table")
+}
+
+func (t *partitionTxnTable) Write(context.Context, *batch.Batch) error {
+	panic("BUG: cannot write data to partition primary table")
+}
+
+func (t *partitionTxnTable) Update(context.Context, *batch.Batch) error {
+	panic("BUG: cannot update data to partition primary table")
+}
+
+func (t *partitionTxnTable) Delete(context.Context, *batch.Batch, string) error {
+	panic("BUG: cannot delete data to partition primary table")
+}
+
+func (t *partitionTxnTable) PrimaryKeysMayBeUpserted(
+	ctx context.Context,
+	from types.TS,
+	to types.TS,
+	keyVector *vector.Vector,
+) (bool, error) {
+	panic("BUG: cannot upsert primary keys in partition primary table")
+}
+
+type partitionedRelData struct {
+	tombstones engine.Tombstoner
+	cnt        int
+	blocks     objectio.BlockInfoSlice
+	partitions map[uint64]engine.RelData
+}
+
+func (r *partitionedRelData) addPartition(
+	id uint64,
+	partition engine.RelData,
+) {
+	r.partitions[id] = partition
+	r.cnt += partition.DataCnt()
+	r.blocks = append(r.blocks, partition.GetBlockInfoSlice()...)
+}
+
+func (r *partitionedRelData) AttachTombstones(tombstones engine.Tombstoner) error {
+	for _, p := range r.partitions {
+		if err := p.AttachTombstones(tombstones); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *partitionedRelData) BuildEmptyRelData(preAllocSize int) engine.RelData {
+	for _, p := range r.partitions {
+		return p.BuildEmptyRelData(preAllocSize)
+	}
+	panic("BUG: no partitions")
+}
+
+func (r *partitionedRelData) DataCnt() int {
+	return r.cnt
+}
+
+func (r *partitionedRelData) GetBlockInfoSlice() objectio.BlockInfoSlice {
+	return r.blocks
+}
+
+// func (r *partitionedRelData) GetBlockInfo(i int) objectio.BlockInfo {
+// 	return r.blocks[i]
+// }
+
+func (r *partitionedRelData) GetType() engine.RelDataType {
+	panic("not implemented")
+}
+
+func (r *partitionedRelData) String() string {
+	return "partitionedRelData"
+}
+
+func (r *partitionedRelData) MarshalBinary() ([]byte, error) {
+	panic("not implemented")
+}
+
+func (r *partitionedRelData) UnmarshalBinary(buf []byte) error {
+	panic("not implemented")
+}
+
+func (r *partitionedRelData) GetTombstones() engine.Tombstoner {
+	panic("not implemented")
+}
+
+func (r *partitionedRelData) DataSlice(begin, end int) engine.RelData {
+	panic("not implemented")
+}
+
+func (r *partitionedRelData) GroupByPartitionNum() map[int16]engine.RelData {
+	panic("not implemented")
+}
+
+func (r *partitionedRelData) GetShardIDList() []uint64 {
+	panic("not implemented")
+}
+
+func (r *partitionedRelData) GetShardID(i int) uint64 {
+	panic("not implemented")
+}
+
+func (r *partitionedRelData) SetShardID(i int, id uint64) {
+	panic("not implemented")
+}
+
+func (r *partitionedRelData) AppendShardID(id uint64) {
+	panic("not implemented")
+}
+
+// func (r *partitionedRelData) SetBlockInfo(i int, blk *objectio.BlockInfo)
+// func (r *partitionedRelData) AppendBlockInfo(blk *objectio.BlockInfo)
+// func (r *partitionedRelData) AppendBlockInfoSlice(objectio.BlockInfoSlice)
