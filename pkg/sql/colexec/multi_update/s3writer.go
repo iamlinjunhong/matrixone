@@ -265,7 +265,7 @@ func (writer *s3Writer) sortAndSync(proc *process.Process, analyzer process.Anal
 		// delete s3
 		if len(updateCtx.DeleteCols) > 0 {
 			var delBatchs []*batch.Batch
-			bats, err = fetchSomeVecFromCompactBatchs(proc, writer.cacheBatchs, updateCtx.DeleteCols, DeleteBatchAttrs)
+			bats, err = fetchSomeVecFromCompactBatchs(writer.cacheBatchs, updateCtx.DeleteCols, DeleteBatchAttrs)
 			if err != nil {
 				return
 			}
@@ -302,7 +302,7 @@ func (writer *s3Writer) sortAndSync(proc *process.Process, analyzer process.Anal
 				if isClusterBy {
 					sortIdx = -1
 				}
-				bats, err = cloneSomeVecFromCompactBatchs(proc, writer.cacheBatchs, updateCtx.NewPartitionIdx, 0, updateCtx.InsertCols, insertAttrs, sortIdx)
+				bats, err = cloneSomeVecFromCompactBatchs(proc, writer.cacheBatchs, updateCtx.InsertCols, insertAttrs, sortIdx)
 				needSortBatch = true
 				needCleanBatch = true
 			} else {
@@ -316,7 +316,7 @@ func (writer *s3Writer) sortAndSync(proc *process.Process, analyzer process.Anal
 						}
 					}
 				}
-				bats, err = fetchSomeVecFromCompactBatchs(proc, writer.cacheBatchs, updateCtx.InsertCols, insertAttrs)
+				bats, err = fetchSomeVecFromCompactBatchs(writer.cacheBatchs, updateCtx.InsertCols, insertAttrs)
 				needSortBatch = false
 				needCleanBatch = false
 			}

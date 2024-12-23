@@ -120,8 +120,8 @@ func cloneSomeVecFromCompactBatchs(
 	src *batch.CompactBatchs,
 	cols []int,
 	attrs []string,
-	sortIdx int) ([]*batch.Batch, error) {
-
+	sortIdx int,
+) ([]*batch.Batch, error) {
 	var err error
 	var newBat *batch.Batch
 	bats := make([]*batch.Batch, 0, src.Length())

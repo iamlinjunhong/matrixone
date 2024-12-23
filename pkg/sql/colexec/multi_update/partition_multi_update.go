@@ -50,7 +50,6 @@ func NewPartitionMultiUpdateFrom(
 	op.Action = from.raw.Action
 	op.IsOnduplicateKeyUpdate = from.raw.IsOnduplicateKeyUpdate
 	op.Engine = from.raw.Engine
-	op.SegmentMap = from.raw.SegmentMap
 	return op
 }
 
