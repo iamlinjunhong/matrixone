@@ -234,6 +234,7 @@ type partitionedRelData struct {
 	cnt        int
 	blocks     objectio.BlockInfoSlice
 	partitions map[uint64]engine.RelData
+	memBlocks  objectio.BlockInfo
 }
 
 func (r *partitionedRelData) addPartition(
@@ -269,9 +270,9 @@ func (r *partitionedRelData) GetBlockInfoSlice() objectio.BlockInfoSlice {
 	return r.blocks
 }
 
-// func (r *partitionedRelData) GetBlockInfo(i int) objectio.BlockInfo {
-// 	return r.blocks[i]
-// }
+func (r *partitionedRelData) GetMemBlocks() objectio.BlockInfoSlice {
+	return objectio.BlockInfoSlice{}
+}
 
 func (r *partitionedRelData) GetType() engine.RelDataType {
 	panic("not implemented")
@@ -317,6 +318,18 @@ func (r *partitionedRelData) AppendShardID(id uint64) {
 	panic("not implemented")
 }
 
-// func (r *partitionedRelData) SetBlockInfo(i int, blk *objectio.BlockInfo)
-// func (r *partitionedRelData) AppendBlockInfo(blk *objectio.BlockInfo)
-// func (r *partitionedRelData) AppendBlockInfoSlice(objectio.BlockInfoSlice)
+func (r *partitionedRelData) SetBlockInfo(i int, blk *objectio.BlockInfo) {
+	panic("not implemented")
+}
+
+func (r *partitionedRelData) GetBlockInfo(i int) objectio.BlockInfo {
+	panic("not implemented")
+}
+
+func (r *partitionedRelData) AppendBlockInfo(blk *objectio.BlockInfo) {
+	panic("not implemented")
+}
+
+func (r *partitionedRelData) AppendBlockInfoSlice(objectio.BlockInfoSlice) {
+	panic("not implemented")
+}

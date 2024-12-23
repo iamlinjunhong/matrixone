@@ -1990,7 +1990,6 @@ func (tbl *txnTable) PKPersistedBetween(
 
 					blk.SetFlagByObjStats(&obj.ObjectStats)
 
-					blk.PartitionNum = -1
 					candidateBlks[blk.BlockID] = &blk
 					return true
 				}, obj.ObjectStats)

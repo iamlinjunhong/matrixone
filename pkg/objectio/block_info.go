@@ -58,9 +58,6 @@ type BlockInfo struct {
 	BlockID     types.Blockid
 	MetaLoc     ObjectLocation
 	ObjectFlags int8
-
-	//TODO:: remove it.
-	PartitionNum int16
 }
 
 func (b *BlockInfo) SetFlagByObjStats(stats *ObjectStats) {
@@ -120,11 +117,6 @@ func (b *BlockInfo) MarshalWithBuf(w *bytes.Buffer) (uint32, error) {
 	}
 	space++
 
-	if _, err := w.Write(types.EncodeInt16(&b.PartitionNum)); err != nil {
-		return 0, err
-	}
-	space += 2
-
 	return space, nil
 }
 
@@ -136,9 +128,6 @@ func (b *BlockInfo) Unmarshal(buf []byte) error {
 	buf = buf[LocationLen:]
 
 	b.ObjectFlags = types.DecodeInt8(buf[:1])
-	buf = buf[1:]
-
-	b.PartitionNum = types.DecodeFixed[int16](buf[:2])
 	return nil
 }
 

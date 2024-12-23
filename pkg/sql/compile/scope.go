@@ -624,7 +624,7 @@ func (s *Scope) handleBlockList(c *Compile, runtimeInExprList []*plan.Expr) erro
 	}
 
 	//need to shuffle blocks when cncnt>1
-	var commited engine.RelData
+	var committed engine.RelData
 	rsp := &engine.RangesShuffleParam{
 		Node:  s.DataSource.node,
 		CNCNT: s.NodeInfo.CNCNT,
@@ -635,30 +635,30 @@ func (s *Scope) handleBlockList(c *Compile, runtimeInExprList []*plan.Expr) erro
 		rsp.IsLocalCN = true
 	}
 
-	commited, err = c.expandRanges(s.DataSource.node, rel, db, ctx, newExprList, engine.Policy_CollectCommittedData, rsp)
+	committed, err = c.expandRanges(s.DataSource.node, rel, db, ctx, newExprList, engine.Policy_CollectCommittedData, rsp)
 	if err != nil {
 		return err
 	}
 	average := float64(s.DataSource.node.Stats.BlockNum / s.NodeInfo.CNCNT)
-	if commited.DataCnt() < int(average*0.8) || commited.DataCnt() > int(average*1.2) {
+	if committed.DataCnt() < int(average*0.8) || committed.DataCnt() > int(average*1.2) {
 		logutil.Warnf("workload  table %v maybe not balanced! stats blocks %v, cncnt %v cnidx %v average %v , get %v blocks",
-			s.DataSource.TableDef.Name, s.DataSource.node.Stats.BlockNum, s.NodeInfo.CNCNT, s.NodeInfo.CNIDX, average, commited.DataCnt())
+			s.DataSource.TableDef.Name, s.DataSource.node.Stats.BlockNum, s.NodeInfo.CNCNT, s.NodeInfo.CNIDX, average, committed.DataCnt())
 	}
 
-	//collect uncommited data if it's local cn
+	//collect uncommitted data if it's local cn
 	if !s.IsRemote {
 		s.NodeInfo.Data, err = c.expandRanges(s.DataSource.node, rel, db, ctx, newExprList, engine.Policy_CollectUncommittedData, nil)
 		if err != nil {
 			return err
 		}
-		s.NodeInfo.Data.AppendBlockInfoSlice(commited.GetBlockInfoSlice())
+		s.NodeInfo.Data.AppendBlockInfoSlice(committed.GetBlockInfoSlice())
 	} else {
 		tombstones, err := collectTombstones(c, s.DataSource.node, rel, engine.Policy_CollectCommittedTombstones)
 		if err != nil {
 			return err
 		}
-		commited.AttachTombstones(tombstones)
-		s.NodeInfo.Data = commited
+		committed.AttachTombstones(tombstones)
+		s.NodeInfo.Data = committed
 	}
 	return nil
 }
