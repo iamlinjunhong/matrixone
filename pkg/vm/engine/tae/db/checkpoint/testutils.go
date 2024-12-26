@@ -39,6 +39,10 @@ type TestRunner interface {
 	GCNeeded() bool
 }
 
+func (r *runner) GetICKPIntentOnlyForTest() *CheckpointEntry {
+	return r.store.GetICKPIntent()
+}
+
 // DisableCheckpoint stops generating checkpoint
 func (r *runner) DisableCheckpoint() {
 	r.disabled.Store(true)
@@ -247,7 +251,7 @@ func (r *runner) ForceCheckpointForBackup(end types.TS) (location string, err er
 	entry.ckpLSN = lsn
 	entry.truncateLSN = lsnToTruncate
 	var file string
-	if file, err = r.saveCheckpoint(entry.start, entry.end, lsn, lsnToTruncate); err != nil {
+	if file, err = r.saveCheckpoint(entry.start, entry.end); err != nil {
 		return
 	}
 	files = append(files, file)
