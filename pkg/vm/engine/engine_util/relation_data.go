@@ -214,26 +214,7 @@ func (relData *BlockListRelData) DataSlice(i, j int) engine.RelData {
 }
 
 func (relData *BlockListRelData) GroupByPartitionNum() map[int16]engine.RelData {
-	ret := make(map[int16]engine.RelData)
-
-	blks := relData.GetBlockInfoSlice()
-	blksLen := blks.Len()
-	for idx := range blksLen {
-		blkInfo := blks.Get(idx)
-		if blkInfo.IsMemBlk() {
-			continue
-		}
-		partitionNum := blkInfo.PartitionNum
-		if _, ok := ret[partitionNum]; !ok {
-			ret[partitionNum] = &BlockListRelData{
-				tombstones: relData.tombstones,
-			}
-			ret[partitionNum].AppendBlockInfo(&objectio.EmptyBlockInfo)
-		}
-		ret[partitionNum].AppendBlockInfo(blkInfo)
-	}
-
-	return ret
+	panic("not supported")
 }
 
 func (relData *BlockListRelData) DataCnt() int {
