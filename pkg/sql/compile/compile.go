@@ -3234,7 +3234,10 @@ func (c *Compile) compileMultiUpdate(_ []*plan.Node, n *plan.Node, ss []*Scope) 
 			rs := c.newMergeScope(ss)
 			ss = []*Scope{rs}
 		}
-		multiUpdateArg := constructMultiUpdate(n, c.e, c.proc, multi_update.UpdateWriteTable)
+		multiUpdateArg, err := constructMultiUpdate(n, c.e, c.proc, multi_update.UpdateWriteTable)
+		if err != nil {
+			return nil, err
+		}
 		multiUpdateArg.GetOperatorBase().SetAnalyzeControl(c.anal.curNodeIdx, currentFirstFlag)
 		ss[0].setRootOperator(multiUpdateArg)
 	}

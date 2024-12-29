@@ -786,12 +786,7 @@ func constructLockOp(n *plan.Node, eng engine.Engine) (*lockop.LockOp, error) {
 	arg := lockop.NewArgumentByEngine(eng)
 	for _, target := range n.LockTargets {
 		typ := plan2.MakeTypeByPlan2Type(target.PrimaryColTyp)
-		if target.IsPartitionTable {
-			arg.AddLockTargetWithPartition(target.GetPartitionTableIds(), target.GetPrimaryColIdxInBat(), typ, target.GetRefreshTsIdxInBat(), target.GetLockRows(), target.GetLockTableAtTheEnd(), target.GetFilterColIdxInBat())
-		} else {
-			arg.AddLockTarget(target.GetTableId(), target.GetObjRef(), target.GetPrimaryColIdxInBat(), typ, target.GetRefreshTsIdxInBat(), target.GetLockRows(), target.GetLockTableAtTheEnd())
-		}
-
+		arg.AddLockTarget(target.GetTableId(), target.GetObjRef(), target.GetPrimaryColIdxInBat(), typ, target.GetRefreshTsIdxInBat(), target.GetLockRows(), target.GetLockTableAtTheEnd())
 	}
 	for _, target := range n.LockTargets {
 		if target.LockTable {
