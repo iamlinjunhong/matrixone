@@ -361,6 +361,10 @@ func (rd *MemRelationData) DataCnt() int {
 	return rd.Shards.Len()
 }
 
+func (rd *MemRelationData) GetMemoryBlocks() objectio.BlockInfoSlice {
+	panic("not supported")
+}
+
 type ShardIdSlice []byte
 
 var _ engine.Ranges = (*ShardIdSlice)(nil)

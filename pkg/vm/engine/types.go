@@ -684,8 +684,6 @@ type RelData interface {
 	GetTombstones() Tombstoner
 	DataSlice(begin, end int) RelData
 
-	// GroupByPartitionNum TODO::remove it after refactor of partition table.
-	GroupByPartitionNum() map[int16]RelData
 	BuildEmptyRelData(preAllocSize int) RelData
 	DataCnt() int
 
@@ -703,6 +701,7 @@ type RelData interface {
 	SetBlockInfo(i int, blk *objectio.BlockInfo)
 	AppendBlockInfo(blk *objectio.BlockInfo)
 	AppendBlockInfoSlice(objectio.BlockInfoSlice)
+	GetMemoryBlocks() objectio.BlockInfoSlice
 }
 
 // ForRangeShardID [begin, end)
@@ -1081,6 +1080,10 @@ func (rd *EmptyRelationData) AppendShardID(id uint64) {
 }
 
 func (rd *EmptyRelationData) GetBlockInfoSlice() objectio.BlockInfoSlice {
+	panic("not supported")
+}
+
+func (rd *EmptyRelationData) GetMemoryBlocks() objectio.BlockInfoSlice {
 	panic("not supported")
 }
 

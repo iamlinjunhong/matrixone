@@ -36,7 +36,13 @@ func (t *partitionTxnTable) Ranges(
 	ctx context.Context,
 	param engine.RangesParam,
 ) (engine.RelData, error) {
-	return nil, nil
+	pd := newPartitionedRelData()
+	for idx, p := range t.partitions {
+		if err := pd.addPartition(ctx, p, param, idx); err != nil {
+			return nil, err
+		}
+	}
+	return pd, nil
 }
 
 func (t *partitionTxnTable) BuildReaders(
@@ -50,7 +56,63 @@ func (t *partitionTxnTable) BuildReaders(
 	policy engine.TombstoneApplyPolicy,
 	filterHint engine.FilterHint,
 ) ([]engine.Reader, error) {
-	return nil, nil
+	var readers []engine.Reader
+	pd, ok := relData.(*partitionedRelData)
+	if ok || len(t.partitions) == 1 {
+		for id, data := range pd.partitions {
+			tbl := pd.tables[id]
+			r, err := tbl.BuildReaders(
+				ctx,
+				proc,
+				expr,
+				data,
+				num,
+				txnOffset,
+				orderBy,
+				policy,
+				filterHint,
+			)
+			if err != nil {
+				return nil, err
+			}
+			readers = append(readers, r...)
+		}
+		return readers, nil
+	}
+
+	m := make(map[int]engine.RelData, len(t.partitions))
+	slice := relData.GetBlockInfoSlice()
+	n := slice.Len()
+	for i := 0; i < n; i++ {
+		value := slice.Get(i)
+		data, ok := m[value.PartitionIdx]
+		if !ok {
+			data := relData.BuildEmptyRelData(n)
+			data.AttachTombstones(data.GetTombstones())
+			m[value.PartitionIdx] = data
+		}
+		data.AppendBlockInfo(value)
+	}
+
+	for idx, data := range m {
+		tbl := t.partitions[idx]
+		r, err := tbl.BuildReaders(
+			ctx,
+			proc,
+			expr,
+			data,
+			num,
+			txnOffset,
+			orderBy,
+			policy,
+			filterHint,
+		)
+		if err != nil {
+			return nil, err
+		}
+		readers = append(readers, r...)
+	}
+	return readers, nil
 }
 
 func (t *partitionTxnTable) BuildShardingReaders(
@@ -234,16 +296,46 @@ type partitionedRelData struct {
 	cnt        int
 	blocks     objectio.BlockInfoSlice
 	partitions map[uint64]engine.RelData
-	memBlocks  objectio.BlockInfo
+	tables     map[uint64]engine.Relation
+	memory     objectio.BlockInfoSlice
+}
+
+func newPartitionedRelData() *partitionedRelData {
+	return &partitionedRelData{
+		partitions: make(map[uint64]engine.RelData),
+		tables:     make(map[uint64]engine.Relation),
+	}
 }
 
 func (r *partitionedRelData) addPartition(
-	id uint64,
-	partition engine.RelData,
-) {
-	r.partitions[id] = partition
-	r.cnt += partition.DataCnt()
-	r.blocks = append(r.blocks, partition.GetBlockInfoSlice()...)
+	ctx context.Context,
+	table engine.Relation,
+	param engine.RangesParam,
+	idx int,
+) error {
+	data, err := table.Ranges(
+		ctx,
+		param,
+	)
+	if err != nil {
+		return err
+	}
+
+	blocks := data.GetBlockInfoSlice()
+	n := blocks.Len()
+	for i := 0; i < n; i++ {
+		blocks.Get(i).PartitionIdx = idx
+	}
+
+	id := table.GetTableID(ctx)
+	r.tables[id] = table
+	r.partitions[id] = data
+	r.cnt += data.DataCnt()
+	r.blocks = append(r.blocks, data.GetBlockInfoSlice()...)
+
+	v := data.GetBlockInfo(0)
+	r.memory.AppendBlockInfo(&v)
+	return nil
 }
 
 func (r *partitionedRelData) AttachTombstones(tombstones engine.Tombstoner) error {
@@ -270,8 +362,8 @@ func (r *partitionedRelData) GetBlockInfoSlice() objectio.BlockInfoSlice {
 	return r.blocks
 }
 
-func (r *partitionedRelData) GetMemBlocks() objectio.BlockInfoSlice {
-	return objectio.BlockInfoSlice{}
+func (r *partitionedRelData) GetMemoryBlocks() objectio.BlockInfoSlice {
+	return r.memory
 }
 
 func (r *partitionedRelData) GetType() engine.RelDataType {
@@ -332,4 +424,7 @@ func (r *partitionedRelData) AppendBlockInfo(blk *objectio.BlockInfo) {
 
 func (r *partitionedRelData) AppendBlockInfoSlice(objectio.BlockInfoSlice) {
 	panic("not implemented")
+}
+
+type partitionReader struct {
 }

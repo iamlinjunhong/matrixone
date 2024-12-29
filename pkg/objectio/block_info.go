@@ -55,9 +55,10 @@ const (
 )
 
 type BlockInfo struct {
-	BlockID     types.Blockid
-	MetaLoc     ObjectLocation
-	ObjectFlags int8
+	BlockID      types.Blockid
+	MetaLoc      ObjectLocation
+	ObjectFlags  int8
+	PartitionIdx int
 }
 
 func (b *BlockInfo) SetFlagByObjStats(stats *ObjectStats) {

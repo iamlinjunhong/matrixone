@@ -220,3 +220,10 @@ func (relData *BlockListRelData) GroupByPartitionNum() map[int16]engine.RelData 
 func (relData *BlockListRelData) DataCnt() int {
 	return relData.blklist.Len()
 }
+
+func (relData *BlockListRelData) GetMemoryBlocks() objectio.BlockInfoSlice {
+	v := relData.blklist.Get(0)
+	var value objectio.BlockInfoSlice
+	value.AppendBlockInfo(v)
+	return value
+}
