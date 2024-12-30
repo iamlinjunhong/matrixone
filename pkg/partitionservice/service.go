@@ -213,16 +213,35 @@ func (s *service) Prune(
 	}, nil
 }
 
+func (s *service) Filter(
+	ctx context.Context,
+	tableID uint64,
+	filters []*plan.Expr,
+	txnOp client.TxnOperator,
+) ([]int, error) {
+	metadata, err := s.readMetadata(
+		ctx,
+		tableID,
+		txnOp,
+	)
+	if err != nil || metadata.IsEmpty() {
+		return nil, err
+	}
+
+	// TODO(fagongzi): partition
+	return []int{0}, nil
+}
+
 func (s *service) Is(
 	ctx context.Context,
 	tableID uint64,
 	txnOp client.TxnOperator,
-) (bool, error) {
+) (bool, partition.PartitionMetadata, error) {
 	metadata, err := s.readMetadata(ctx, tableID, txnOp)
 	if err != nil {
-		return false, err
+		return false, partition.PartitionMetadata{}, err
 	}
-	return !metadata.IsEmpty(), nil
+	return !metadata.IsEmpty(), metadata, nil
 }
 
 func (s *service) readMetadata(

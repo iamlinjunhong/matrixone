@@ -59,7 +59,7 @@ type PartitionService interface {
 		ctx context.Context,
 		tableID uint64,
 		txnOp client.TxnOperator,
-	) (bool, error)
+	) (bool, partition.PartitionMetadata, error)
 
 	// Create creates metadata of the partition table.
 	Create(
@@ -81,6 +81,13 @@ type PartitionService interface {
 		bat *batch.Batch,
 		txnOp client.TxnOperator,
 	) (PruneResult, error)
+
+	Filter(
+		ctx context.Context,
+		tableID uint64,
+		filters []*plan.Expr,
+		txnOp client.TxnOperator,
+	) ([]int, error)
 
 	GetStorage() PartitionStorage
 }

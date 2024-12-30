@@ -22,23 +22,76 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/container/types"
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/matrixorigin/matrixone/pkg/objectio"
+	"github.com/matrixorigin/matrixone/pkg/partitionservice"
 	"github.com/matrixorigin/matrixone/pkg/pb/api"
+	"github.com/matrixorigin/matrixone/pkg/pb/partition"
 	"github.com/matrixorigin/matrixone/pkg/pb/plan"
+	"github.com/matrixorigin/matrixone/pkg/pb/statsinfo"
+	splan "github.com/matrixorigin/matrixone/pkg/sql/plan"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine"
 )
 
+var _ engine.Relation = (*partitionTxnTable)(nil)
+
 type partitionTxnTable struct {
-	primary    *txnTable
-	partitions []engine.Relation
+	primary  *txnTable
+	ps       partitionservice.PartitionService
+	metadata partition.PartitionMetadata
+}
+
+func newPartitionTxnTable(
+	primary *txnTable,
+	metadata partition.PartitionMetadata,
+	ps partitionservice.PartitionService,
+) (*partitionTxnTable, error) {
+	tbl := &partitionTxnTable{
+		primary:  primary,
+		metadata: metadata,
+		ps:       ps,
+	}
+	return tbl, nil
+}
+
+func (t *partitionTxnTable) getRelation(
+	ctx context.Context,
+	idx int,
+) (engine.Relation, error) {
+	return t.primary.db.relation(
+		ctx,
+		t.metadata.Partitions[idx].PartitionTableName,
+		t.primary.proc.Load(),
+	)
 }
 
 func (t *partitionTxnTable) Ranges(
 	ctx context.Context,
 	param engine.RangesParam,
 ) (engine.RelData, error) {
+	targets, err := t.ps.Filter(
+		ctx,
+		t.metadata.TableID,
+		param.BlockFilters,
+		t.primary.proc.Load().GetTxnOperator(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(targets) == 1 {
+		rel, err := t.getRelation(ctx, targets[0])
+		if err != nil {
+			return nil, err
+		}
+		return rel.Ranges(ctx, param)
+	}
+
 	pd := newPartitionedRelData()
-	for idx, p := range t.partitions {
-		if err := pd.addPartition(ctx, p, param, idx); err != nil {
+	for _, idx := range targets {
+		rel, err := t.getRelation(ctx, targets[0])
+		if err != nil {
+			return nil, err
+		}
+		if err := pd.addPartition(ctx, rel, param, idx); err != nil {
 			return nil, err
 		}
 	}
@@ -57,30 +110,7 @@ func (t *partitionTxnTable) BuildReaders(
 	filterHint engine.FilterHint,
 ) ([]engine.Reader, error) {
 	var readers []engine.Reader
-	pd, ok := relData.(*partitionedRelData)
-	if ok || len(t.partitions) == 1 {
-		for id, data := range pd.partitions {
-			tbl := pd.tables[id]
-			r, err := tbl.BuildReaders(
-				ctx,
-				proc,
-				expr,
-				data,
-				num,
-				txnOffset,
-				orderBy,
-				policy,
-				filterHint,
-			)
-			if err != nil {
-				return nil, err
-			}
-			readers = append(readers, r...)
-		}
-		return readers, nil
-	}
-
-	m := make(map[int]engine.RelData, len(t.partitions))
+	m := make(map[int]engine.RelData, 2)
 	slice := relData.GetBlockInfoSlice()
 	n := slice.Len()
 	for i := 0; i < n; i++ {
@@ -95,8 +125,11 @@ func (t *partitionTxnTable) BuildReaders(
 	}
 
 	for idx, data := range m {
-		tbl := t.partitions[idx]
-		r, err := tbl.BuildReaders(
+		rel, err := t.getRelation(ctx, idx)
+		if err != nil {
+			return nil, err
+		}
+		r, err := rel.BuildReaders(
 			ctx,
 			proc,
 			expr,
@@ -125,7 +158,69 @@ func (t *partitionTxnTable) BuildShardingReaders(
 	orderBy bool,
 	policy engine.TombstoneApplyPolicy,
 ) ([]engine.Reader, error) {
-	return nil, nil
+	panic("Not Support")
+}
+
+func (t *partitionTxnTable) Rows(
+	ctx context.Context,
+) (uint64, error) {
+	rows := uint64(0)
+	for idx := range t.metadata.Partitions {
+		p, err := t.getRelation(ctx, idx)
+		if err != nil {
+			return 0, nil
+		}
+
+		v, err := p.Rows(ctx)
+		if err != nil {
+			return 0, err
+		}
+
+		rows += v
+	}
+	return rows, nil
+}
+
+func (t *partitionTxnTable) Stats(
+	ctx context.Context,
+	sync bool,
+) (*statsinfo.StatsInfo, error) {
+	value := splan.NewStatsInfo()
+	for idx := range t.metadata.Partitions {
+		p, err := t.getRelation(ctx, idx)
+		if err != nil {
+			return nil, nil
+		}
+
+		v, err := p.Stats(ctx, sync)
+		if err != nil {
+			return nil, err
+		}
+
+		value.Merge(v)
+	}
+	return value, nil
+}
+
+func (t *partitionTxnTable) Size(
+	ctx context.Context,
+	columnName string,
+) (uint64, error) {
+	value := uint64(0)
+	for idx := range t.metadata.Partitions {
+		p, err := t.getRelation(ctx, idx)
+		if err != nil {
+			return 0, nil
+		}
+
+		v, err := p.Size(ctx, columnName)
+		if err != nil {
+			return 0, err
+		}
+
+		value += v
+	}
+	return value, nil
 }
 
 func (t *partitionTxnTable) CollectTombstones(
@@ -134,7 +229,12 @@ func (t *partitionTxnTable) CollectTombstones(
 	policy engine.TombstoneCollectPolicy,
 ) (engine.Tombstoner, error) {
 	var tombstone engine.Tombstoner
-	for _, p := range t.partitions {
+	for idx := range t.metadata.Partitions {
+		p, err := t.getRelation(ctx, idx)
+		if err != nil {
+			return nil, err
+		}
+
 		t, err := p.CollectTombstones(ctx, txnOffset, policy)
 		if err != nil {
 			return nil, err
@@ -160,7 +260,12 @@ func (t *partitionTxnTable) CollectChanges(
 
 func (t *partitionTxnTable) ApproxObjectsNum(ctx context.Context) int {
 	num := 0
-	for _, p := range t.partitions {
+	for idx := range t.metadata.Partitions {
+		p, err := t.getRelation(ctx, idx)
+		if err != nil {
+			// TODO: fix , return error
+			return 0
+		}
 		num += p.ApproxObjectsNum(ctx)
 	}
 	return num
@@ -176,7 +281,11 @@ func (t *partitionTxnTable) MergeObjects(
 
 func (t *partitionTxnTable) GetNonAppendableObjectStats(ctx context.Context) ([]objectio.ObjectStats, error) {
 	var stats []objectio.ObjectStats
-	for _, p := range t.partitions {
+	for idx := range t.metadata.Partitions {
+		p, err := t.getRelation(ctx, idx)
+		if err != nil {
+			return nil, err
+		}
 		values, err := p.GetNonAppendableObjectStats(ctx)
 		if err != nil {
 			return nil, err
@@ -292,7 +401,6 @@ func (t *partitionTxnTable) PrimaryKeysMayBeUpserted(
 }
 
 type partitionedRelData struct {
-	tombstones engine.Tombstoner
 	cnt        int
 	blocks     objectio.BlockInfoSlice
 	partitions map[uint64]engine.RelData
@@ -424,7 +532,4 @@ func (r *partitionedRelData) AppendBlockInfo(blk *objectio.BlockInfo) {
 
 func (r *partitionedRelData) AppendBlockInfoSlice(objectio.BlockInfoSlice) {
 	panic("not implemented")
-}
-
-type partitionReader struct {
 }

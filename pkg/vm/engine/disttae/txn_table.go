@@ -38,9 +38,11 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/logutil"
 	"github.com/matrixorigin/matrixone/pkg/objectio"
 	"github.com/matrixorigin/matrixone/pkg/objectio/ioutil"
+	"github.com/matrixorigin/matrixone/pkg/partitionservice"
 	"github.com/matrixorigin/matrixone/pkg/pb/api"
 	"github.com/matrixorigin/matrixone/pkg/pb/plan"
 	pb "github.com/matrixorigin/matrixone/pkg/pb/statsinfo"
+	"github.com/matrixorigin/matrixone/pkg/shardservice"
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec"
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec/deletion"
 	plan2 "github.com/matrixorigin/matrixone/pkg/sql/plan"
@@ -50,6 +52,7 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/util/errutil"
 	v2 "github.com/matrixorigin/matrixone/pkg/util/metric/v2"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine"
+	"github.com/matrixorigin/matrixone/pkg/vm/engine/disttae/cache"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/disttae/logtailreplay"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/engine_util"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/tae/blockio"
@@ -68,6 +71,61 @@ var traceFilterExprInterval atomic.Uint64
 var traceFilterExprInterval2 atomic.Uint64
 
 var _ engine.Relation = new(txnTable)
+
+func newTxnTable(
+	db *txnDatabase,
+	item cache.TableItem,
+) (engine.Relation, error) {
+	txn := db.getTxn()
+	process := txn.proc
+	eng := txn.engine
+
+	tbl := &txnTableDelegate{
+		origin: newTxnTableWithItem(
+			db,
+			item,
+			process,
+			eng,
+		),
+	}
+
+	ps := partitionservice.GetService(process.GetService())
+	is, metadata, err := ps.Is(process.Ctx, item.Id, txn.op)
+	if err != nil {
+		return nil, err
+	}
+	if is {
+		p, err := newPartitionTxnTable(
+			tbl.origin,
+			metadata,
+			ps,
+		)
+		if err != nil {
+			return nil, err
+		}
+		tbl.partition.tbl = p
+		tbl.partition.is = true
+		tbl.partition.service = ps
+	}
+
+	tbl.shard.service = shardservice.GetService(process.GetService())
+	tbl.shard.is = false
+	tbl.isLocal = tbl.isLocalFunc
+
+	if tbl.shard.service.Config().Enable &&
+		db.databaseId != catalog.MO_CATALOG_ID {
+		tableID, policy, is, err := tbl.shard.service.GetShardInfo(item.Id)
+		if err != nil {
+			return nil, err
+		}
+
+		tbl.shard.is = is
+		tbl.shard.policy = policy
+		tbl.shard.tableID = tableID
+	}
+
+	return tbl, nil
+}
 
 func (tbl *txnTable) getEngine() engine.Engine {
 	return tbl.eng
@@ -923,68 +981,6 @@ func (tbl *txnTable) collectUnCommittedDataObjs(txnOffset int) ([]objectio.Objec
 	return unCommittedObjects, unCommittedObjNames
 }
 
-//func (tbl *txnTable) collectDirtyBlocks(
-//	state *logtailreplay.PartitionState,
-//	uncommittedObjects []objectio.ObjectStats,
-//	txnOffset int, // Transaction writes offset used to specify the starting position for reading data.
-//) map[types.Blockid]struct{} {
-//	dirtyBlks := make(map[types.Blockid]struct{})
-//	//collect partitionState.dirtyBlocks which may be invisible to this txn into dirtyBlks.
-//	{
-//		iter := state.NewDirtyBlocksIter()
-//		for iter.Next() {
-//			entry := iter.Entry()
-//			//lazy load deletes for block.
-//			dirtyBlks[entry] = struct{}{}
-//		}
-//		iter.Close()
-//
-//	}
-//
-//	//only collect dirty blocks in PartitionState.blocks into dirtyBlks.
-//	for _, bid := range tbl.GetDirtyPersistedBlks(state) {
-//		dirtyBlks[bid] = struct{}{}
-//	}
-//
-//	if tbl.getTxn().hasDeletesOnUncommitedObject() {
-//		ForeachBlkInObjStatsList(true, nil, func(blk objectio.BlockInfo, _ objectio.BlockObject) bool {
-//			if tbl.getTxn().hasUncommittedDeletesOnBlock(&blk.BlockID) {
-//				dirtyBlks[blk.BlockID] = struct{}{}
-//			}
-//			return true
-//		}, uncommittedObjects...)
-//	}
-//
-//	if tbl.db.op.IsSnapOp() {
-//		txnOffset = tbl.getTxn().GetSnapshotWriteOffset()
-//	}
-//
-//	tbl.getTxn().ForEachTableWrites(
-//		tbl.db.databaseId,
-//		tbl.tableId,
-//		txnOffset,
-//		func(entry Entry) {
-//			// the CN workspace can only handle `INSERT` and `DELETE` operations. Other operations will be skipped,
-//			// TODO Adjustments will be made here in the future
-//			if entry.typ == DELETE || entry.typ == DELETE_TXN {
-//				if entry.IsGeneratedByTruncate() {
-//					return
-//				}
-//				//deletes in tbl.writes maybe comes from PartitionState.rows or PartitionState.blocks.
-//				if entry.fileName == "" &&
-//					entry.tableId != catalog.MO_DATABASE_ID && entry.tableId != catalog.MO_TABLES_ID && entry.tableId != catalog.MO_COLUMNS_ID {
-//					vs := vector.MustFixedColWithTypeCheck[types.Rowid](entry.bat.GetVector(0))
-//					for _, v := range vs {
-//						id, _ := v.Decode()
-//						dirtyBlks[id] = struct{}{}
-//					}
-//				}
-//			}
-//		})
-//
-//	return dirtyBlks
-//}
-
 // the return defs has no rowid column
 func (tbl *txnTable) TableDefs(ctx context.Context) ([]engine.TableDef, error) {
 	//return tbl.defs, nil
@@ -996,12 +992,6 @@ func (tbl *txnTable) TableDefs(ctx context.Context) ([]engine.TableDef, error) {
 		commentDef := new(engine.CommentDef)
 		commentDef.Comment = tbl.comment
 		defs = append(defs, commentDef)
-	}
-	if tbl.partitioned > 0 || tbl.partition != "" {
-		partitionDef := new(engine.PartitionDef)
-		partitionDef.Partitioned = tbl.partitioned
-		partitionDef.Partition = tbl.partition
-		defs = append(defs, partitionDef)
 	}
 
 	if tbl.viewdef != "" {
@@ -1252,8 +1242,6 @@ func (tbl *txnTable) AlterTable(ctx context.Context, c *engine.ConstraintDef, re
 	var checkCstr []byte
 	oldTableName := tbl.tableName
 	olddefs := tbl.defs
-	oldPart := tbl.partitioned
-	oldPartInfo := tbl.partition
 	oldComment := tbl.comment
 	oldConstraint := tbl.constraint
 	// The fact that the tableDef brought by alter requests can appended to the tail of original defs presupposes:
@@ -1266,8 +1254,7 @@ func (tbl *txnTable) AlterTable(ctx context.Context, c *engine.ConstraintDef, re
 		for _, req := range reqs {
 			switch req.GetKind() {
 			case api.AlterKind_AddPartition:
-				tbl.partitioned = oldPart
-				tbl.partition = oldPartInfo
+				// TODO: partition
 			case api.AlterKind_UpdateComment:
 				tbl.comment = oldComment
 			case api.AlterKind_UpdateConstraint:

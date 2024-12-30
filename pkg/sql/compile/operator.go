@@ -630,7 +630,7 @@ func constructDeletion(n *plan.Node, eg engine.Engine, proc *process.Process) (v
 	op.DeleteCtx = delCtx
 
 	ps := partitionservice.GetService(eg.GetService())
-	ok, err := ps.Is(
+	ok, _, err := ps.Is(
 		proc.Ctx,
 		oldCtx.TableDef.TblId,
 		proc.GetTxnOperator(),
@@ -827,7 +827,7 @@ func constructMultiUpdate(
 	arg.Action = action
 
 	ps := partitionservice.GetService(eg.GetService())
-	ok, err := ps.Is(
+	ok, _, err := ps.Is(
 		proc.Ctx,
 		n.UpdateCtxList[0].TableDef.TblId,
 		proc.GetTxnOperator(),
@@ -871,7 +871,7 @@ func constructInsert(
 	arg.ToWriteS3 = toS3
 
 	ps := partitionservice.GetService(eg.GetService())
-	ok, err := ps.Is(
+	ok, _, err := ps.Is(
 		proc.Ctx,
 		oldCtx.TableDef.TblId,
 		proc.GetTxnOperator(),

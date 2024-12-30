@@ -33,7 +33,6 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/objectio"
 	"github.com/matrixorigin/matrixone/pkg/pb/api"
 	txn2 "github.com/matrixorigin/matrixone/pkg/pb/txn"
-	"github.com/matrixorigin/matrixone/pkg/shardservice"
 	"github.com/matrixorigin/matrixone/pkg/util/executor"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/disttae/cache"
@@ -152,9 +151,6 @@ func (db *txnDatabase) relation(ctx context.Context, name string, proc any) (eng
 	tbl, err := newTxnTable(
 		db,
 		*item,
-		p,
-		shardservice.GetService(p.GetService()),
-		txn.engine,
 	)
 	if err != nil {
 		return nil, err
@@ -432,8 +428,7 @@ func (db *txnDatabase) createWithID(
 			case *engine.CommentDef:
 				tbl.comment = defVal.Comment
 			case *engine.PartitionDef:
-				tbl.partitioned = defVal.Partitioned
-				tbl.partition = defVal.Partition
+				// TODO: partition
 			case *engine.ConstraintDef:
 				tbl.constraint, err = defVal.MarshalBinary()
 				if err != nil {
@@ -474,22 +469,20 @@ func (db *txnDatabase) createWithID(
 
 		db := tbl.db
 		arg := catalog.Table{
-			AccountId:     accountId,
-			UserId:        userId,
-			RoleId:        roleId,
-			DatabaseId:    db.databaseId,
-			DatabaseName:  db.databaseName,
-			TableName:     tbl.tableName,
-			TableId:       tbl.tableId,
-			Kind:          tbl.relKind,
-			Comment:       tbl.comment,
-			CreateSql:     tbl.createSql,
-			Partitioned:   tbl.partitioned,
-			PartitionInfo: tbl.partition,
-			Viewdef:       tbl.viewdef,
-			Constraint:    tbl.constraint,
-			Version:       tbl.version,
-			ExtraInfo:     api.MustMarshalTblExtra(tbl.extraInfo),
+			AccountId:    accountId,
+			UserId:       userId,
+			RoleId:       roleId,
+			DatabaseId:   db.databaseId,
+			DatabaseName: db.databaseName,
+			TableName:    tbl.tableName,
+			TableId:      tbl.tableId,
+			Kind:         tbl.relKind,
+			Comment:      tbl.comment,
+			CreateSql:    tbl.createSql,
+			Viewdef:      tbl.viewdef,
+			Constraint:   tbl.constraint,
+			Version:      tbl.version,
+			ExtraInfo:    api.MustMarshalTblExtra(tbl.extraInfo),
 		}
 		bat, err := catalog.GenCreateTableTuple(arg, m, packer)
 		if err != nil {

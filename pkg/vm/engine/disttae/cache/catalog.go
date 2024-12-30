@@ -480,8 +480,6 @@ func ParseTablesBatchAnd(bat *batch.Batch, f func(*TableItem)) {
 	comments := bat.GetVector(catalog.MO_TABLES_REL_COMMENT_IDX + MO_OFF)
 	createSqls := bat.GetVector(catalog.MO_TABLES_REL_CREATESQL_IDX + MO_OFF)
 	viewDefs := bat.GetVector(catalog.MO_TABLES_VIEWDEF_IDX + MO_OFF)
-	partitioneds := vector.MustFixedColWithTypeCheck[int8](bat.GetVector(catalog.MO_TABLES_PARTITIONED_IDX + MO_OFF))
-	paritions := bat.GetVector(catalog.MO_TABLES_PARTITION_INFO_IDX + MO_OFF)
 	constraints := bat.GetVector(catalog.MO_TABLES_CONSTRAINT_IDX + MO_OFF)
 	versions := vector.MustFixedColWithTypeCheck[uint32](bat.GetVector(catalog.MO_TABLES_VERSION_IDX + MO_OFF))
 	catalogVersions := vector.MustFixedColWithTypeCheck[uint32](bat.GetVector(catalog.MO_TABLES_CATALOG_VERSION_IDX + MO_OFF))
@@ -499,8 +497,6 @@ func ParseTablesBatchAnd(bat *batch.Batch, f func(*TableItem)) {
 		item.ViewDef = viewDefs.GetStringAt(i)
 		item.Constraint = append(item.Constraint, constraints.GetBytesAt(i)...)
 		item.Comment = comments.GetStringAt(i)
-		item.Partitioned = partitioneds[i]
-		item.Partition = paritions.GetStringAt(i)
 		item.CreateSql = createSqls.GetStringAt(i)
 		item.Version = versions[i]
 		item.CatalogVersion = catalogVersions[i]

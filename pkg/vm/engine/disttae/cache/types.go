@@ -128,8 +128,6 @@ type TableItem struct {
 	ViewDef        string
 	Constraint     []byte
 	Comment        string
-	Partitioned    int8
-	Partition      string
 	CreateSql      string
 	CatalogVersion uint32
 	ExtraInfo      *api.SchemaExtra
@@ -296,8 +294,6 @@ func copyTableItem(dst, src *TableItem) {
 	dst.ViewDef = src.ViewDef
 	dst.TableDef = src.TableDef
 	dst.Constraint = src.Constraint
-	dst.Partitioned = src.Partitioned
-	dst.Partition = src.Partition
 	dst.CreateSql = src.CreateSql
 	dst.PrimaryIdx = src.PrimaryIdx
 	dst.ClusterByIdx = src.ClusterByIdx

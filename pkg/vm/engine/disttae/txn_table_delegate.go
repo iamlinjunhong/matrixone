@@ -29,6 +29,7 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/matrixorigin/matrixone/pkg/logutil"
 	"github.com/matrixorigin/matrixone/pkg/objectio"
+	"github.com/matrixorigin/matrixone/pkg/partitionservice"
 	"github.com/matrixorigin/matrixone/pkg/pb/api"
 	"github.com/matrixorigin/matrixone/pkg/pb/plan"
 	"github.com/matrixorigin/matrixone/pkg/pb/shard"
@@ -69,8 +70,6 @@ func newTxnTableWithItem(
 		relKind:       item.Kind,
 		viewdef:       item.ViewDef,
 		comment:       item.Comment,
-		partitioned:   item.Partitioned,
-		partition:     item.Partition,
 		createSql:     item.CreateSql,
 		constraint:    item.Constraint,
 		extraInfo:     item.ExtraInfo,
@@ -91,6 +90,15 @@ type txnTableDelegate struct {
 		tableID uint64
 		is      bool
 	}
+
+	// partition info
+	partition struct {
+		tbl     *partitionTxnTable
+		service partitionservice.PartitionService
+		is      bool
+		tableID uint64
+	}
+
 	isMock  bool
 	isLocal func() (bool, error)
 }
@@ -124,42 +132,11 @@ func MockTableDelegate(
 	return tbl, nil
 }
 
-func newTxnTable(
-	db *txnDatabase,
-	item cache.TableItem,
-	process *process.Process,
-	service shardservice.ShardService,
-	eng engine.Engine,
-) (engine.Relation, error) {
-	tbl := &txnTableDelegate{
-		origin: newTxnTableWithItem(
-			db,
-			item,
-			process,
-			eng,
-		),
-	}
-
-	tbl.shard.service = service
-	tbl.shard.is = false
-	tbl.isLocal = tbl.isLocalFunc
-
-	if service.Config().Enable &&
-		db.databaseId != catalog.MO_CATALOG_ID {
-		tableID, policy, is, err := service.GetShardInfo(item.Id)
-		if err != nil {
-			return nil, err
-		}
-
-		tbl.shard.is = is
-		tbl.shard.policy = policy
-		tbl.shard.tableID = tableID
-	}
-
-	return tbl, nil
-}
-
 func (tbl *txnTableDelegate) CollectChanges(ctx context.Context, from, to types.TS, mp *mpool.MPool) (engine.ChangesHandle, error) {
+	if tbl.partition.is {
+		return tbl.partition.tbl.CollectChanges(ctx, from, to, mp)
+	}
+
 	return tbl.origin.CollectChanges(ctx, from, to, mp)
 }
 
@@ -167,6 +144,10 @@ func (tbl *txnTableDelegate) Stats(
 	ctx context.Context,
 	sync bool,
 ) (*pb.StatsInfo, error) {
+	if tbl.partition.is {
+		return tbl.partition.tbl.Stats(ctx, sync)
+	}
+
 	is, err := tbl.isLocal()
 	if err != nil {
 		return nil, err

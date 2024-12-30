@@ -59,17 +59,15 @@ type Table struct {
 	TableName    string
 	DatabaseName string
 
-	Kind          string
-	Comment       string
-	CreateSql     string
-	UserId        uint32
-	RoleId        uint32
-	Partitioned   int8
-	PartitionInfo string
-	Viewdef       string
-	Constraint    []byte
-	Version       uint32
-	ExtraInfo     []byte
+	Kind       string
+	Comment    string
+	CreateSql  string
+	UserId     uint32
+	RoleId     uint32
+	Viewdef    string
+	Constraint []byte
+	Version    uint32
+	ExtraInfo  []byte
 }
 
 // genColumnsFromDefs generates column struct from TableDef.
@@ -425,12 +423,12 @@ func GenCreateTableTuple(tbl Table, m *mpool.MPool, packer *types.Packer) (*batc
 		}
 		idx = MO_TABLES_PARTITIONED_IDX
 		bat.Vecs[idx] = vector.NewVec(MoTablesTypes[idx]) // partitioned
-		if err = vector.AppendFixed(bat.Vecs[idx], tbl.Partitioned, false, m); err != nil {
+		if err = vector.AppendFixed(bat.Vecs[idx], 0, false, m); err != nil {
 			return nil, err
 		}
 		idx = MO_TABLES_PARTITION_INFO_IDX
 		bat.Vecs[idx] = vector.NewVec(MoTablesTypes[idx]) // partition_info
-		if err = vector.AppendBytes(bat.Vecs[idx], []byte(tbl.PartitionInfo), false, m); err != nil {
+		if err = vector.AppendBytes(bat.Vecs[idx], nil, false, m); err != nil {
 			return nil, err
 		}
 		idx = MO_TABLES_VIEWDEF_IDX
