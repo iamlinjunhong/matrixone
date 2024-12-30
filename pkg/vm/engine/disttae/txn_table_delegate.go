@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"github.com/fagongzi/goetty/v2/buf"
-
 	"github.com/matrixorigin/matrixone/pkg/catalog"
 	"github.com/matrixorigin/matrixone/pkg/common/moerr"
 	"github.com/matrixorigin/matrixone/pkg/common/morpc"
@@ -192,6 +191,10 @@ func (tbl *txnTableDelegate) Stats(
 func (tbl *txnTableDelegate) Rows(
 	ctx context.Context,
 ) (uint64, error) {
+	if tbl.partition.is {
+		return tbl.partition.tbl.Rows(ctx)
+	}
+
 	is, err := tbl.isLocal()
 	if err != nil {
 		return 0, err
@@ -222,6 +225,10 @@ func (tbl *txnTableDelegate) Size(
 	ctx context.Context,
 	columnName string,
 ) (uint64, error) {
+	if tbl.partition.is {
+		return tbl.partition.tbl.Size(ctx, columnName)
+	}
+
 	is, err := tbl.isLocal()
 	if err != nil {
 		return 0, err
@@ -251,6 +258,10 @@ func (tbl *txnTableDelegate) Size(
 }
 
 func (tbl *txnTableDelegate) Ranges(ctx context.Context, rangesParam engine.RangesParam) (engine.RelData, error) {
+	if tbl.partition.is {
+		return tbl.partition.tbl.Ranges(ctx, rangesParam)
+	}
+
 	is, err := tbl.isLocal()
 	if err != nil {
 		return nil, err
@@ -317,7 +328,12 @@ func (tbl *txnTableDelegate) Ranges(ctx context.Context, rangesParam engine.Rang
 func (tbl *txnTableDelegate) CollectTombstones(
 	ctx context.Context,
 	txnOffset int,
-	policy engine.TombstoneCollectPolicy) (engine.Tombstoner, error) {
+	policy engine.TombstoneCollectPolicy,
+) (engine.Tombstoner, error) {
+	if tbl.partition.is {
+		return tbl.partition.tbl.CollectTombstones(ctx, txnOffset, policy)
+	}
+
 	is, err := tbl.isLocal()
 	if err != nil {
 		return nil, err
@@ -364,6 +380,10 @@ func (tbl *txnTableDelegate) GetColumMetadataScanInfo(
 	ctx context.Context,
 	name string,
 ) ([]*plan.MetadataScanInfo, error) {
+	if tbl.partition.is {
+		return tbl.partition.tbl.GetColumMetadataScanInfo(ctx, name)
+	}
+
 	is, err := tbl.isLocal()
 	if err != nil {
 		return nil, err
@@ -399,6 +419,10 @@ func (tbl *txnTableDelegate) GetColumMetadataScanInfo(
 func (tbl *txnTableDelegate) ApproxObjectsNum(
 	ctx context.Context,
 ) int {
+	if tbl.partition.is {
+		return tbl.partition.tbl.ApproxObjectsNum(ctx)
+	}
+
 	is, err := tbl.isLocal()
 	if err != nil {
 		logutil.Infof("approx objects num err: %v", err)
@@ -437,7 +461,22 @@ func (tbl *txnTableDelegate) BuildReaders(
 	txnOffset int,
 	orderBy bool,
 	policy engine.TombstoneApplyPolicy,
-	filterHint engine.FilterHint) ([]engine.Reader, error) {
+	filterHint engine.FilterHint,
+) ([]engine.Reader, error) {
+	if tbl.partition.is {
+		return tbl.partition.tbl.BuildReaders(
+			ctx,
+			proc,
+			expr,
+			relData,
+			num,
+			txnOffset,
+			orderBy,
+			policy,
+			filterHint,
+		)
+	}
+
 	is, err := tbl.isLocal()
 	if err != nil {
 		return nil, err
@@ -465,6 +504,668 @@ func (tbl *txnTableDelegate) BuildReaders(
 		orderBy,
 		engine.Policy_CheckAll,
 	)
+}
+
+func (tbl *txnTableDelegate) BuildShardingReaders(
+	ctx context.Context,
+	p any,
+	expr *plan.Expr,
+	relData engine.RelData,
+	num int,
+	txnOffset int,
+	orderBy bool,
+	policy engine.TombstoneApplyPolicy,
+) ([]engine.Reader, error) {
+	if tbl.partition.is {
+		return tbl.partition.tbl.BuildShardingReaders(
+			ctx,
+			p,
+			expr,
+			relData,
+			num,
+			txnOffset,
+			orderBy,
+			policy,
+		)
+	}
+
+	var rds []engine.Reader
+	proc := p.(*process.Process)
+
+	if plan2.IsFalseExpr(expr) {
+		return []engine.Reader{new(engine_util.EmptyReader)}, nil
+	}
+
+	if orderBy && num != 1 {
+		return nil, moerr.NewInternalErrorNoCtx("orderBy only support one reader")
+	}
+
+	_, uncommittedObjNames := tbl.origin.collectUnCommittedDataObjs(txnOffset)
+	uncommittedTombstones, err := tbl.origin.CollectTombstones(
+		ctx,
+		txnOffset,
+		engine.Policy_CollectUncommittedTombstones)
+	if err != nil {
+		return nil, err
+	}
+	group := func(rd engine.RelData) (local engine.RelData, remote engine.RelData) {
+		local = rd.BuildEmptyRelData(0)
+		remote = rd.BuildEmptyRelData(0)
+		engine.ForRangeBlockInfo(0, rd.DataCnt(), rd, func(bi *objectio.BlockInfo) (bool, error) {
+			if bi.IsMemBlk() {
+				local.AppendBlockInfo(bi)
+				remote.AppendBlockInfo(bi)
+				return true, nil
+			}
+			if _, ok := uncommittedObjNames[*objectio.ShortName(&bi.BlockID)]; ok {
+				local.AppendBlockInfo(bi)
+			} else {
+				remote.AppendBlockInfo(bi)
+			}
+			return true, nil
+		})
+		return
+	}
+
+	//relData maybe is nil, indicate that only read data from memory.
+	if relData == nil || relData.DataCnt() == 0 {
+		relData = engine_util.NewBlockListRelationData(1)
+	}
+
+	blkCnt := relData.DataCnt()
+	newNum := num
+	if blkCnt < num {
+		newNum = blkCnt
+		for i := 0; i < num-blkCnt; i++ {
+			rds = append(rds, new(engine_util.EmptyReader))
+		}
+	}
+
+	mod := blkCnt % newNum
+	divide := blkCnt / newNum
+	current := 0
+	var shard engine.RelData
+	for i := 0; i < newNum; i++ {
+		if i < mod {
+			shard = relData.DataSlice(current, current+divide+1)
+			current = current + divide + 1
+		} else {
+			shard = relData.DataSlice(current, current+divide)
+			current = current + divide
+		}
+
+		localRelData, remoteRelData := group(shard)
+
+		srd := &shardingLocalReader{
+			tblDelegate:           tbl,
+			remoteTombApplyPolicy: engine.Policy_SkipUncommitedInMemory | engine.Policy_SkipUncommitedS3,
+		}
+
+		if localRelData.DataCnt() > 0 {
+			ds, err := tbl.origin.buildLocalDataSource(
+				ctx,
+				txnOffset,
+				localRelData,
+				policy|engine.Policy_SkipCommittedInMemory|engine.Policy_SkipCommittedS3,
+				engine.ShardingLocalDataSource)
+			if err != nil {
+				return nil, err
+			}
+			lrd, err := engine_util.NewReader(
+				ctx,
+				proc.Mp(),
+				tbl.origin.getTxn().engine.packerPool,
+				tbl.origin.getTxn().engine.fs,
+				tbl.origin.GetTableDef(ctx),
+				tbl.origin.db.op.SnapshotTS(),
+				expr,
+				ds,
+				engine_util.GetThresholdForReader(newNum),
+				engine.FilterHint{},
+			)
+			if err != nil {
+				return nil, err
+			}
+			srd.lrd = lrd
+		}
+
+		if remoteRelData.DataCnt() > 0 {
+			remoteRelData.AttachTombstones(uncommittedTombstones)
+			srd.remoteRelData = remoteRelData
+		}
+		rds = append(rds, srd)
+	}
+
+	return rds, nil
+}
+
+func (tbl *txnTableDelegate) PrimaryKeysMayBeModified(
+	ctx context.Context,
+	from types.TS,
+	to types.TS,
+	keyVector *vector.Vector,
+) (bool, error) {
+	if tbl.partition.is {
+		return tbl.partition.tbl.PrimaryKeysMayBeModified(
+			ctx,
+			from,
+			to,
+			keyVector,
+		)
+	}
+
+	is, err := tbl.isLocal()
+	if err != nil {
+		return false, err
+	}
+	if is {
+		return tbl.origin.PrimaryKeysMayBeModified(
+			ctx,
+			from,
+			to,
+			keyVector,
+		)
+	}
+
+	modify := false
+	err = tbl.forwardRead(
+		ctx,
+		shardservice.ReadPrimaryKeysMayBeModified,
+		func(param *shard.ReadParam) {
+			f, err := from.Marshal()
+			if err != nil {
+				panic(err)
+			}
+			t, err := to.Marshal()
+			if err != nil {
+				panic(err)
+			}
+			v, err := keyVector.MarshalBinary()
+			if err != nil {
+				panic(err)
+			}
+			param.PrimaryKeysMayBeModifiedParam.From = f
+			param.PrimaryKeysMayBeModifiedParam.To = t
+			param.PrimaryKeysMayBeModifiedParam.KeyVector = v
+		},
+		func(resp []byte) {
+			if buf.Byte2Uint16(resp) > 0 {
+				modify = true
+			}
+		},
+	)
+	if err != nil {
+		return false, err
+	}
+	return modify, nil
+}
+
+func (tbl *txnTableDelegate) PrimaryKeysMayBeUpserted(
+	ctx context.Context,
+	from types.TS,
+	to types.TS,
+	keyVector *vector.Vector,
+) (bool, error) {
+	if tbl.partition.is {
+		return tbl.partition.tbl.PrimaryKeysMayBeUpserted(
+			ctx,
+			from,
+			to,
+			keyVector,
+		)
+	}
+
+	is, err := tbl.isLocal()
+	if err != nil {
+		return false, err
+	}
+	if is {
+		return tbl.origin.PrimaryKeysMayBeUpserted(
+			ctx,
+			from,
+			to,
+			keyVector,
+		)
+	}
+
+	modify := false
+	err = tbl.forwardRead(
+		ctx,
+		shardservice.ReadPrimaryKeysMayBeUpserted,
+		func(param *shard.ReadParam) {
+			f, err := from.Marshal()
+			if err != nil {
+				panic(err)
+			}
+			t, err := to.Marshal()
+			if err != nil {
+				panic(err)
+			}
+			v, err := keyVector.MarshalBinary()
+			if err != nil {
+				panic(err)
+			}
+			param.PrimaryKeysMayBeModifiedParam.From = f
+			param.PrimaryKeysMayBeModifiedParam.To = t
+			param.PrimaryKeysMayBeModifiedParam.KeyVector = v
+		},
+		func(resp []byte) {
+			if buf.Byte2Uint16(resp) > 0 {
+				modify = true
+			}
+		},
+	)
+	if err != nil {
+		return false, err
+	}
+	return modify, nil
+}
+
+func (tbl *txnTableDelegate) MergeObjects(
+	ctx context.Context,
+	objstats []objectio.ObjectStats,
+	targetObjSize uint32,
+) (*api.MergeCommitEntry, error) {
+	if tbl.partition.is {
+		return tbl.partition.tbl.MergeObjects(
+			ctx,
+			objstats,
+			targetObjSize,
+		)
+	}
+
+	is, err := tbl.isLocal()
+	if err != nil {
+		return nil, err
+	}
+	if is {
+		return tbl.origin.MergeObjects(ctx, objstats, targetObjSize)
+	}
+
+	var entry api.MergeCommitEntry
+	err = tbl.forwardRead(
+		ctx,
+		shardservice.ReadMergeObjects,
+		func(param *shard.ReadParam) {
+			os := make([][]byte, len(objstats))
+			for i, o := range objstats {
+				os[i] = o.Marshal()
+			}
+			param.MergeObjectsParam.Objstats = os
+			param.MergeObjectsParam.TargetObjSize = targetObjSize
+		},
+		func(resp []byte) {
+			err := entry.Unmarshal(resp)
+			if err != nil {
+				panic(err)
+			}
+			// TODO: hash shard need to merge all shard in future
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &entry, nil
+}
+
+func (tbl *txnTableDelegate) GetNonAppendableObjectStats(ctx context.Context) ([]objectio.ObjectStats, error) {
+	if tbl.partition.is {
+		return tbl.partition.tbl.GetNonAppendableObjectStats(ctx)
+	}
+
+	is, err := tbl.isLocal()
+	if err != nil {
+		return nil, err
+	}
+	if is {
+		return tbl.origin.GetNonAppendableObjectStats(
+			ctx,
+		)
+	}
+
+	var stats []objectio.ObjectStats
+	err = tbl.forwardRead(
+		ctx,
+		shardservice.ReadVisibleObjectStats,
+		func(param *shard.ReadParam) {},
+		func(resp []byte) {
+			if len(resp)%objectio.ObjectStatsLen != 0 {
+				panic("invalid resp")
+			}
+			size := len(resp) / objectio.ObjectStatsLen
+			stats = make([]objectio.ObjectStats, size)
+			for i := range size {
+				stats[i].UnMarshal(resp[i*objectio.ObjectStatsLen:])
+			}
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return stats, nil
+}
+
+func (tbl *txnTableDelegate) TableDefs(
+	ctx context.Context,
+) ([]engine.TableDef, error) {
+	if tbl.partition.is {
+		return tbl.partition.tbl.TableDefs(ctx)
+	}
+	return tbl.origin.TableDefs(ctx)
+}
+
+func (tbl *txnTableDelegate) GetTableDef(
+	ctx context.Context,
+) *plan.TableDef {
+	if tbl.partition.is {
+		return tbl.partition.tbl.GetTableDef(ctx)
+	}
+	return tbl.origin.GetTableDef(ctx)
+}
+
+func (tbl *txnTableDelegate) CopyTableDef(
+	ctx context.Context,
+) *plan.TableDef {
+	if tbl.partition.is {
+		return tbl.partition.tbl.CopyTableDef(ctx)
+	}
+	return tbl.origin.CopyTableDef(ctx)
+}
+
+func (tbl *txnTableDelegate) GetPrimaryKeys(
+	ctx context.Context,
+) ([]*engine.Attribute, error) {
+	if tbl.partition.is {
+		return tbl.partition.tbl.GetPrimaryKeys(ctx)
+	}
+	return tbl.origin.GetPrimaryKeys(ctx)
+}
+
+func (tbl *txnTableDelegate) GetHideKeys(
+	ctx context.Context,
+) ([]*engine.Attribute, error) {
+	if tbl.partition.is {
+		return tbl.partition.tbl.GetHideKeys(ctx)
+	}
+	return tbl.origin.GetHideKeys(ctx)
+}
+
+func (tbl *txnTableDelegate) Write(
+	ctx context.Context,
+	bat *batch.Batch,
+) error {
+	if tbl.partition.is {
+		return tbl.partition.tbl.Write(ctx, bat)
+	}
+	return tbl.origin.Write(ctx, bat)
+}
+
+func (tbl *txnTableDelegate) Update(
+	ctx context.Context,
+	bat *batch.Batch,
+) error {
+	if tbl.partition.is {
+		return tbl.partition.tbl.Update(ctx, bat)
+	}
+	return tbl.origin.Update(ctx, bat)
+}
+
+func (tbl *txnTableDelegate) Delete(
+	ctx context.Context,
+	bat *batch.Batch,
+	name string,
+) error {
+	if tbl.partition.is {
+		return tbl.partition.tbl.Delete(ctx, bat, name)
+	}
+	return tbl.origin.Delete(ctx, bat, name)
+}
+
+func (tbl *txnTableDelegate) AddTableDef(
+	ctx context.Context,
+	def engine.TableDef,
+) error {
+	if tbl.partition.is {
+		return tbl.partition.tbl.AddTableDef(ctx, def)
+	}
+	return tbl.origin.AddTableDef(ctx, def)
+}
+
+func (tbl *txnTableDelegate) DelTableDef(
+	ctx context.Context,
+	def engine.TableDef,
+) error {
+	if tbl.partition.is {
+		return tbl.partition.tbl.DelTableDef(ctx, def)
+	}
+	return tbl.origin.DelTableDef(ctx, def)
+}
+
+func (tbl *txnTableDelegate) AlterTable(
+	ctx context.Context,
+	c *engine.ConstraintDef,
+	reqs []*api.AlterTableReq,
+) error {
+	if tbl.partition.is {
+		return tbl.partition.tbl.AlterTable(ctx, c, reqs)
+	}
+	return tbl.origin.AlterTable(ctx, c, reqs)
+}
+
+func (tbl *txnTableDelegate) UpdateConstraint(
+	ctx context.Context,
+	c *engine.ConstraintDef,
+) error {
+	if tbl.partition.is {
+		return tbl.partition.tbl.UpdateConstraint(ctx, c)
+	}
+	return tbl.origin.UpdateConstraint(ctx, c)
+}
+
+func (tbl *txnTableDelegate) TableRenameInTxn(
+	ctx context.Context,
+	constraint [][]byte,
+) error {
+	if tbl.partition.is {
+		return tbl.partition.tbl.TableRenameInTxn(ctx, constraint)
+	}
+	return tbl.origin.TableRenameInTxn(ctx, constraint)
+}
+
+func (tbl *txnTableDelegate) GetTableID(
+	ctx context.Context,
+) uint64 {
+	if tbl.partition.is {
+		return tbl.partition.tbl.GetTableID(ctx)
+	}
+	return tbl.origin.GetTableID(ctx)
+}
+
+func (tbl *txnTableDelegate) GetTableName() string {
+	if tbl.partition.is {
+		return tbl.partition.tbl.GetTableName()
+	}
+	return tbl.origin.GetTableName()
+}
+
+func (tbl *txnTableDelegate) GetDBID(
+	ctx context.Context,
+) uint64 {
+	if tbl.partition.is {
+		return tbl.partition.tbl.GetDBID(ctx)
+	}
+	return tbl.origin.GetDBID(ctx)
+}
+
+func (tbl *txnTableDelegate) TableColumns(
+	ctx context.Context,
+) ([]*engine.Attribute, error) {
+	if tbl.partition.is {
+		return tbl.partition.tbl.TableColumns(ctx)
+	}
+	return tbl.origin.TableColumns(ctx)
+}
+
+func (tbl *txnTableDelegate) MaxAndMinValues(
+	ctx context.Context,
+) ([][2]any, []uint8, error) {
+	if tbl.partition.is {
+		return tbl.partition.tbl.MaxAndMinValues(ctx)
+	}
+	return tbl.origin.MaxAndMinValues(ctx)
+}
+
+func (tbl *txnTableDelegate) GetEngineType() engine.EngineType {
+	if tbl.partition.is {
+		return tbl.partition.tbl.GetEngineType()
+	}
+	return tbl.origin.GetEngineType()
+}
+
+func (tbl *txnTableDelegate) GetProcess() any {
+	if tbl.partition.is {
+		return tbl.partition.tbl.GetProcess()
+	}
+	return tbl.origin.GetProcess()
+}
+
+func (tbl *txnTableDelegate) isLocalFunc() (bool, error) {
+	if !tbl.shard.service.Config().Enable || // sharding not enabled
+		!tbl.shard.is || // sharding not enabled
+		(tbl.shard.policy == shard.Policy_Partition && tbl.origin.tableId == tbl.shard.tableID) { // partition table self.
+		return true, nil
+	}
+
+	return tbl.hasAllLocalReplicas() // all shard replicas on local
+}
+
+func (tbl *txnTableDelegate) hasAllLocalReplicas() (bool, error) {
+	return tbl.shard.service.HasLocalReplica(
+		tbl.shard.tableID,
+		tbl.origin.tableId,
+	)
+}
+
+func (tbl *txnTableDelegate) getReadRequest(
+	ctx context.Context,
+	method int,
+	apply func([]byte),
+) (shardservice.ReadRequest, error) {
+	processInfo, err := tbl.origin.proc.Load().BuildProcessInfo(
+		tbl.origin.createSql,
+	)
+	if err != nil {
+		return shardservice.ReadRequest{}, err
+	}
+
+	createdInTx, err := tbl.origin.isCreatedInTxn(ctx)
+	if err != nil {
+		return shardservice.ReadRequest{}, err
+	}
+
+	return shardservice.ReadRequest{
+		TableID: tbl.shard.tableID,
+		Method:  method,
+		Param: shard.ReadParam{
+			Process: processInfo,
+			TxnTable: shard.TxnTable{
+				DatabaseID:   tbl.origin.db.databaseId,
+				DatabaseName: tbl.origin.db.databaseName,
+				AccountID:    uint64(tbl.origin.accountId),
+				TableName:    tbl.origin.tableName,
+				CreatedInTxn: createdInTx,
+			},
+		},
+		Apply: apply,
+	}, nil
+}
+
+// Just for UT.
+func (tbl *txnTableDelegate) mockForwardRead(
+	ctx context.Context,
+	method int,
+	request shardservice.ReadRequest,
+) ([]byte, error) {
+
+	handles := map[int]shardservice.ReadFunc{
+		shardservice.ReadRows:                     HandleShardingReadRows,
+		shardservice.ReadSize:                     HandleShardingReadSize,
+		shardservice.ReadStats:                    HandleShardingReadStatus,
+		shardservice.ReadApproxObjectsNum:         HandleShardingReadApproxObjectsNum,
+		shardservice.ReadRanges:                   HandleShardingReadRanges,
+		shardservice.ReadGetColumMetadataScanInfo: HandleShardingReadGetColumMetadataScanInfo,
+		shardservice.ReadBuildReader:              HandleShardingReadBuildReader,
+		shardservice.ReadPrimaryKeysMayBeModified: HandleShardingReadPrimaryKeysMayBeModified,
+		shardservice.ReadPrimaryKeysMayBeUpserted: HandleShardingReadPrimaryKeysMayBeUpserted,
+		shardservice.ReadMergeObjects:             HandleShardingReadMergeObjects,
+		shardservice.ReadVisibleObjectStats:       HandleShardingReadVisibleObjectStats,
+		shardservice.ReadClose:                    HandleShardingReadClose,
+		shardservice.ReadNext:                     HandleShardingReadNext,
+		shardservice.ReadCollectTombstones:        HandleShardingReadCollectTombstones,
+	}
+	buf := morpc.NewBuffer()
+	resp, err := handles[method](
+		ctx,
+		shard.TableShard{},
+		tbl.origin.getEngine(),
+		request.Param,
+		tbl.origin.db.op.SnapshotTS(),
+		buf,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (tbl *txnTableDelegate) forwardRead(
+	ctx context.Context,
+	method int,
+	applyParam func(*shard.ReadParam),
+	apply func([]byte),
+) error {
+	request, err := tbl.getReadRequest(
+		ctx,
+		method,
+		apply,
+	)
+	if err != nil {
+		return err
+	}
+
+	applyParam(&request.Param)
+
+	if tbl.isMock {
+		res, err := tbl.mockForwardRead(ctx, method, request)
+		if err != nil {
+			return err
+		}
+		apply(res)
+		return nil
+	}
+
+	shardID := uint64(0)
+	switch tbl.shard.policy {
+	case shard.Policy_Partition:
+		// Partition sharding only send to the current shard. The partition table id
+		// is the shard id
+		shardID = tbl.origin.tableId
+	default:
+		// otherwise, we need send to all shards
+	}
+
+	err = tbl.shard.service.Read(
+		ctx,
+		request,
+		shardservice.ReadOptions{}.
+			ReadAt(tbl.origin.getTxn().op.SnapshotTS()).
+			Shard(shardID),
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type shardingLocalReader struct {
@@ -607,559 +1308,4 @@ func (r *shardingLocalReader) GetOrderBy() []*plan.OrderBySpec {
 }
 
 func (r *shardingLocalReader) SetFilterZM(zm objectio.ZoneMap) {
-}
-
-func (tbl *txnTableDelegate) BuildShardingReaders(
-	ctx context.Context,
-	p any,
-	expr *plan.Expr,
-	relData engine.RelData,
-	num int,
-	txnOffset int,
-	orderBy bool,
-	policy engine.TombstoneApplyPolicy,
-) ([]engine.Reader, error) {
-	var rds []engine.Reader
-	proc := p.(*process.Process)
-
-	if plan2.IsFalseExpr(expr) {
-		return []engine.Reader{new(engine_util.EmptyReader)}, nil
-	}
-
-	if orderBy && num != 1 {
-		return nil, moerr.NewInternalErrorNoCtx("orderBy only support one reader")
-	}
-
-	_, uncommittedObjNames := tbl.origin.collectUnCommittedDataObjs(txnOffset)
-	uncommittedTombstones, err := tbl.origin.CollectTombstones(
-		ctx,
-		txnOffset,
-		engine.Policy_CollectUncommittedTombstones)
-	if err != nil {
-		return nil, err
-	}
-	group := func(rd engine.RelData) (local engine.RelData, remote engine.RelData) {
-		local = rd.BuildEmptyRelData(0)
-		remote = rd.BuildEmptyRelData(0)
-		engine.ForRangeBlockInfo(0, rd.DataCnt(), rd, func(bi *objectio.BlockInfo) (bool, error) {
-			if bi.IsMemBlk() {
-				local.AppendBlockInfo(bi)
-				remote.AppendBlockInfo(bi)
-				return true, nil
-			}
-			if _, ok := uncommittedObjNames[*objectio.ShortName(&bi.BlockID)]; ok {
-				local.AppendBlockInfo(bi)
-			} else {
-				remote.AppendBlockInfo(bi)
-			}
-			return true, nil
-		})
-		return
-	}
-
-	//relData maybe is nil, indicate that only read data from memory.
-	if relData == nil || relData.DataCnt() == 0 {
-		relData = engine_util.NewBlockListRelationData(1)
-	}
-
-	blkCnt := relData.DataCnt()
-	newNum := num
-	if blkCnt < num {
-		newNum = blkCnt
-		for i := 0; i < num-blkCnt; i++ {
-			rds = append(rds, new(engine_util.EmptyReader))
-		}
-	}
-
-	mod := blkCnt % newNum
-	divide := blkCnt / newNum
-	current := 0
-	var shard engine.RelData
-	for i := 0; i < newNum; i++ {
-		if i < mod {
-			shard = relData.DataSlice(current, current+divide+1)
-			current = current + divide + 1
-		} else {
-			shard = relData.DataSlice(current, current+divide)
-			current = current + divide
-		}
-
-		localRelData, remoteRelData := group(shard)
-
-		srd := &shardingLocalReader{
-			tblDelegate:           tbl,
-			remoteTombApplyPolicy: engine.Policy_SkipUncommitedInMemory | engine.Policy_SkipUncommitedS3,
-		}
-
-		if localRelData.DataCnt() > 0 {
-			ds, err := tbl.origin.buildLocalDataSource(
-				ctx,
-				txnOffset,
-				localRelData,
-				policy|engine.Policy_SkipCommittedInMemory|engine.Policy_SkipCommittedS3,
-				engine.ShardingLocalDataSource)
-			if err != nil {
-				return nil, err
-			}
-			lrd, err := engine_util.NewReader(
-				ctx,
-				proc.Mp(),
-				tbl.origin.getTxn().engine.packerPool,
-				tbl.origin.getTxn().engine.fs,
-				tbl.origin.GetTableDef(ctx),
-				tbl.origin.db.op.SnapshotTS(),
-				expr,
-				ds,
-				engine_util.GetThresholdForReader(newNum),
-				engine.FilterHint{},
-			)
-			if err != nil {
-				return nil, err
-			}
-			srd.lrd = lrd
-		}
-
-		if remoteRelData.DataCnt() > 0 {
-			remoteRelData.AttachTombstones(uncommittedTombstones)
-			srd.remoteRelData = remoteRelData
-		}
-		rds = append(rds, srd)
-	}
-
-	return rds, nil
-}
-
-func (tbl *txnTableDelegate) PrimaryKeysMayBeModified(
-	ctx context.Context,
-	from types.TS,
-	to types.TS,
-	keyVector *vector.Vector,
-) (bool, error) {
-	is, err := tbl.isLocal()
-	if err != nil {
-		return false, err
-	}
-	if is {
-		return tbl.origin.PrimaryKeysMayBeModified(
-			ctx,
-			from,
-			to,
-			keyVector,
-		)
-	}
-
-	modify := false
-	err = tbl.forwardRead(
-		ctx,
-		shardservice.ReadPrimaryKeysMayBeModified,
-		func(param *shard.ReadParam) {
-			f, err := from.Marshal()
-			if err != nil {
-				panic(err)
-			}
-			t, err := to.Marshal()
-			if err != nil {
-				panic(err)
-			}
-			v, err := keyVector.MarshalBinary()
-			if err != nil {
-				panic(err)
-			}
-			param.PrimaryKeysMayBeModifiedParam.From = f
-			param.PrimaryKeysMayBeModifiedParam.To = t
-			param.PrimaryKeysMayBeModifiedParam.KeyVector = v
-		},
-		func(resp []byte) {
-			if buf.Byte2Uint16(resp) > 0 {
-				modify = true
-			}
-		},
-	)
-	if err != nil {
-		return false, err
-	}
-	return modify, nil
-}
-
-func (tbl *txnTableDelegate) PrimaryKeysMayBeUpserted(
-	ctx context.Context,
-	from types.TS,
-	to types.TS,
-	keyVector *vector.Vector,
-) (bool, error) {
-	is, err := tbl.isLocal()
-	if err != nil {
-		return false, err
-	}
-	if is {
-		return tbl.origin.PrimaryKeysMayBeUpserted(
-			ctx,
-			from,
-			to,
-			keyVector,
-		)
-	}
-
-	modify := false
-	err = tbl.forwardRead(
-		ctx,
-		shardservice.ReadPrimaryKeysMayBeUpserted,
-		func(param *shard.ReadParam) {
-			f, err := from.Marshal()
-			if err != nil {
-				panic(err)
-			}
-			t, err := to.Marshal()
-			if err != nil {
-				panic(err)
-			}
-			v, err := keyVector.MarshalBinary()
-			if err != nil {
-				panic(err)
-			}
-			param.PrimaryKeysMayBeModifiedParam.From = f
-			param.PrimaryKeysMayBeModifiedParam.To = t
-			param.PrimaryKeysMayBeModifiedParam.KeyVector = v
-		},
-		func(resp []byte) {
-			if buf.Byte2Uint16(resp) > 0 {
-				modify = true
-			}
-		},
-	)
-	if err != nil {
-		return false, err
-	}
-	return modify, nil
-}
-
-func (tbl *txnTableDelegate) MergeObjects(ctx context.Context, objstats []objectio.ObjectStats, targetObjSize uint32) (*api.MergeCommitEntry, error) {
-	is, err := tbl.isLocal()
-	if err != nil {
-		return nil, err
-	}
-	if is {
-		return tbl.origin.MergeObjects(ctx, objstats, targetObjSize)
-	}
-
-	var entry api.MergeCommitEntry
-	err = tbl.forwardRead(
-		ctx,
-		shardservice.ReadMergeObjects,
-		func(param *shard.ReadParam) {
-			os := make([][]byte, len(objstats))
-			for i, o := range objstats {
-				os[i] = o.Marshal()
-			}
-			param.MergeObjectsParam.Objstats = os
-			param.MergeObjectsParam.TargetObjSize = targetObjSize
-		},
-		func(resp []byte) {
-			err := entry.Unmarshal(resp)
-			if err != nil {
-				panic(err)
-			}
-			// TODO: hash shard need to merge all shard in future
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-	return &entry, nil
-}
-
-func (tbl *txnTableDelegate) GetNonAppendableObjectStats(ctx context.Context) ([]objectio.ObjectStats, error) {
-	is, err := tbl.isLocal()
-	if err != nil {
-		return nil, err
-	}
-	if is {
-		return tbl.origin.GetNonAppendableObjectStats(
-			ctx,
-		)
-	}
-
-	var stats []objectio.ObjectStats
-	err = tbl.forwardRead(
-		ctx,
-		shardservice.ReadVisibleObjectStats,
-		func(param *shard.ReadParam) {},
-		func(resp []byte) {
-			if len(resp)%objectio.ObjectStatsLen != 0 {
-				panic("invalid resp")
-			}
-			size := len(resp) / objectio.ObjectStatsLen
-			stats = make([]objectio.ObjectStats, size)
-			for i := range size {
-				stats[i].UnMarshal(resp[i*objectio.ObjectStatsLen:])
-			}
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-	return stats, nil
-}
-
-func (tbl *txnTableDelegate) TableDefs(
-	ctx context.Context,
-) ([]engine.TableDef, error) {
-	return tbl.origin.TableDefs(ctx)
-}
-
-func (tbl *txnTableDelegate) GetTableDef(
-	ctx context.Context,
-) *plan.TableDef {
-	return tbl.origin.GetTableDef(ctx)
-}
-
-func (tbl *txnTableDelegate) CopyTableDef(
-	ctx context.Context,
-) *plan.TableDef {
-	return tbl.origin.CopyTableDef(ctx)
-}
-
-func (tbl *txnTableDelegate) GetPrimaryKeys(
-	ctx context.Context,
-) ([]*engine.Attribute, error) {
-	return tbl.origin.GetPrimaryKeys(ctx)
-}
-
-func (tbl *txnTableDelegate) GetHideKeys(
-	ctx context.Context,
-) ([]*engine.Attribute, error) {
-	return tbl.origin.GetHideKeys(ctx)
-}
-
-func (tbl *txnTableDelegate) Write(
-	ctx context.Context,
-	bat *batch.Batch,
-) error {
-	return tbl.origin.Write(ctx, bat)
-}
-
-func (tbl *txnTableDelegate) Update(
-	ctx context.Context,
-	bat *batch.Batch,
-) error {
-	return tbl.origin.Update(ctx, bat)
-}
-
-func (tbl *txnTableDelegate) Delete(
-	ctx context.Context,
-	bat *batch.Batch,
-	name string,
-) error {
-	return tbl.origin.Delete(ctx, bat, name)
-}
-
-func (tbl *txnTableDelegate) AddTableDef(
-	ctx context.Context,
-	def engine.TableDef,
-) error {
-	return tbl.origin.AddTableDef(ctx, def)
-}
-
-func (tbl *txnTableDelegate) DelTableDef(
-	ctx context.Context,
-	def engine.TableDef,
-) error {
-	return tbl.origin.DelTableDef(ctx, def)
-}
-
-func (tbl *txnTableDelegate) AlterTable(
-	ctx context.Context,
-	c *engine.ConstraintDef,
-	reqs []*api.AlterTableReq,
-) error {
-	return tbl.origin.AlterTable(ctx, c, reqs)
-}
-
-func (tbl *txnTableDelegate) UpdateConstraint(
-	ctx context.Context,
-	c *engine.ConstraintDef,
-) error {
-	return tbl.origin.UpdateConstraint(ctx, c)
-}
-
-func (tbl *txnTableDelegate) TableRenameInTxn(
-	ctx context.Context,
-	constraint [][]byte,
-) error {
-	return tbl.origin.TableRenameInTxn(ctx, constraint)
-}
-
-func (tbl *txnTableDelegate) GetTableID(
-	ctx context.Context,
-) uint64 {
-	return tbl.origin.GetTableID(ctx)
-}
-
-func (tbl *txnTableDelegate) GetTableName() string {
-	return tbl.origin.GetTableName()
-}
-
-func (tbl *txnTableDelegate) GetDBID(
-	ctx context.Context,
-) uint64 {
-	return tbl.origin.GetDBID(ctx)
-}
-
-func (tbl *txnTableDelegate) TableColumns(
-	ctx context.Context,
-) ([]*engine.Attribute, error) {
-	return tbl.origin.TableColumns(ctx)
-}
-
-func (tbl *txnTableDelegate) MaxAndMinValues(
-	ctx context.Context,
-) ([][2]any, []uint8, error) {
-	return tbl.origin.MaxAndMinValues(ctx)
-}
-
-func (tbl *txnTableDelegate) GetEngineType() engine.EngineType {
-	return tbl.origin.GetEngineType()
-}
-
-func (tbl *txnTableDelegate) GetProcess() any {
-	return tbl.origin.GetProcess()
-}
-
-func (tbl *txnTableDelegate) isLocalFunc() (bool, error) {
-	if !tbl.shard.service.Config().Enable || // sharding not enabled
-		!tbl.shard.is || // sharding not enabled
-		(tbl.shard.policy == shard.Policy_Partition && tbl.origin.tableId == tbl.shard.tableID) { // partition table self.
-		return true, nil
-	}
-
-	return tbl.hasAllLocalReplicas() // all shard replicas on local
-}
-
-func (tbl *txnTableDelegate) hasAllLocalReplicas() (bool, error) {
-	return tbl.shard.service.HasLocalReplica(
-		tbl.shard.tableID,
-		tbl.origin.tableId,
-	)
-}
-
-func (tbl *txnTableDelegate) getReadRequest(
-	ctx context.Context,
-	method int,
-	apply func([]byte),
-) (shardservice.ReadRequest, error) {
-	processInfo, err := tbl.origin.proc.Load().BuildProcessInfo(
-		tbl.origin.createSql,
-	)
-	if err != nil {
-		return shardservice.ReadRequest{}, err
-	}
-
-	createdInTx, err := tbl.origin.isCreatedInTxn(ctx)
-	if err != nil {
-		return shardservice.ReadRequest{}, err
-	}
-
-	return shardservice.ReadRequest{
-		TableID: tbl.shard.tableID,
-		Method:  method,
-		Param: shard.ReadParam{
-			Process: processInfo,
-			TxnTable: shard.TxnTable{
-				DatabaseID:   tbl.origin.db.databaseId,
-				DatabaseName: tbl.origin.db.databaseName,
-				AccountID:    uint64(tbl.origin.accountId),
-				TableName:    tbl.origin.tableName,
-				CreatedInTxn: createdInTx,
-			},
-		},
-		Apply: apply,
-	}, nil
-}
-
-// Just for UT.
-func (tbl *txnTableDelegate) mockForwardRead(
-	ctx context.Context,
-	method int,
-	request shardservice.ReadRequest,
-) ([]byte, error) {
-
-	handles := map[int]shardservice.ReadFunc{
-		shardservice.ReadRows:                     HandleShardingReadRows,
-		shardservice.ReadSize:                     HandleShardingReadSize,
-		shardservice.ReadStats:                    HandleShardingReadStatus,
-		shardservice.ReadApproxObjectsNum:         HandleShardingReadApproxObjectsNum,
-		shardservice.ReadRanges:                   HandleShardingReadRanges,
-		shardservice.ReadGetColumMetadataScanInfo: HandleShardingReadGetColumMetadataScanInfo,
-		shardservice.ReadBuildReader:              HandleShardingReadBuildReader,
-		shardservice.ReadPrimaryKeysMayBeModified: HandleShardingReadPrimaryKeysMayBeModified,
-		shardservice.ReadPrimaryKeysMayBeUpserted: HandleShardingReadPrimaryKeysMayBeUpserted,
-		shardservice.ReadMergeObjects:             HandleShardingReadMergeObjects,
-		shardservice.ReadVisibleObjectStats:       HandleShardingReadVisibleObjectStats,
-		shardservice.ReadClose:                    HandleShardingReadClose,
-		shardservice.ReadNext:                     HandleShardingReadNext,
-		shardservice.ReadCollectTombstones:        HandleShardingReadCollectTombstones,
-	}
-	buf := morpc.NewBuffer()
-	resp, err := handles[method](
-		ctx,
-		shard.TableShard{},
-		tbl.origin.getEngine(),
-		request.Param,
-		tbl.origin.db.op.SnapshotTS(),
-		buf,
-	)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
-func (tbl *txnTableDelegate) forwardRead(
-	ctx context.Context,
-	method int,
-	applyParam func(*shard.ReadParam),
-	apply func([]byte),
-) error {
-	request, err := tbl.getReadRequest(
-		ctx,
-		method,
-		apply,
-	)
-	if err != nil {
-		return err
-	}
-
-	applyParam(&request.Param)
-
-	if tbl.isMock {
-		res, err := tbl.mockForwardRead(ctx, method, request)
-		if err != nil {
-			return err
-		}
-		apply(res)
-		return nil
-	}
-
-	shardID := uint64(0)
-	switch tbl.shard.policy {
-	case shard.Policy_Partition:
-		// Partition sharding only send to the current shard. The partition table id
-		// is the shard id
-		shardID = tbl.origin.tableId
-	default:
-		// otherwise, we need send to all shards
-	}
-
-	err = tbl.shard.service.Read(
-		ctx,
-		request,
-		shardservice.ReadOptions{}.
-			ReadAt(tbl.origin.getTxn().op.SnapshotTS()).
-			Shard(shardID),
-	)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
