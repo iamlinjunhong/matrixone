@@ -326,6 +326,7 @@ func init() {
 		"shared":                     SHARED,
 		"exclusive":                  EXCLUSIVE,
 		"offset":                     OFFSET,
+		"of":                         OF,
 		"on":                         ON,
 		"only":                       ONLY,
 		"optimize":                   OPTIMIZE,
