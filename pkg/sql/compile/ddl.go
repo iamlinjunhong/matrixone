@@ -3498,7 +3498,7 @@ var lockTable = func(
 }
 
 // lockIndexTable
-func lockIndexTable(
+var lockIndexTable = func(
 	ctx context.Context,
 	dbSource engine.Database,
 	eng engine.Engine,

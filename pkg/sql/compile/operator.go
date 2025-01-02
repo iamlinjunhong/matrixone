@@ -871,6 +871,10 @@ func constructInsert(
 	arg.ToWriteS3 = toS3
 
 	ps := partitionservice.GetService(eg.GetService())
+	if ps == nil {
+		return arg, nil
+	}
+
 	ok, _, err := ps.Is(
 		proc.Ctx,
 		oldCtx.TableDef.TblId,

@@ -21,8 +21,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/matrixorigin/matrixone/pkg/catalog"
 	"github.com/matrixorigin/matrixone/pkg/common/morpc"
 	"github.com/matrixorigin/matrixone/pkg/common/mpool"
@@ -51,6 +49,7 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/tae/iface/handle"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/test/testutil"
 	"github.com/matrixorigin/matrixone/pkg/vm/process"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_ReaderCanReadRangesBlocksWithoutDeletes(t *testing.T) {
@@ -1073,7 +1072,9 @@ func Test_ShardingTableDelegate(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, tomb.HasAnyInMemoryTombstone())
 
-	_, err = delegate.PrimaryKeysMayBeUpserted(ctx, types.TS{}, types.MaxTs(), vector.NewVec(types.T_int64.ToType()))
+	bat := batch.NewWithSize(1)
+	bat.SetVector(0, vector.NewVec(types.T_int64.ToType()))
+	_, err = delegate.PrimaryKeysMayBeUpserted(ctx, types.TS{}, types.MaxTs(), bat, 0)
 	require.NoError(t, err)
 
 	_, err = delegate.BuildReaders(

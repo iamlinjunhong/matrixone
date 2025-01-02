@@ -20,8 +20,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/matrixorigin/matrixone/pkg/catalog"
 	"github.com/matrixorigin/matrixone/pkg/common/mpool"
 	"github.com/matrixorigin/matrixone/pkg/container/batch"
@@ -35,6 +33,7 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/txn/client"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/disttae/logtailreplay"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/engine_util"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRelationDataV2_MarshalAndUnMarshal(t *testing.T) {
@@ -47,9 +46,8 @@ func TestRelationDataV2_MarshalAndUnMarshal(t *testing.T) {
 	for i := 0; i < blkNum; i++ {
 		blkID := types.NewBlockidWithObjectID(&objID, uint16(blkNum))
 		blkInfo := objectio.BlockInfo{
-			BlockID:      *blkID,
-			MetaLoc:      metaLoc,
-			PartitionNum: int16(i),
+			BlockID: *blkID,
+			MetaLoc: metaLoc,
 		}
 		blkInfo.ObjectFlags |= objectio.ObjectFlag_Appendable
 		relData.AppendBlockInfo(&blkInfo)

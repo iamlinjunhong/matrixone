@@ -76,11 +76,10 @@ type container struct {
 	pool           *BatchPool
 	// debug_len      uint32
 
-	state            vm.CtrState
-	resBat           *batch.Batch
-	source           engine.Relation
-	partitionSources []engine.Relation // Align array index with the partition number
-	affectedRows     uint64
+	state        vm.CtrState
+	resBat       *batch.Batch
+	source       engine.Relation
+	affectedRows uint64
 }
 type Deletion struct {
 	delegated bool
@@ -177,7 +176,6 @@ func (deletion *Deletion) Reset(proc *process.Process, pipelineFailed bool, err 
 		ctr.resBat.CleanOnlyData()
 	}
 
-	ctr.partitionSources = nil
 	ctr.source = nil
 
 	ctr.batch_size = 0
@@ -201,7 +199,6 @@ func (deletion *Deletion) Free(proc *process.Process, pipelineFailed bool, err e
 		ctr.resBat = nil
 	}
 
-	ctr.partitionSources = nil
 	ctr.source = nil
 }
 

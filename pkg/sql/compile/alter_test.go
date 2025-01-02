@@ -20,10 +20,6 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-	"github.com/prashantv/gostub"
-	"github.com/smartystreets/goconvey/convey"
-	"github.com/stretchr/testify/assert"
-
 	"github.com/matrixorigin/matrixone/pkg/common/buffer"
 	"github.com/matrixorigin/matrixone/pkg/common/moerr"
 	mock_frontend "github.com/matrixorigin/matrixone/pkg/frontend/test"
@@ -33,6 +29,9 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/testutil"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine"
 	"github.com/matrixorigin/matrixone/pkg/vm/process"
+	"github.com/prashantv/gostub"
+	"github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestScope_AlterTableInplace(t *testing.T) {
@@ -293,7 +292,7 @@ func TestScope_AlterTableInplace(t *testing.T) {
 		})
 		defer lockMoTbl.Reset()
 
-		lockTbl := gostub.Stub(&lockTable, func(_ context.Context, _ engine.Engine, _ *process.Process, _ engine.Relation, _ string, _ []string, _ bool) error {
+		lockTbl := gostub.Stub(&lockTable, func(_ context.Context, _ engine.Engine, _ *process.Process, _ engine.Relation, _ string, _ bool) error {
 			return moerr.NewTxnNeedRetryNoCtx()
 		})
 		defer lockTbl.Reset()
@@ -348,7 +347,7 @@ func TestScope_AlterTableInplace(t *testing.T) {
 		})
 		defer lockMoTbl.Reset()
 
-		lockTbl := gostub.Stub(&lockTable, func(_ context.Context, _ engine.Engine, _ *process.Process, _ engine.Relation, _ string, _ []string, _ bool) error {
+		lockTbl := gostub.Stub(&lockTable, func(_ context.Context, _ engine.Engine, _ *process.Process, _ engine.Relation, _ string, _ bool) error {
 			return moerr.NewTxnNeedRetryNoCtx()
 		})
 		defer lockTbl.Reset()
@@ -403,7 +402,7 @@ func TestScope_AlterTableInplace(t *testing.T) {
 		})
 		defer lockMoTbl.Reset()
 
-		lockTbl := gostub.Stub(&lockTable, func(_ context.Context, _ engine.Engine, _ *process.Process, _ engine.Relation, _ string, _ []string, _ bool) error {
+		lockTbl := gostub.Stub(&lockTable, func(_ context.Context, _ engine.Engine, _ *process.Process, _ engine.Relation, _ string, _ bool) error {
 			return moerr.NewTxnNeedRetryNoCtx()
 		})
 		defer lockTbl.Reset()
@@ -709,7 +708,7 @@ func TestScope_AlterTableCopy(t *testing.T) {
 		})
 		defer lockMoTbl.Reset()
 
-		lockTbl := gostub.Stub(&lockTable, func(_ context.Context, _ engine.Engine, _ *process.Process, _ engine.Relation, _ string, _ []string, _ bool) error {
+		lockTbl := gostub.Stub(&lockTable, func(_ context.Context, _ engine.Engine, _ *process.Process, _ engine.Relation, _ string, _ bool) error {
 			return moerr.NewTxnNeedRetryNoCtx()
 		})
 		defer lockTbl.Reset()
@@ -762,7 +761,7 @@ func TestScope_AlterTableCopy(t *testing.T) {
 		})
 		defer lockMoTbl.Reset()
 
-		lockTbl := gostub.Stub(&lockTable, func(_ context.Context, _ engine.Engine, _ *process.Process, _ engine.Relation, _ string, _ []string, _ bool) error {
+		lockTbl := gostub.Stub(&lockTable, func(_ context.Context, _ engine.Engine, _ *process.Process, _ engine.Relation, _ string, _ bool) error {
 			return moerr.NewTxnNeedRetryNoCtx()
 		})
 		defer lockTbl.Reset()

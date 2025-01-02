@@ -23,7 +23,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/matrixorigin/matrixone/pkg/container/batch"
 	"github.com/matrixorigin/matrixone/pkg/container/types"
-	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	mock_frontend "github.com/matrixorigin/matrixone/pkg/frontend/test"
 	"github.com/matrixorigin/matrixone/pkg/pb/txn"
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec"
@@ -126,85 +125,4 @@ func newBatch(proc *process.Process, rows int64) *batch.Batch {
 	pkAttr[2] = "partition_id"
 	bat.SetAttributes(pkAttr)
 	return bat
-}
-
-func TestSplitBatch(t *testing.T) {
-	type fields struct {
-		ctr          container
-		DeleteCtx    *DeleteCtx
-		SegmentMap   map[string]int32
-		RemoteDelete bool
-		IBucket      uint32
-		Nbucket      uint32
-	}
-
-	type args struct {
-		proc   *process.Process
-		srcBat *batch.Batch
-	}
-
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "test_partition_table_1",
-			fields: fields{
-				ctr: container{
-					resBat:           batch.New([]string{"rowid", "pk", "partition_id"}),
-					partitionSources: []engine.Relation{nil, nil},
-				},
-				DeleteCtx: &DeleteCtx{
-					RowIdIdx:      0,
-					PrimaryKeyIdx: 1,
-				},
-				SegmentMap:   map[string]int32{},
-				RemoteDelete: false,
-				IBucket:      0,
-				Nbucket:      1,
-			},
-			args: args{
-				proc: testutil.NewProc(),
-			},
-			wantErr: true,
-		},
-		// {
-		// 	name: "test_non_partition_table",
-		// 	fields: fields{
-		// 		ctr: container{
-		// 			resBat: batch.New(false, []string{"rowid", "pk"}),
-		// 		},
-		// 		DeleteCtx: &DeleteCtx{
-		// 			PrimaryKeyIdx: 1,
-		// 			RowIdIdx: 0,
-		// 		},
-		// 	},
-		// 	args: args{
-		// 		proc: testutil.NewProc(),
-		// 		srcBat: batch.NewWithSize(2),
-		// 	},
-		// 	wantErr: false,
-		// },
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			deletion := &Deletion{
-				ctr:          tt.fields.ctr,
-				DeleteCtx:    tt.fields.DeleteCtx,
-				RemoteDelete: tt.fields.RemoteDelete,
-				IBucket:      tt.fields.IBucket,
-				Nbucket:      tt.fields.Nbucket,
-			}
-			tt.args.srcBat = newBatch(tt.args.proc, 3)
-			if tt.name == "test_partition_table_1" {
-				vector.SetFixedAtWithTypeCheck(tt.args.srcBat.GetVector(2), 0, int32(-1))
-			}
-			if err := deletion.SplitBatch(tt.args.proc, tt.args.srcBat, nil); (err != nil) != tt.wantErr {
-				t.Errorf("Deletion.SplitBatch() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
 }
