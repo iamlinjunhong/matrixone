@@ -209,7 +209,7 @@ func (s *service) Prune(
 	// TODO(fagongzi): partition
 	return PruneResult{
 		batches:    []*batch.Batch{bat, bat},
-		partitions: []partition.Partition{metadata.Partitions[0], metadata.Partitions[1]},
+		partitions: []partition.Partition{metadata.Partitions[0]},
 	}, nil
 }
 

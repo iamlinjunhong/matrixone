@@ -25,7 +25,6 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/common/mpool"
 	"github.com/matrixorigin/matrixone/pkg/container/batch"
 	"github.com/matrixorigin/matrixone/pkg/container/types"
-	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/matrixorigin/matrixone/pkg/logutil"
 	"github.com/matrixorigin/matrixone/pkg/objectio"
 	"github.com/matrixorigin/matrixone/pkg/partitionservice"
@@ -643,14 +642,16 @@ func (tbl *txnTableDelegate) PrimaryKeysMayBeModified(
 	ctx context.Context,
 	from types.TS,
 	to types.TS,
-	keyVector *vector.Vector,
+	bat *batch.Batch,
+	pkIndex int32,
 ) (bool, error) {
 	if tbl.partition.is {
 		return tbl.partition.tbl.PrimaryKeysMayBeModified(
 			ctx,
 			from,
 			to,
-			keyVector,
+			bat,
+			pkIndex,
 		)
 	}
 
@@ -663,11 +664,13 @@ func (tbl *txnTableDelegate) PrimaryKeysMayBeModified(
 			ctx,
 			from,
 			to,
-			keyVector,
+			bat,
+			pkIndex,
 		)
 	}
 
 	modify := false
+	keyVector := bat.GetVector(pkIndex)
 	err = tbl.forwardRead(
 		ctx,
 		shardservice.ReadPrimaryKeysMayBeModified,
@@ -704,14 +707,16 @@ func (tbl *txnTableDelegate) PrimaryKeysMayBeUpserted(
 	ctx context.Context,
 	from types.TS,
 	to types.TS,
-	keyVector *vector.Vector,
+	bat *batch.Batch,
+	pkIndex int32,
 ) (bool, error) {
 	if tbl.partition.is {
 		return tbl.partition.tbl.PrimaryKeysMayBeUpserted(
 			ctx,
 			from,
 			to,
-			keyVector,
+			bat,
+			pkIndex,
 		)
 	}
 
@@ -724,11 +729,13 @@ func (tbl *txnTableDelegate) PrimaryKeysMayBeUpserted(
 			ctx,
 			from,
 			to,
-			keyVector,
+			bat,
+			pkIndex,
 		)
 	}
 
 	modify := false
+	keyVector := bat.GetVector(pkIndex)
 	err = tbl.forwardRead(
 		ctx,
 		shardservice.ReadPrimaryKeysMayBeUpserted,
@@ -1030,7 +1037,8 @@ func (tbl *txnTableDelegate) GetProcess() any {
 }
 
 func (tbl *txnTableDelegate) isLocalFunc() (bool, error) {
-	if !tbl.shard.service.Config().Enable || // sharding not enabled
+	if !tbl.shard.is || // is not sharding table
+		!tbl.shard.service.Config().Enable || // sharding not enabled
 		!tbl.shard.is || // sharding not enabled
 		(tbl.shard.policy == shard.Policy_Partition && tbl.origin.tableId == tbl.shard.tableID) { // partition table self.
 		return true, nil

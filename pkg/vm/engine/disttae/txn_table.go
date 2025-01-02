@@ -88,40 +88,41 @@ func newTxnTable(
 			eng,
 		),
 	}
-
-	ps := partitionservice.GetService(process.GetService())
-	is, metadata, err := ps.Is(process.Ctx, item.Id, txn.op)
-	if err != nil {
-		return nil, err
-	}
-	if is {
-		p, err := newPartitionTxnTable(
-			tbl.origin,
-			metadata,
-			ps,
-		)
-		if err != nil {
-			return nil, err
-		}
-		tbl.partition.tbl = p
-		tbl.partition.is = true
-		tbl.partition.service = ps
-	}
-
-	tbl.shard.service = shardservice.GetService(process.GetService())
-	tbl.shard.is = false
 	tbl.isLocal = tbl.isLocalFunc
 
-	if tbl.shard.service.Config().Enable &&
-		db.databaseId != catalog.MO_CATALOG_ID {
-		tableID, policy, is, err := tbl.shard.service.GetShardInfo(item.Id)
+	if db.databaseId != catalog.MO_CATALOG_ID {
+		ps := partitionservice.GetService(process.GetService())
+		is, metadata, err := ps.Is(process.Ctx, item.Id, txn.op)
 		if err != nil {
 			return nil, err
 		}
+		if is {
+			p, err := newPartitionTxnTable(
+				tbl.origin,
+				metadata,
+				ps,
+			)
+			if err != nil {
+				return nil, err
+			}
+			tbl.partition.tbl = p
+			tbl.partition.is = true
+			tbl.partition.service = ps
+		}
 
-		tbl.shard.is = is
-		tbl.shard.policy = policy
-		tbl.shard.tableID = tableID
+		tbl.shard.service = shardservice.GetService(process.GetService())
+		tbl.shard.is = false
+
+		if tbl.shard.service.Config().Enable {
+			tableID, policy, is, err := tbl.shard.service.GetShardInfo(item.Id)
+			if err != nil {
+				return nil, err
+			}
+
+			tbl.shard.is = is
+			tbl.shard.policy = policy
+			tbl.shard.tableID = tableID
+		}
 	}
 
 	return tbl, nil
@@ -2059,8 +2060,10 @@ func (tbl *txnTable) PrimaryKeysMayBeUpserted(
 	ctx context.Context,
 	from types.TS,
 	to types.TS,
-	keysVector *vector.Vector,
+	batch *batch.Batch,
+	pkIndex int32,
 ) (bool, error) {
+	keysVector := batch.GetVector(pkIndex)
 	return tbl.primaryKeysMayBeChanged(ctx, from, to, keysVector, false)
 }
 
@@ -2068,8 +2071,10 @@ func (tbl *txnTable) PrimaryKeysMayBeModified(
 	ctx context.Context,
 	from types.TS,
 	to types.TS,
-	keysVector *vector.Vector,
+	batch *batch.Batch,
+	pkIndex int32,
 ) (bool, error) {
+	keysVector := batch.GetVector(pkIndex)
 	return tbl.primaryKeysMayBeChanged(ctx, from, to, keysVector, true)
 }
 

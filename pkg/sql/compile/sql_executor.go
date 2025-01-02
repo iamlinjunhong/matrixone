@@ -18,6 +18,8 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
+	"fmt"
+	"runtime/debug"
 	"time"
 
 	"go.uber.org/zap"
@@ -137,6 +139,7 @@ func (s *sqlExecutor) ExecTxn(
 	}
 	err = execFunc(exec)
 	if err != nil {
+		fmt.Println(string(debug.Stack()))
 		logutil.Errorf("internal sql executor error: %v", err)
 		return exec.rollback(err)
 	}

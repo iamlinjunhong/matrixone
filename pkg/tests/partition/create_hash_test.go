@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/matrixorigin/matrixone/pkg/cnservice"
+	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/matrixorigin/matrixone/pkg/defines"
 	"github.com/matrixorigin/matrixone/pkg/embed"
 	"github.com/matrixorigin/matrixone/pkg/partitionservice"
@@ -73,12 +74,23 @@ func TestCreateAndDeleteHashBased(t *testing.T) {
 				fmt.Sprintf("insert into %s values(1, '[1.1, 2.2]')", t.Name()),
 			)
 
-			testutils.ExecSQL(
+			readValue := int32(0)
+			testutils.ExecSQLWithReadResult(
 				t,
 				db,
 				cn,
-				fmt.Sprintf("delete from %s where b is not null", t.Name()),
+				func(i int, s string, r executor.Result) {
+					r.ReadRows(func(
+						rows int,
+						cols []*vector.Vector,
+					) bool {
+						readValue = executor.GetFixedRows[int32](cols[0])[0]
+						return true
+					})
+				},
+				fmt.Sprintf("select c from %s", t.Name()),
 			)
+			require.Equal(t, int32(1), readValue)
 
 			testutils.ExecSQL(
 				t,

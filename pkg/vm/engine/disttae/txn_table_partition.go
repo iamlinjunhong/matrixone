@@ -20,7 +20,6 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/common/mpool"
 	"github.com/matrixorigin/matrixone/pkg/container/batch"
 	"github.com/matrixorigin/matrixone/pkg/container/types"
-	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/matrixorigin/matrixone/pkg/objectio"
 	"github.com/matrixorigin/matrixone/pkg/partitionservice"
 	"github.com/matrixorigin/matrixone/pkg/pb/api"
@@ -117,7 +116,7 @@ func (t *partitionTxnTable) BuildReaders(
 		value := slice.Get(i)
 		data, ok := m[value.PartitionIdx]
 		if !ok {
-			data := relData.BuildEmptyRelData(n)
+			data = relData.BuildEmptyRelData(n)
 			data.AttachTombstones(data.GetTombstones())
 			m[value.PartitionIdx] = data
 		}
@@ -255,7 +254,7 @@ func (t *partitionTxnTable) CollectChanges(
 	from, to types.TS,
 	mp *mpool.MPool,
 ) (engine.ChangesHandle, error) {
-	return nil, nil
+	panic("not implemented")
 }
 
 func (t *partitionTxnTable) ApproxObjectsNum(ctx context.Context) int {
@@ -293,6 +292,25 @@ func (t *partitionTxnTable) GetNonAppendableObjectStats(ctx context.Context) ([]
 		stats = append(stats, values...)
 	}
 	return stats, nil
+}
+
+func (t *partitionTxnTable) GetColumMetadataScanInfo(
+	ctx context.Context,
+	name string,
+) ([]*plan.MetadataScanInfo, error) {
+	var values []*plan.MetadataScanInfo
+	for idx := range t.metadata.Partitions {
+		p, err := t.getRelation(ctx, idx)
+		if err != nil {
+			return nil, err
+		}
+		v, err := p.GetColumMetadataScanInfo(ctx, name)
+		if err != nil {
+			return nil, err
+		}
+		values = append(values, v...)
+	}
+	return values, nil
 }
 
 func (t *partitionTxnTable) UpdateConstraint(context.Context, *engine.ConstraintDef) error {
@@ -363,20 +381,50 @@ func (t *partitionTxnTable) GetProcess() any {
 	return t.primary.GetProcess()
 }
 
-func (t *partitionTxnTable) GetColumMetadataScanInfo(
-	ctx context.Context,
-	name string,
-) ([]*plan.MetadataScanInfo, error) {
-	return nil, nil
-}
-
 func (t *partitionTxnTable) PrimaryKeysMayBeModified(
 	ctx context.Context,
 	from types.TS,
 	to types.TS,
-	keyVector *vector.Vector,
+	bat *batch.Batch,
+	pkIndex int32,
 ) (bool, error) {
-	panic("BUG: cannot modify primary keys in partition primary table")
+	res, err := t.ps.Prune(
+		ctx,
+		t.metadata.TableID,
+		bat,
+		nil,
+	)
+	if err != nil {
+		return false, err
+	}
+	defer res.Close()
+
+	changed := false
+	res.Iter(
+		func(p partition.Partition, bat *batch.Batch) bool {
+			v, e := t.primary.db.relation(
+				ctx,
+				p.PartitionTableName,
+				t.primary.proc.Load(),
+			)
+			if e != nil {
+				err = e
+				return false
+			}
+			changed, err = v.PrimaryKeysMayBeModified(
+				ctx,
+				from,
+				to,
+				bat,
+				pkIndex,
+			)
+			if err != nil || changed {
+				return false
+			}
+			return true
+		},
+	)
+	return changed, err
 }
 
 func (t *partitionTxnTable) Write(context.Context, *batch.Batch) error {
@@ -395,7 +443,8 @@ func (t *partitionTxnTable) PrimaryKeysMayBeUpserted(
 	ctx context.Context,
 	from types.TS,
 	to types.TS,
-	keyVector *vector.Vector,
+	bat *batch.Batch,
+	pkIndex int32,
 ) (bool, error) {
 	panic("BUG: cannot upsert primary keys in partition primary table")
 }
