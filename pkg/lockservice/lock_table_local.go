@@ -107,7 +107,8 @@ func (l *localLockTable) Traverse(ctx context.Context) {
 			})
 			l.logger.Error("count of lock and waiter",
 				zap.Int("lock-count", lockCount),
-				zap.Int("waiter-count", waiterQueueCount))
+				zap.Int("waiter-count", waiterQueueCount),
+				bindsArrayField("binds", []pb.LockTable{l.bind}))
 			l.mu.Unlock()
 			timer.Reset(t)
 		}
