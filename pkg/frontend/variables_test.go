@@ -23,6 +23,15 @@ import (
 	"github.com/smartystreets/goconvey/convey"
 )
 
+func TestProbeLimitAcceptsLargeValue(t *testing.T) {
+	def, ok := gSysVarsDefs["probe_limit"]
+	assert.True(t, ok)
+
+	got, err := def.Type.Convert(int64(8929))
+	assert.NoError(t, err)
+	assert.Equal(t, int64(8929), got)
+}
+
 func TestScope(t *testing.T) {
 	convey.Convey("test scope", t, func() {
 		wanted := make(map[Scope]string)

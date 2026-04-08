@@ -127,6 +127,9 @@ func (idx *IvfflatSearchIndex[T]) LoadBloomFilters(
 		}
 		nprobe = val.(int64)
 	}
+	if nprobe > int64(idxcfg.Ivfflat.Lists) {
+		nprobe = int64(idxcfg.Ivfflat.Lists)
+	}
 
 	// set the size of bloomfilter to max centroid size * probe so that the final
 	// centroid bloomfilter have enough room after merge with nprobe centroids

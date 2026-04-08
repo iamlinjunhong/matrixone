@@ -3636,7 +3636,7 @@ var gSysVarsDefs = map[string]SystemVariable{
 		Scope:             ScopeBoth,
 		Dynamic:           true,
 		SetVarHintApplies: false,
-		Type:              InitSystemVariableIntType("probe_limit", 1, 1024, false),
+		Type:              InitSystemVariableIntType("probe_limit", 1, math.MaxInt64, false),
 		Default:           int64(5),
 	},
 	"kmeans_train_percent": {

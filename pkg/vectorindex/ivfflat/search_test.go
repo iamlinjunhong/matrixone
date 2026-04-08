@@ -15,6 +15,7 @@
 package ivfflat
 
 import (
+	"context"
 	"testing"
 
 	"github.com/matrixorigin/matrixone/pkg/common/moerr"
@@ -22,10 +23,33 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/testutil"
 	"github.com/matrixorigin/matrixone/pkg/util/executor"
 	"github.com/matrixorigin/matrixone/pkg/vectorindex"
+	"github.com/matrixorigin/matrixone/pkg/vectorindex/cache"
 	"github.com/matrixorigin/matrixone/pkg/vectorindex/metric"
 	"github.com/matrixorigin/matrixone/pkg/vectorindex/sqlexec"
 	"github.com/stretchr/testify/require"
 )
+
+type mockVectorIndexSearch struct {
+	lastRT vectorindex.RuntimeConfig
+	keys   []int64
+}
+
+func (m *mockVectorIndexSearch) Search(proc *sqlexec.SqlProcess, query any, rt vectorindex.RuntimeConfig) (any, []float64, error) {
+	m.lastRT = rt
+	return m.keys, nil, nil
+}
+
+func (m *mockVectorIndexSearch) SearchFloat32(proc *sqlexec.SqlProcess, query any, rt vectorindex.RuntimeConfig, outKeys []int64, outDists []float32) error {
+	m.lastRT = rt
+	copy(outKeys, m.keys)
+	return nil
+}
+
+func (m *mockVectorIndexSearch) Load(*sqlexec.SqlProcess) error { return nil }
+
+func (m *mockVectorIndexSearch) UpdateConfig(cache.VectorIndexSearchIf) error { return nil }
+
+func (m *mockVectorIndexSearch) Destroy() {}
 
 // give blob
 func mock_runSql(
@@ -117,4 +141,20 @@ func TestIvfSearchParserError(t *testing.T) {
 
 	_, _, err := idx.Search(sqlproc, idxcfg, tblcfg, v, rt, 4)
 	require.NotNil(t, err)
+}
+
+func TestProbeLimitCappedByListsInFindCentroids(t *testing.T) {
+	runSql = mock_runSql
+
+	m := &mockVectorIndexSearch{keys: []int64{3, 1, 2}}
+	idx := &IvfflatSearchIndex[float32]{Centroids: m}
+	sqlproc := sqlexec.NewSqlProcessWithContext(sqlexec.NewSqlContext(context.Background(), "", nil, 0, nil))
+
+	var idxcfg vectorindex.IndexConfig
+	idxcfg.Ivfflat.Lists = 3
+
+	keys, err := idx.findCentroids(sqlproc, []float32{0, 1, 2}, nil, idxcfg, 8929, 1)
+	require.NoError(t, err)
+	require.Equal(t, []int64{3, 1, 2}, keys)
+	require.Equal(t, uint(3), m.lastRT.Limit)
 }
