@@ -250,6 +250,7 @@ func makeWindowSpec(refName *tree.CStr, partitionBy tree.Exprs, orderBy tree.Ord
     funcArgs tree.FunctionArgs
     funcArgDecl *tree.FunctionArgDecl
     funcReturn *tree.ReturnType
+    pythonFunctionOptions tree.PythonFunctionOptions
 
     procName *tree.ProcedureName
     procArg tree.ProcedureArg
@@ -609,6 +610,7 @@ func makeWindowSpec(refName *tree.CStr, partitionBy tree.Exprs, orderBy tree.Ord
 // Revoke
 %token <str> REVOKE FUNCTION PRIVILEGES TABLESPACE EXECUTE SUPER GRANT OPTION REFERENCES REPLICATION
 %token <str> SLAVE CLIENT USAGE RELOAD FILE FILES TEMPORARY ROUTINE EVENT SHUTDOWN
+%token <str> CALLED INPUT SCALAR VECTOR
 
 // Type Modifiers
 %token <str> NULLX AUTO_INCREMENT APPROXNUM SIGNED UNSIGNED ZEROFILL ENGINES LOW_CARDINALITY AUTOEXTEND_SIZE
@@ -866,7 +868,8 @@ func makeWindowSpec(refName *tree.CStr, partitionBy tree.Exprs, orderBy tree.Ord
 %type <funcArgDecl> func_arg_decl
 %type <funcReturn> func_return
 %type <boolVal> func_body_import internal_opt
-%type <str> func_lang extension_lang extension_name
+%type <str> func_lang extension_lang extension_name func_null_policy func_mode
+%type <pythonFunctionOptions> func_python_options_opt
 
 %type <procName> proc_name
 %type <procArgs> proc_args_list_opt proc_args_list
@@ -8901,7 +8904,7 @@ opt_lang:
     }
 
 create_function_stmt:
-    CREATE replace_opt FUNCTION func_name '(' func_args_list_opt ')' RETURNS func_return LANGUAGE func_lang func_body_import STRING func_handler_opt
+    CREATE replace_opt FUNCTION func_name '(' func_args_list_opt ')' RETURNS func_return LANGUAGE func_lang func_body_import STRING func_handler_opt func_python_options_opt
     {
     	if $13 == "" {
             yylex.Error("no function body error")
@@ -8920,8 +8923,9 @@ create_function_stmt:
         var Import = $12
         var Body = $13
         var Handler = $14
+        var Options = $15
 
-        $$ = tree.NewCreateFunction(
+        node := tree.NewCreateFunction(
             Replace,
             Name,
             Args,
@@ -8931,6 +8935,9 @@ create_function_stmt:
             Body,
             Handler,
         )
+        node.Mode = Options.Mode
+        node.NullPolicy = Options.NullPolicy
+        $$ = node
     }
 
 func_name:
@@ -9014,6 +9021,47 @@ func_handler:
     HANDLER STRING
     {
     	$$ = $2
+    }
+
+func_python_options_opt:
+    {
+        $$ = tree.PythonFunctionOptions{}
+    }
+|   MODE func_mode
+    {
+        $$ = tree.PythonFunctionOptions{Mode: $2}
+    }
+|   func_null_policy
+    {
+        $$ = tree.PythonFunctionOptions{NullPolicy: $1}
+    }
+|   MODE func_mode func_null_policy
+    {
+        $$ = tree.PythonFunctionOptions{Mode: $2, NullPolicy: $3}
+    }
+|   func_null_policy MODE func_mode
+    {
+        $$ = tree.PythonFunctionOptions{Mode: $3, NullPolicy: $1}
+    }
+
+func_mode:
+    SCALAR
+    {
+        $$ = "SCALAR"
+    }
+|   VECTOR
+    {
+        $$ = "VECTOR"
+    }
+
+func_null_policy:
+    CALLED ON NULL INPUT
+    {
+        $$ = "CALLED_ON_NULL_INPUT"
+    }
+|   RETURNS NULL ON NULL INPUT
+    {
+        $$ = "RETURNS_NULL_ON_NULL_INPUT"
     }
 
 create_view_stmt:
@@ -16509,6 +16557,7 @@ non_reserved_keyword:
 |   BLOB
 |   BOOL
 |   BITS_PER_CODE
+|   CALLED
 |   BRANCH
 |   CATALOG
 |   CATALOGS
@@ -16590,6 +16639,7 @@ non_reserved_keyword:
 |   PERSIST
 |   GRANT
 |   INCLUDE
+|   INPUT
 |   INT
 |   INTEGER
 |   INDEXES
@@ -16681,6 +16731,7 @@ non_reserved_keyword:
 |   PROFILES
 |   PROFILE
 |   ROLE
+|   SCALAR
 |   RULE
 |   RULES
 |   RANGE
@@ -16739,6 +16790,7 @@ non_reserved_keyword:
 |   VARBINARY
 |   VARCHAR
 |   VARIABLES
+|   VECTOR
 |   VIEW
 |   VIRTUAL
 |   WRITE
