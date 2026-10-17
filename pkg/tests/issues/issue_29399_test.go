@@ -593,6 +593,21 @@ func TestIssue29399AccountPITRRebindsPrivileges(t *testing.T) {
 		// Keep the reader on another CN to cover remote revocation and restore.
 		readerCN, err := c.GetCNService(1)
 		require.NoError(t, err)
+		writerClient := cn.RawService().(cnservice.Service).GetTxnClient()
+		readerClient := readerCN.RawService().(cnservice.Service).GetTxnClient()
+		waitReaderCatalog := func() {
+			t.Helper()
+			// A writer acknowledgement does not imply that another CN has
+			// applied its commit when sacrificing freshness is enabled. Test
+			// authorization after that causal boundary, without replacing the
+			// reader connection or its retained prepared statement.
+			committed := writerClient.GetLatestCommitTS()
+			require.False(t, committed.IsEmpty())
+			snapshot, err := readerClient.WaitLogTailAppliedAt(ctx, committed)
+			require.NoError(t, err)
+			require.True(t, committed.Less(snapshot))
+		}
+		waitReaderCatalog()
 		readerDB, err := sql.Open("mysql", fmt.Sprintf(
 			"%s#pitr_user#pitr_reader:111@tcp(127.0.0.1:%d)/", accountName, readerCN.GetServiceConfig().CN.Frontend.Port,
 		))
@@ -611,18 +626,21 @@ func TestIssue29399AccountPITRRebindsPrivileges(t *testing.T) {
 		require.NoError(t, err)
 		defer reader.Close()
 		execSQLRequire(t, ctx, adminDB, "grant delete on table `"+databaseName+"`.orders to pitr_reader")
+		waitReaderCatalog()
 		prepared, err := reader.PrepareContext(ctx, "delete from `"+databaseName+"`.orders where id = ?")
 		require.NoError(t, err)
 		defer prepared.Close()
 		_, err = prepared.ExecContext(ctx, -1)
 		require.NoError(t, err)
 		execSQLRequire(t, ctx, adminDB, "revoke delete on table `"+databaseName+"`.orders from pitr_reader")
+		waitReaderCatalog()
 		_, err = prepared.ExecContext(ctx, -1)
 		require.ErrorContains(t, err, "do not have privilege")
 
 		for _, scope := range []string{"database `" + databaseName + "` table orders", "database `" + databaseName + "`"} {
 			for range 2 {
 				execSQLRequire(t, ctx, adminDB, "restore "+scope+" from pitr "+pitrName+" '"+restoreAt+"'")
+				waitReaderCatalog()
 				require.NoError(t, reader.QueryRowContext(ctx, "select count(*) from `"+databaseName+"`.orders").Scan(&count))
 				require.Equal(t, 1, count)
 				_, err = prepared.ExecContext(ctx, -1)
@@ -630,9 +648,11 @@ func TestIssue29399AccountPITRRebindsPrivileges(t *testing.T) {
 			}
 		}
 		execSQLRequire(t, ctx, adminDB, "grant delete on table `"+databaseName+"`.orders to pitr_reader")
+		waitReaderCatalog()
 		_, err = prepared.ExecContext(ctx, -1)
 		require.NoError(t, err)
 		execSQLRequire(t, ctx, adminDB, "restore from pitr "+pitrName+" '"+restoreAt+"'")
+		waitReaderCatalog()
 		_, err = prepared.ExecContext(ctx, -1)
 		require.ErrorContains(t, err, "do not have privilege", "account PITR left a stale prepared privilege")
 	})
