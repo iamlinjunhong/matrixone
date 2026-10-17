@@ -5,7 +5,7 @@
 | Record | `python-udf-current-stage-r1-2026-09-24-approval` |
 | Issue | [MatrixOne #28132](https://github.com/matrixorigin/matrixone/issues/28132) |
 | Implementation PR | [MatrixOne #29152](https://github.com/matrixorigin/matrixone/pull/29152) |
-| Current-stage proposal | [`python-udf-current-stage-r17-2026-10-16`](python_udf_current_stage.md); historical r1 approval retained below |
+| Current-stage proposal | [`python-udf-current-stage-r18-2026-10-17`](python_udf_current_stage.md); historical r1 approval retained below |
 | Scope | Explicitly enabled test/development adapter; no production rollout or production-readiness claim |
 
 This record separates the immutable current-stage design artifact, the feature
@@ -316,3 +316,32 @@ production or security scope to Python UDFs.
 
 Independent Architecture and SQL/Planner approval of r17 remains pending.
 Mechanical rebase, protocol allocation and validation do not supply it.
+
+## r18 protocol and catalog allocation addendum (2026-10-17)
+
+Official main `b111224b0c624773389b390cd3cf1223126b6ee2` owns MORPC 118
+for transactional database defaults and table charset alteration, including
+its catalog 4.0.15 migration. The governing
+`python-udf-current-stage-r18-2026-10-17` revision preserves that handler and
+all earlier published handlers unchanged. Python's single new capability is
+119; its nine idempotent shared-function entries move to catalog 4.0.16,
+whose minimum direct source is 4.0.15. The historical 4.0.7 entries keep their
+original provenance and are not treated as current Python admission.
+
+Shared revision publication/read, cached/prepared/evaluator checks,
+remote destination/send/receive admission, repair metadata, login compensation
+and `GetPythonUdfStatus` require capability 119. Immediate predecessor 118
+and mixed 119/118 CNs are rejected before shared-function mutation. The
+independent table-collation/defaults contract remains at 118; LEAST/GREATEST
+remains at 117. Ordinary SQL UDFs retain their pre-floor legacy fallback.
+The real login-repair regression covers tenant versions 4.0.12 through
+4.0.15, rejection at 118, preserved legacy SQL results, and idempotent replay.
+
+Generated plan bindings combine the upstream database-defaults message with
+Python routine identities; the merged parser retains both charset DDL and
+Python function syntax. This mechanical rebase adds no Python execution,
+production or security scope. The earlier addenda describe their historical
+allocations, not the governing r18 admission floor.
+
+Independent Architecture and SQL/Planner approval of r18 remains pending.
+Rebase, allocation and validation do not provide independent approval.
