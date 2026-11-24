@@ -856,19 +856,14 @@ func AddRewriteHintsWithSQLModeAndLowerCaseTableNames(
 		if prepare, ok := stmt.(*tree.PrepareStmt); ok && prepare.Stmt != nil {
 			attachStmt = prepare.Stmt
 		}
-		// DML EXPLAIN uses the same target policy as the enclosed statement.
-		var explained tree.Statement
+		// EXPLAIN uses the enclosed statement's target and read-source policies.
 		switch explain := attachStmt.(type) {
 		case *tree.ExplainStmt:
-			explained = explain.Statement
+			attachStmt = explain.Statement
 		case *tree.ExplainAnalyze:
-			explained = explain.Statement
+			attachStmt = explain.Statement
 		case *tree.ExplainPhyPlan:
-			explained = explain.Statement
-		}
-		switch explained.(type) {
-		case *tree.Update, *tree.Delete:
-			attachStmt = explained
+			attachStmt = explain.Statement
 		}
 		switch s := attachStmt.(type) {
 		case *tree.Update:
