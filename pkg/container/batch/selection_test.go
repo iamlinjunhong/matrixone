@@ -221,7 +221,10 @@ func TestBatchRowOpsRejectSelectedBatch(t *testing.T) {
 		"Union":       func(dst, src *Batch, _ *bitmap.Bitmap, mp *mpool.MPool) error { return dst.Union(src, []int64{0}, mp) },
 		"UnionWindow": func(dst, src *Batch, _ *bitmap.Bitmap, mp *mpool.MPool) error { return dst.UnionWindow(src, 0, 2, mp) },
 		"UnionOne":    func(dst, src *Batch, _ *bitmap.Bitmap, mp *mpool.MPool) error { return dst.UnionOne(src, 0, mp) },
-		"CloneTo":     func(dst, src *Batch, _ *bitmap.Bitmap, mp *mpool.MPool) error { return src.CloneTo(dst, mp) },
+		"UnionByMask": func(dst, src *Batch, mask *bitmap.Bitmap, mp *mpool.MPool) error {
+			return dst.UnionByMask(src, mask, mp)
+		},
+		"CloneTo": func(dst, src *Batch, _ *bitmap.Bitmap, mp *mpool.MPool) error { return src.CloneTo(dst, mp) },
 		"CloneSelectedColumnsTo": func(dst, src *Batch, _ *bitmap.Bitmap, mp *mpool.MPool) error {
 			return src.CloneSelectedColumnsTo([]int{0}, dst, mp)
 		},
