@@ -172,6 +172,16 @@ func TestExplainAnalyzeCarriesRoleRule(t *testing.T) {
 				}), 1)
 			}()
 		}
+
+		// The nested correlated SELECT adds dependent plan steps. The
+		// reported cardinality must describe the authorized outer result.
+		execSQLRequire(t, ctx, admin, "insert into "+filtered+" values (10, 1)")
+		correlatedQuery := "select (select (select o.id)) from " + filtered + " o order by o.id"
+		require.Equal(t, []string{"7", "10"}, queryColumn(correlatedQuery))
+		for _, prefix := range []string{"explain analyze ", "explain phyplan analyze "} {
+			assertPlanStats(queryColumn(prefix+correlatedQuery), 2)
+		}
+
 		unrestricted := strings.Join(readColumn(func() (*sql.Rows, error) {
 			return admin.QueryContext(ctx, "explain analyze "+filteredQuery)
 		}), "\n")

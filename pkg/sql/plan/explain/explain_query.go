@@ -182,13 +182,17 @@ func (e *ExplainQueryImpl) ExplainPlan(ctx context.Context, buffer *ExplainDataB
 	return checkPlan(ctx, buffer.Lines, options.CheckExpr)
 }
 
-// ResultRowsLine reports the final SELECT output. Earlier steps can contain
-// intermediates that have yet to pass through a role rule.
+// ResultRowsLine reports the main SELECT output. A correlated plan can have
+// dependent steps after its main output step.
 func ResultRowsLine(qry *plan.Query) string {
-	if qry == nil || qry.StmtType != plan.Query_SELECT || len(qry.Steps) == 0 {
+	if qry == nil || qry.StmtType != plan.Query_SELECT {
 		return ""
 	}
-	root := qry.Steps[len(qry.Steps)-1]
+	output := qry.MainOutputStep()
+	if output < 0 || int(output) >= len(qry.Steps) {
+		return ""
+	}
+	root := qry.Steps[output]
 	if root < 0 || int(root) >= len(qry.Nodes) {
 		return ""
 	}
